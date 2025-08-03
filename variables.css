@@ -1,0 +1,63 @@
+:root {
+  /* Colors */
+  --primary-color: #1a237e;  /* Dark Blue */
+  --secondary-color: #3949ab; /* Lighter Blue */
+  --accent-color: #00b0ff;   /* Bright Blue */
+  --success-color: #00c853;
+  --danger-color: #d50000;
+  --warning-color: #ffa000;
+  --info-color: #0288d1;
+  --background-color: #0a1929; /* Dark Blue Background */
+  --surface-color: #132f4c;   /* Slightly Lighter Blue */
+  --text-color: #ffffff;
+  --text-secondary: #b0bec5;
+  --text-disabled: rgba(176, 190, 197, 0.5);
+  --border-color: #1e3a5f;
+  --border-color-light: rgba(30, 58, 95, 0.5);
+
+  /* Status Colors RGB for opacity variations */
+  --success-color-rgb: 0, 200, 83;
+  --danger-color-rgb: 213, 0, 0;
+  --warning-color-rgb: 255, 160, 0;
+  --info-color-rgb: 2, 136, 209;
+  --accent-color-rgb: 0, 176, 255;
+  
+  /* Badge Colors */
+  --success-light: rgba(0, 200, 83, 0.15);
+  --success-dark: rgba(0, 200, 83, 0.9);
+  --warning-light: rgba(255, 160, 0, 0.15);
+  --warning-dark: rgba(255, 160, 0, 0.9);
+  --danger-light: rgba(213, 0, 0, 0.5);
+  --danger-dark: rgba(213, 0, 0, 0.9);
+  --info-light: rgba(2, 136, 209, 0.15);
+  --info-dark: rgba(2, 136, 209, 0.9);
+
+  /* Spacing */
+  --page-padding: 5%;
+  --section-spacing: 4rem;
+  --component-spacing: 2rem;
+  --element-spacing: 1rem;
+
+  /* Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 20px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.2);
+
+  /* Transitions */
+  --transition-fast: 0.2s;
+  --transition-normal: 0.3s;
+  --transition-slow: 0.5s;
+
+  /* Z-index layers */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-modal: 1030;
+  --z-popover: 1040;
+  --z-tooltip: 1050;
+} 

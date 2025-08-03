@@ -13,8 +13,8 @@ export function ThemeToggle() {
 
   if (!mounted) {
     return (
-      <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse">
-        <div className="w-5 h-5 rounded bg-gray-300 dark:bg-gray-600"></div>
+      <button className="p-2 rounded-full bg-surface animate-pulse">
+        <div className="w-5 h-5 rounded bg-border"></div>
       </button>
     );
   }
@@ -26,14 +26,19 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      className="p-2 rounded-full hover:bg-surface-elevated transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      style={{
+        backgroundColor: "var(--surface-color)",
+        borderColor: "var(--border-color)",
+      }}
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
       title={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
     >
       {theme === "dark" ? (
         // Sun icon for light mode
         <svg
-          className="w-5 h-5 text-yellow-500"
+          className="w-5 h-5"
+          style={{ color: "var(--warning-color)" }}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -48,7 +53,8 @@ export function ThemeToggle() {
       ) : (
         // Moon icon for dark mode
         <svg
-          className="w-5 h-5 text-slate-700"
+          className="w-5 h-5"
+          style={{ color: "var(--text-color)" }}
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

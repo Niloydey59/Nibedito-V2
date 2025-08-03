@@ -64,6 +64,13 @@ const config: Config = {
           DEFAULT: "var(--text-secondary)",
           foreground: "var(--text-tertiary)",
         },
+        // Additional semantic colors for better theming
+        destructive: {
+          DEFAULT: "var(--danger-color)",
+          foreground: "var(--background-color)",
+        },
+        input: "var(--surface-color)",
+        ring: "var(--primary-color)",
       },
       borderRadius: {
         sm: "var(--border-radius-sm)",
