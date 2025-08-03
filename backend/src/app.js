@@ -1,0 +1,76 @@
+const express = require('express');
+const morgan = require('morgan');
+const bodyParser = require('body-parser');
+const createError = require('http-errors');
+const rateLimit = require('express-rate-limit');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+
+const userRouter = require('./routers/userRouter');
+const authRouter = require('./routers/authRouter');
+const adminRouter = require('./routers/adminRouter');
+const categoryRouter = require('./routers/categoryRouter');
+const subcategoryRouter = require('./routers/subcategoryRouter');
+const productRouter = require('./routers/productRouter');
+const cartRouter = require('./routers/cartRouter');
+const { errorResponse } = require('./controllers/responseController');
+const couponRouter = require('./routers/couponRouter');
+const orderRouter = require('./routers/orderRouter');
+const shippingRouter = require('./routers/shippingRouter');
+const paymentRouter = require('./routers/paymentRouter');
+const faqRouter = require('./routers/faqRouter');
+const secret = require('./secret');
+
+const app = express();
+app.set('trust proxy', 1);
+
+app.use(morgan(secret.nodeEnv === 'production' ? 'combined' : 'dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+app.use(cors({
+    origin: secret.clientURL,
+    credentials: true,
+}));
+
+const rateLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 300,
+    message: 'Too many requests, Please try again later',
+});
+app.use(rateLimiter);
+
+app.use("/api/users", userRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/categories", categoryRouter);
+app.use("/api/subcategories", subcategoryRouter);
+app.use("/api/products", productRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/coupon", couponRouter);
+app.use("/api/shipping", shippingRouter);
+app.use("/api/payment", paymentRouter);
+app.use("/api/faqs", faqRouter);
+
+app.get('/test', (req, res) =>{
+    res.status(200).send({
+        message: 'Test is working',
+    });
+});
+
+// Client Error Handling
+app.use((req, res, next) => {
+    next(createError(404, 'Route not found'));
+});
+// Server Error Handling
+app.use((err, req, res, next) => {
+    return errorResponse(res, {
+        statusCode: err.status,
+        message: err.message,
+    });
+    next();
+});
+
+module.exports = app;

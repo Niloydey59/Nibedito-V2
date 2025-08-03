@@ -1,0 +1,541 @@
+/* Order Details Page CSS */
+
+.order-details-container {
+    border-radius: var(--border-radius-md);
+    padding: 3rem 7rem;
+    color: var(--text-color);
+    box-shadow: var(--shadow-md);
+}
+
+.order-details-header {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--element-spacing);
+    padding-bottom: var(--element-spacing);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+    align-self: flex-start;
+    display: flex;
+    align-items: center;
+    color: var(--accent-color);
+    font-weight: 500;
+    margin-bottom: 1rem;
+    transition: color var(--transition-fast);
+}
+
+.back-button:hover {
+    color: var(--text-color);
+}
+
+.order-details-header h1 {
+    margin: 0.5rem 0;
+    color: var(--text-color);
+}
+
+.order-id,
+.order-date {
+    color: var(--text-secondary);
+    margin: 0.25rem 0;
+}
+
+.order-id span,
+.order-date span {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.order-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--element-spacing);
+    margin-bottom: var(--element-spacing);
+}
+
+.order-details-section {
+    background-color: rgba(19, 47, 76, 0.5);
+    border-radius: var(--border-radius-md);
+    padding: var(--element-spacing);
+    border: 1px solid var(--border-color);
+    margin-bottom: var(--element-spacing);
+}
+
+.order-details-section h2 {
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+.customer-details,
+.shipping-details {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.customer-details strong,
+.shipping-details strong {
+    color: var(--text-color);
+}
+
+.customer-name {
+    font-size: 1.1rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.customer-link {
+    display: inline-block;
+    margin: 0.5rem 0;
+    color: var(--accent-color);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.customer-link:hover {
+    color: var(--text-color);
+}
+
+.customer-contact {
+    margin-top: 0.75rem;
+}
+
+.gift-section {
+    background-color: rgba(var(--info-color-rgb), 0.08);
+    border: 1px solid rgba(var(--info-color-rgb), 0.15);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: var(--element-spacing);
+}
+
+.gift-section:before {
+    content: "🎁";
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    font-size: 2rem;
+}
+
+.gift-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+}
+
+.gift-badge {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(var(--accent-color-rgb), 0.15);
+    color: var(--accent-color);
+    padding: 0.35rem 0.85rem;
+    border-radius: var(--border-radius-sm);
+    margin-bottom: 0.5rem;
+    width: fit-content;
+    border: 1px solid rgba(var(--accent-color-rgb), 0.3);
+    box-shadow: var(--shadow-sm);
+    font-weight: bold;
+}
+
+.gift-badge:before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-color);
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.gift-note {
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.gift-note strong {
+    color: var(--text-color);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+    border-bottom: 1px solid var(--border-color-light);
+    padding-bottom: 0.5rem;
+}
+
+.gift-note-text {
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-radius: var(--border-radius-sm);
+    background-color: rgba(26, 35, 126, 0.15);
+    font-style: italic;
+    margin-top: 0.5rem;
+    border-left: 3px solid var(--accent-color);
+    position: relative;
+    line-height: 1.5;
+}
+
+/* Order Items Table */
+.order-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.order-items-table th {
+    text-align: left;
+    padding: 0.75rem;
+    background-color: rgba(19, 47, 76, 0.7);
+    color: var(--text-color);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.order-items-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color-light);
+    color: var(--text-secondary);
+}
+
+.product-cell {
+    color: var(--text-color);
+}
+
+.product-slug {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin: 0.5rem 0;
+}
+
+.view-product-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    transition: color var(--transition-fast);
+}
+
+.view-product-link:hover {
+    color: var(--text-color);
+}
+
+/* Price Section */
+.price-breakdown {
+    color: var(--text-secondary);
+}
+
+.price-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+}
+
+.coupon-row {
+    position: relative;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px dashed var(--border-color);
+    font-weight: 500;
+    color: var(--accent-color);
+}
+
+.coupon-row span:first-child {
+    color: var(--text-color);
+}
+
+.coupon-row span:last-child {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.coupon-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0.5rem 0;
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(var(--accent-color-rgb), 0.05);
+    border-radius: var(--border-radius-sm);
+    border-left: 2px solid var(--accent-color);
+}
+
+.coupon-description span:first-child {
+    font-weight: 500;
+    color: var(--text-color);
+    margin-right: 0.5rem;
+}
+
+.coupon-discount-type {
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: rgba(var(--info-color-rgb), 0.1);
+    border-radius: var(--border-radius-sm);
+    border: 1px solid rgba(var(--info-color-rgb), 0.2);
+    box-shadow: var(--shadow-sm);
+}
+
+.coupon-discount-type span:first-child {
+    display: block;
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(var(--info-color-rgb), 0.2);
+    padding-bottom: 0.5rem;
+}
+
+.coupon-discount-type span:last-child {
+    display: block;
+    color: var(--info-color);
+    text-transform: capitalize;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.discount-row {
+    color: var(--text-secondary);
+    margin-top: 0.75rem;
+}
+
+.discount-row span:first-child {
+    color: var(--text-color);
+}
+
+.discount-row span:last-child {
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.discount-detail {
+    position: relative;
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+    padding-left: 1rem;
+    font-size: 0.9rem;
+    border-left: 2px dashed rgba(var(--success-color-rgb), 0.4);
+}
+
+.discount-detail:before {
+    content: "";
+    position: absolute;
+    left: -5px;
+    top: 50%;
+    width: 8px;
+    height: 8px;
+    background-color: var(--success-color);
+    border-radius: 50%;
+    transform: translateY(-50%);
+}
+
+.total-row {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-color);
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: var(--text-color);
+}
+
+/* Status Section */
+.status-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.status-control {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.status-control label {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.status-select {
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius-sm);
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    width: 100%;
+    max-width: 200px;
+}
+
+.status-processing {
+    background-color: var(--warning-light);
+    border-color: var(--warning-dark);
+    color: var(--warning-color);
+}
+
+.status-shipped {
+    background-color: var(--info-light);
+    border-color: var(--info-dark);
+    color: var(--info-color);
+}
+
+.status-delivered {
+    background-color: var(--success-light);
+    border-color: var(--success-dark);
+    color: var(--success-color);
+}
+
+.status-cancelled {
+    background-color: var(--danger-light);
+    border-color: var(--danger-dark);
+    color: var(--danger-color);
+}
+
+.payment-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--border-color);
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: var(--text-color);
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked+.toggle-slider {
+    background-color: var(--success-color);
+}
+
+input:checked+.toggle-slider:before {
+    transform: translateX(26px);
+}
+
+.payment-text {
+    font-weight: 500;
+}
+
+.payment-text.paid {
+    color: var(--success-color);
+}
+
+.payment-text.unpaid {
+    color: var(--danger-color);
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.delete-order-btn {
+    padding: 0.5rem 1rem;
+    background-color: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color var(--transition-fast);
+}
+
+.delete-order-btn:hover {
+    background-color: rgba(213, 0, 0, 0.8);
+}
+
+/* Loading & Error States */
+.order-details-loading,
+.order-details-error,
+.order-not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 2rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    background-color: var(--surface-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.order-details-error h2,
+.order-not-found h2 {
+    color: var(--danger-color);
+    margin-bottom: 1rem;
+}
+
+.order-details-error p,
+.order-not-found p {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .order-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .order-items-table {
+        display: block;
+        overflow-x: auto;
+    }
+}
+
+.coupon-discount-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.discount-type-detail {
+    margin-bottom: 0.75rem;
+}
+
+.discount-type-detail strong {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.applied-discount-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: var(--border-radius-sm);
+    background-color: rgba(var(--success-color-rgb), 0.05);
+    border: 1px solid rgba(var(--success-color-rgb), 0.1);
+}
