@@ -12,7 +12,6 @@ import "./styles/category.css";
 import "./styles/confirm-dialog.css";
 import "./styles/product-filters.css";
 import "./styles/products.css";
-import "./styles/product-details.css";
 import "./styles/cart.css";
 import "./styles/checkout.css";
 import "./styles/orders.css";

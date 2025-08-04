@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
-import { FiSearch, FiShoppingCart, FiUser, FiMenu, FiX } from "react-icons/fi";
+import {
+  FiSearch,
+  FiShoppingCart,
+  FiUser,
+  FiMenu,
+  FiX,
+  FiChevronDown,
+} from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { categoryService } from "@/services/categoryService";
 import { getImageUrl } from "@/utils/imageUtils";
@@ -28,6 +35,7 @@ export default function Navbar() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isSearchVisible, setIsSearchVisible] = useState<boolean>(false);
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
   const { cart } = useCart();
   const itemCount =
     cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0;
@@ -83,6 +91,7 @@ export default function Navbar() {
     // Close mobile menu and search after search
     setIsMobileMenuOpen(false);
     setIsSearchVisible(false);
+    setIsSearchFocused(false);
   };
 
   const toggleMobileMenu = () => {
@@ -149,12 +158,12 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm transition-colors duration-200">
+    <nav className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-50 shadow-sm transition-all duration-200">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200"
+            className="lg:hidden p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-lg transition-all duration-200"
             onClick={toggleMobileMenu}
           >
             {isMobileMenuOpen ? (
@@ -173,50 +182,75 @@ export default function Navbar() {
               height={40}
               priority
               className="h-8 lg:h-10 w-auto transition-opacity duration-200"
-              key={mounted ? resolvedTheme || theme : "fallback"} // Force re-render on theme change
+              key={mounted ? resolvedTheme || theme : "fallback"}
             />
           </Link>
 
-          {/* Desktop Search - Always visible on desktop */}
+          {/* Desktop Search - Redesigned */}
           <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
             <form
               onSubmit={handleSearch}
-              className="flex w-full bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1 gap-1"
+              className={`flex w-full relative transition-all duration-300 ${
+                isSearchFocused
+                  ? "shadow-lg ring-2 ring-rose-500/20 dark:ring-rose-400/20"
+                  : "shadow-sm hover:shadow-md"
+              }`}
             >
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-3 py-2 bg-transparent text-slate-700 dark:text-slate-300 text-sm font-medium border-none outline-none cursor-pointer min-w-[120px] rounded-md"
-              >
-                {categories.map((category) => (
-                  <option
-                    key={category.slug}
-                    value={category.slug}
-                    className="bg-white dark:bg-slate-800"
+              <div className="flex w-full bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {/* Category Selector */}
+                <div className="relative">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="appearance-none h-10 pl-4 pr-8 bg-slate-50/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-300 text-sm font-medium border-none outline-none cursor-pointer min-w-[140px] hover:bg-slate-100/80 dark:hover:bg-slate-600/80 transition-colors duration-200 text-center"
                   >
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-2 bg-transparent text-slate-700 dark:text-slate-300 placeholder-slate-500 dark:placeholder-slate-400 border-none outline-none text-sm rounded-md"
-                />
+                    {categories.map((category) => (
+                      <option
+                        key={category.slug}
+                        value={category.slug}
+                        className="bg-white dark:bg-slate-800"
+                      >
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-500 dark:text-slate-400 pointer-events-none" />
+                </div>
+
+                {/* Search Input */}
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="Search for products, brands, and more..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onBlur={() => setIsSearchFocused(false)}
+                    className="w-full h-10 px-4 bg-transparent text-slate-700 dark:text-slate-300 placeholder-slate-500 dark:placeholder-slate-400 border-none outline-none text-sm"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery("")}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200"
+                    >
+                      <FiX className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Search Button */}
+                <button
+                  type="submit"
+                  className="flex items-center justify-center h-10 px-6 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-medium text-sm transition-all duration-200 group"
+                >
+                  <FiSearch className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                </button>
               </div>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-md transition-colors duration-200"
-              >
-                Search
-              </button>
             </form>
           </div>
 
-          {/* Desktop Navigation Links - Always visible on desktop */}
+          {/* Desktop Navigation Links */}
           <div className="hidden lg:flex items-center gap-6">
             <Link
               href="/products"
@@ -251,7 +285,7 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
+                  className="relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
                 >
                   <span className="absolute inset-0 bg-gradient-to-r from-rose-800 to-rose-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>
                   <span className="relative z-10 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
@@ -262,11 +296,11 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile actions - Only visible on mobile */}
+          {/* Mobile actions */}
           <div className="flex items-center gap-2 lg:hidden">
             <ThemeToggle />
             <button
-              className="p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all duration-200"
+              className="p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-lg transition-all duration-200"
               onClick={toggleSearch}
             >
               <FiSearch className="w-5 h-5" />
@@ -274,12 +308,12 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/cart"
-                className="relative p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all duration-200"
+                className="relative p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-lg transition-all duration-200"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <FiShoppingCart className="w-5 h-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-semibold min-w-[14px] h-[14px] rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-semibold min-w-[16px] h-[16px] rounded-full flex items-center justify-center animate-pulse">
                     {itemCount}
                   </span>
                 )}
@@ -287,49 +321,71 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile search container */}
+          {/* Mobile search container - Redesigned */}
           {isSearchVisible && (
-            <div className="lg:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 shadow-lg transition-all duration-200">
-              <form onSubmit={handleSearch} className="space-y-3">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-md text-sm"
-                >
-                  {categories.map((category) => (
-                    <option
-                      key={category.slug}
-                      value={category.slug}
-                      className="bg-white dark:bg-slate-800"
+            <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-lg transition-all duration-200 animate-slide-down">
+              <div className="p-4">
+                <form onSubmit={handleSearch} className="space-y-3">
+                  {/* Mobile Category Selector */}
+                  <div className="relative">
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value)}
+                      className="w-full h-12 pl-4 pr-10 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium appearance-none focus:ring-2 focus:ring-rose-500/20 dark:focus:ring-rose-400/20 focus:border-rose-500 dark:focus:border-rose-400 transition-all duration-200 text-center"
                     >
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 placeholder-slate-500 dark:placeholder-slate-400 border border-slate-200 dark:border-slate-700 rounded-md text-sm"
-                />
-                <button
-                  type="submit"
-                  className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-md transition-colors duration-200"
-                >
-                  Search
-                </button>
-              </form>
+                      {categories.map((category) => (
+                        <option
+                          key={category.slug}
+                          value={category.slug}
+                          className="bg-white dark:bg-slate-800"
+                        >
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                    <FiChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400 pointer-events-none" />
+                  </div>
+
+                  {/* Mobile Search Input */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search for products, brands, and more..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full h-12 pl-4 pr-12 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 placeholder-slate-500 dark:placeholder-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-rose-500/20 dark:focus:ring-rose-400/20 focus:border-rose-500 dark:focus:border-rose-400 transition-all duration-200"
+                    />
+                    {searchQuery && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all duration-200"
+                      >
+                        <FiX className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Mobile Search Button */}
+                  <button
+                    type="submit"
+                    className="w-full h-12 bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-medium text-sm rounded-xl transition-all duration-200 flex items-center justify-center gap-2 group"
+                  >
+                    <FiSearch className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    Search Products
+                  </button>
+                </form>
+              </div>
             </div>
           )}
 
           {/* Mobile navigation menu */}
           {isMobileMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-lg transition-all duration-200">
-              <div className="p-4 space-y-3">
+            <div className="lg:hidden absolute top-full left-0 right-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-lg transition-all duration-200 animate-slide-down">
+              <div className="p-4 space-y-2">
                 <Link
                   href="/products"
-                  className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200"
+                  className="block px-4 py-3 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 font-medium rounded-xl transition-all duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Products
@@ -338,7 +394,7 @@ export default function Navbar() {
                 {user && (
                   <Link
                     href="/my-orders"
-                    className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200"
+                    className="block px-4 py-3 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 font-medium rounded-xl transition-all duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     My Orders
@@ -347,7 +403,7 @@ export default function Navbar() {
 
                 {user ? (
                   <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-3 px-3 py-2">
+                    <div className="flex items-center gap-3 px-4 py-3">
                       {renderProfileLink()}
                       <span className="text-slate-700 dark:text-slate-300 font-medium">
                         {user.name}
@@ -358,14 +414,14 @@ export default function Navbar() {
                   <div className="pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
                     <Link
                       href="/login"
-                      className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200 text-center"
+                      className="block px-4 py-3 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 font-medium rounded-xl transition-all duration-200 text-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
                     </Link>
                     <Link
                       href="/register"
-                      className="relative inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group text-center [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
+                      className="relative inline-flex items-center justify-center w-full px-4 py-3 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group text-center [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       <span className="absolute inset-0 bg-gradient-to-r from-rose-800 to-rose-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>

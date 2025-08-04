@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { FiGrid, FiList, FiFilter, FiX, FiRefreshCw } from "react-icons/fi";
+import {
+  FiGrid,
+  FiList,
+  FiFilter,
+  FiX,
+  FiSearch,
+  FiTrendingUp,
+} from "react-icons/fi";
 import ProductGrid from "@/components/products/ProductGrid";
 import ProductFilters from "@/components/products/ProductFilter";
 import { productService } from "@/services/productService";
@@ -24,8 +31,7 @@ export default function ProductsPage() {
     category: "",
     subcategory: "",
     inStock: undefined,
-    sortField: "createdAt",
-    sortOrder: "desc",
+    sort: "newest",
   });
   const [pagination, setPagination] = useState({
     currentPage: 1,
@@ -73,14 +79,23 @@ export default function ProductsPage() {
         }
       }
 
+      console.log("Fetching products with filters:", {
+        // Debug log
+        minPrice: filters.minPrice,
+        maxPrice: filters.maxPrice,
+        category: filters.category,
+        subcategory: filters.subcategory,
+        inStock: filters.inStock,
+      });
+
       const response = await productService.getAllProducts({
         page,
         limit: viewMode === "list" ? 15 : 12,
         search: searchParams.get("search") || "",
         category: filters.category || "",
         subcategory: filters.subcategory || "",
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
+        minPrice: filters.minPrice || undefined,
+        maxPrice: filters.maxPrice || undefined,
         inStock: filters.inStock,
         sortField,
         sortOrder,
@@ -157,8 +172,20 @@ export default function ProductsPage() {
   }, [searchParams, viewMode]);
 
   const handleFilterChange = (newFilters) => {
-    setIsLoading(true);
-    setFilters((prev) => ({ ...prev, ...newFilters }));
+    console.log("Filter change received:", newFilters); // Debug log
+
+    // Ensure empty strings are handled properly for price filters
+    const processedFilters = {
+      ...newFilters,
+      minPrice: newFilters.minPrice === "" ? undefined : newFilters.minPrice,
+      maxPrice: newFilters.maxPrice === "" ? undefined : newFilters.maxPrice,
+    };
+
+    setFilters((prev) => {
+      const updatedFilters = { ...prev, ...processedFilters };
+      console.log("Updated filters:", updatedFilters); // Debug log
+      return updatedFilters;
+    });
   };
 
   const handlePageChange = (newPage) => {
@@ -188,8 +215,7 @@ export default function ProductsPage() {
       category: "",
       subcategory: "",
       inStock: undefined,
-      sortField: "createdAt",
-      sortOrder: "desc",
+      sort: "newest",
     });
   };
 
@@ -209,98 +235,130 @@ export default function ProductsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-background text-foreground py-8 px-4 lg:px-8 transition-colors duration-normal">
+    <main className="min-h-screen bg-background py-6 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 p-4 lg:p-6 bg-surface border border-border rounded-xl shadow-sm transition-colors duration-normal">
-          <div className="flex-1 mb-4 lg:mb-0">
-            <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-              Our Products
-            </h1>
-            {searchParams.get("search") && (
-              <div className="flex flex-wrap items-center gap-3 mb-3">
-                <p className="text-text-secondary text-sm">
-                  Search results for: "{searchParams.get("search")}"
-                </p>
-                <button
-                  className="inline-flex items-center gap-1 px-3 py-1 text-xs bg-primary/10 border border-primary text-primary rounded-md hover:bg-primary/20 transition-colors duration-normal"
-                  onClick={clearSearch}
-                  aria-label="Clear search results"
-                >
-                  <FiX size={12} />
-                  Clear Search
-                </button>
-              </div>
-            )}
-            {pagination.totalProducts > 0 && (
-              <div className="inline-block bg-primary/10 border-l-4 border-primary text-foreground px-3 py-2 rounded-r-md text-sm font-medium">
-                {pagination.totalProducts} product
-                {pagination.totalProducts !== 1 ? "s" : ""} found
-              </div>
-            )}
+        {/* Modern Header */}
+        <div className="relative overflow-hidden bg-gradient-to-br from-surface via-surface to-surface-elevated border border-border rounded-2xl p-6 lg:p-8 mb-8 shadow-sm">
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
+            <svg
+              className="absolute right-0 top-0 h-full w-1/3"
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              <polygon
+                fill="currentColor"
+                points="50,0 100,0 100,100"
+                opacity="0.1"
+              />
+            </svg>
           </div>
 
-          {/* View Controls */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-surface-elevated rounded-md border border-border p-1 transition-colors duration-normal">
-              <button
-                className={`p-2 rounded transition-all duration-normal ${
-                  viewMode === "grid"
-                    ? "bg-primary text-white"
-                    : "hover:bg-background text-text-secondary"
-                }`}
-                onClick={() => handleViewModeChange("grid")}
-                aria-label="Grid view"
-              >
-                <FiGrid size={16} />
-              </button>
-              {!isMobile && (
+          <div className="relative">
+            {/* Header Content */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
+                    <FiTrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl lg:text-4xl font-bold text-foreground">
+                      Discover Products
+                    </h1>
+                    <p className="text-text-secondary">
+                      Find exactly what you're looking for
+                    </p>
+                  </div>
+                </div>
+
+                {/* Search Results Info */}
+                {searchParams.get("search") && (
+                  <div className="flex flex-wrap items-center gap-3 mb-4">
+                    <div className="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
+                      <FiSearch className="w-4 h-4 text-primary" />
+                      <span className="text-sm text-primary font-medium">
+                        "{searchParams.get("search")}"
+                      </span>
+                      <button
+                        onClick={clearSearch}
+                        className="ml-1 p-0.5 hover:bg-primary/20 rounded transition-colors"
+                      >
+                        <FiX className="w-3 h-3 text-primary" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Results Count */}
+                {pagination.totalProducts > 0 && (
+                  <div className="inline-flex items-center gap-2 bg-surface-elevated border border-border rounded-lg px-4 py-2">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium text-foreground">
+                      {pagination.totalProducts} product
+                      {pagination.totalProducts !== 1 ? "s" : ""} found
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center gap-3">
+                {/* View Toggle */}
+                <div className="flex items-center bg-surface-elevated border border-border rounded-lg p-1 shadow-sm">
+                  <button
+                    className={`p-2.5 rounded-md transition-all duration-200 ${
+                      viewMode === "grid"
+                        ? "bg-primary text-white shadow-sm"
+                        : "hover:bg-background text-text-secondary"
+                    }`}
+                    onClick={() => handleViewModeChange("grid")}
+                    aria-label="Grid view"
+                  >
+                    <FiGrid size={18} />
+                  </button>
+                  {!isMobile && (
+                    <button
+                      className={`p-2.5 rounded-md transition-all duration-200 ${
+                        viewMode === "list"
+                          ? "bg-primary text-white shadow-sm"
+                          : "hover:bg-background text-text-secondary"
+                      }`}
+                      onClick={() => handleViewModeChange("list")}
+                      aria-label="List view"
+                    >
+                      <FiList size={18} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Filter Toggle */}
                 <button
-                  className={`p-2 rounded transition-all duration-normal ${
-                    viewMode === "list"
-                      ? "bg-primary text-white"
-                      : "hover:bg-background text-text-secondary"
-                  }`}
-                  onClick={() => handleViewModeChange("list")}
-                  aria-label="List view"
+                  onClick={() => setIsFilterVisible(!isFilterVisible)}
+                  className="btn btn-primary gap-2 shadow-sm hover:shadow-md"
                 >
-                  <FiList size={16} />
+                  <FiFilter size={16} />
+                  <span className="hidden sm:inline">
+                    {isFilterVisible ? "Hide" : "Show"} Filters
+                  </span>
                 </button>
-              )}
+              </div>
             </div>
-
-            <button
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-background border border-border rounded-md hover:bg-surface transition-colors duration-normal text-foreground"
-              onClick={resetFilters}
-              aria-label="Reset filters"
-            >
-              <FiRefreshCw size={14} />
-              <span className="hidden sm:inline">Reset</span>
-            </button>
-
-            <button
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm bg-primary text-white border border-primary rounded-md hover:bg-primary-dark transition-colors duration-normal"
-              onClick={() => setIsFilterVisible(!isFilterVisible)}
-              aria-label="Toggle filters"
-            >
-              <FiFilter size={14} />
-              <span className="hidden sm:inline">
-                {isFilterVisible ? "Hide Filters" : "Show Filters"}
-              </span>
-            </button>
           </div>
-        </header>
+        </div>
 
-        {/* Main Content Layout */}
+        {/* Main Content */}
         <div
-          className={`grid gap-6 transition-all duration-300 ${
-            isFilterVisible ? "lg:grid-cols-[280px_1fr]" : "grid-cols-1"
+          className={`grid gap-8 transition-all duration-300 ${
+            isFilterVisible ? "lg:grid-cols-[320px_1fr]" : "grid-cols-1"
           }`}
+          style={{ height: "calc(100vh - 200px)" }}
         >
           {/* Filters Sidebar */}
           {isFilterVisible && (
-            <aside className="sticky top-24 h-fit">
-              <div className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden transition-colors duration-normal">
+            <aside className="lg:sticky lg:top-0 h-full">
+              <div className="h-full overflow-y-auto scrollbar-thin">
                 <ProductFilters
                   filters={filters}
                   onFilterChange={handleFilterChange}
@@ -312,7 +370,7 @@ export default function ProductsPage() {
           )}
 
           {/* Products Content */}
-          <section className={`${viewMode === "list" ? "space-y-4" : ""}`}>
+          <section className="h-full overflow-y-auto scrollbar-thin">
             <ProductGrid
               products={products}
               isLoading={isLoading}

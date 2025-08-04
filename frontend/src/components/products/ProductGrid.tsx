@@ -3,58 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import ProductCard from "./ProductCard";
 import LoadingSpinner from "../common/LoadingSpinner";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiShoppingCart,
+  FiStar,
+  FiHeart,
+} from "react-icons/fi";
 import Link from "next/link";
 import Image from "next/image";
-import { FiShoppingCart, FiStar } from "react-icons/fi";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "react-hot-toast";
-
-// Function to generate pagination numbers with ellipsis
-const generatePaginationNumbers = (currentPage, totalPages) => {
-  // For small number of pages, show all page numbers
-  if (totalPages <= 5) {
-    return Array.from({ length: totalPages }, (_, i) => i + 1);
-  }
-
-  const pages = [];
-
-  // Always show first page
-  pages.push(1);
-
-  // Show dots if there's a gap
-  if (currentPage > 3) {
-    pages.push("...");
-  }
-
-  // Calculate start and end of middle section
-  let start = Math.max(2, currentPage - 1);
-  let end = Math.min(totalPages - 1, currentPage + 1);
-
-  // Ensure at least 3 middle numbers when possible
-  if (currentPage <= 3) {
-    end = Math.min(totalPages - 1, 4);
-  } else if (currentPage >= totalPages - 2) {
-    start = Math.max(2, totalPages - 3);
-  }
-
-  // Add middle numbers
-  for (let i = start; i <= end; i++) {
-    pages.push(i);
-  }
-
-  // Show dots if there's a gap before last page
-  if (currentPage < totalPages - 2) {
-    pages.push("...");
-  }
-
-  // Always show last page
-  if (totalPages > 1) {
-    pages.push(totalPages);
-  }
-
-  return pages;
-};
 
 export default function ProductGrid({
   products,
@@ -66,32 +25,7 @@ export default function ProductGrid({
 }) {
   const { addToCart } = useCart();
   const [addingToCart, setAddingToCart] = useState({});
-  // Keep track of previous products for smoother transitions
-  const [prevHeight, setPrevHeight] = useState(0);
-  const [prevViewMode, setPrevViewMode] = useState(viewMode);
-  const [fadeTransition, setFadeTransition] = useState(false);
-  const gridRef = useRef(null);
-
-  useEffect(() => {
-    if (!isLoading && gridRef.current) {
-      setPrevHeight(gridRef.current.offsetHeight);
-    }
-  }, [products, isLoading]);
-
-  // Handle view mode transitions
-  useEffect(() => {
-    if (prevViewMode !== viewMode) {
-      setFadeTransition(true);
-
-      // After animation completes, reset fade state
-      const timer = setTimeout(() => {
-        setFadeTransition(false);
-        setPrevViewMode(viewMode);
-      }, 300);
-
-      return () => clearTimeout(timer);
-    }
-  }, [viewMode, prevViewMode]);
+  const [hoveredProduct, setHoveredProduct] = useState(null);
 
   const handleAddToCart = async (product, e) => {
     e.preventDefault();
@@ -120,42 +54,6 @@ export default function ProductGrid({
     }
   };
 
-  const getPageNumbers = () => {
-    const { currentPage, totalPages } = pagination;
-    const pages = [];
-    const maxVisiblePages = 5;
-
-    if (totalPages <= maxVisiblePages) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) {
-          pages.push(i);
-        }
-      } else {
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-          pages.push(i);
-        }
-        pages.push("...");
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -167,11 +65,26 @@ export default function ProductGrid({
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="bg-danger/10 border border-danger/20 rounded-lg p-6 max-w-md mx-auto transition-colors duration-normal">
-          <h3 className="text-lg font-semibold text-danger mb-2">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-8 max-w-md mx-auto">
+          <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-6 h-6 text-red-600 dark:text-red-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+              />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
             Error Loading Products
           </h3>
-          <p className="text-text-secondary">{error}</p>
+          <p className="text-red-700 dark:text-red-300">{error}</p>
         </div>
       </div>
     );
@@ -180,7 +93,22 @@ export default function ProductGrid({
   if (!products || products.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="bg-surface border border-border rounded-lg p-8 max-w-md mx-auto transition-colors duration-normal">
+        <div className="bg-surface border border-border rounded-xl p-8 max-w-md mx-auto">
+          <div className="w-16 h-16 bg-surface-elevated rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg
+              className="w-8 h-8 text-text-secondary"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+              />
+            </svg>
+          </div>
           <h3 className="text-lg font-semibold text-foreground mb-2">
             No Products Found
           </h3>
@@ -193,7 +121,7 @@ export default function ProductGrid({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Products Grid/List */}
       <div
         className={`grid gap-6 ${
@@ -205,16 +133,27 @@ export default function ProductGrid({
         {products.map((product) => (
           <div
             key={product._id}
-            className={`group bg-surface border border-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-1 ${
-              viewMode === "list" ? "flex flex-row h-32" : "flex flex-col"
+            className={`group relative bg-surface border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${
+              viewMode === "list"
+                ? "flex flex-row h-48 md:h-40"
+                : "flex flex-col h-full"
             }`}
+            onMouseEnter={() => setHoveredProduct(product._id)}
+            onMouseLeave={() => setHoveredProduct(null)}
           >
-            <Link href={`/products/${product.slug}`} className="block flex-1">
+            <Link
+              href={`/products/${product.slug}`}
+              className={`block flex-1 ${
+                viewMode === "list"
+                  ? "flex flex-row h-full"
+                  : "flex flex-col h-full"
+              }`}
+            >
               {/* Product Image */}
               <div
-                className={`relative bg-surface-elevated ${
+                className={`relative bg-surface-elevated overflow-hidden flex-shrink-0 ${
                   viewMode === "list"
-                    ? "w-32 h-full flex-shrink-0"
+                    ? "w-32 sm:w-40 md:w-48 h-full"
                     : "aspect-square w-full"
                 }`}
               >
@@ -222,66 +161,125 @@ export default function ProductGrid({
                   src={product.thumbnailImage || "/images/placeholder.jpg"}
                   alt={product.name}
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
                 />
+
+                {/* Overlay Actions for Grid View */}
+                {viewMode === "grid" && (
+                  <div
+                    className={`absolute inset-0 bg-black/20 flex items-center justify-center gap-2 transition-opacity duration-300 ${
+                      hoveredProduct === product._id
+                        ? "opacity-100"
+                        : "opacity-0"
+                    }`}
+                  >
+                    <button className="btn-icon bg-white/90 hover:bg-white text-gray-800 shadow-md">
+                      <FiHeart size={16} />
+                    </button>
+                  </div>
+                )}
+
+                {/* Stock Status */}
                 {product.variants &&
                   product.variants.length > 0 &&
                   product.variants[0].quantity === 0 && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium bg-danger px-2 py-1 rounded">
+                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                      <span className="bg-red-500 text-white text-sm font-medium px-3 py-1 rounded-full">
                         Out of Stock
                       </span>
                     </div>
                   )}
+
+                {/* Discount Badge */}
+                {product.discount && (
+                  <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
+                    -{product.discount}%
+                  </div>
+                )}
               </div>
 
               {/* Product Info */}
               <div
-                className={`p-4 flex-1 flex flex-col ${
-                  viewMode === "list" ? "justify-between" : ""
+                className={`p-4 flex flex-col flex-1 ${
+                  viewMode === "list"
+                    ? "justify-between min-h-0 min-w-0"
+                    : "h-full"
                 }`}
               >
-                <div className="flex-1">
+                {/* Top Section - Title and Description */}
+                <div className="flex-1 min-h-0">
                   <h3
                     className={`font-semibold text-foreground group-hover:text-primary transition-colors ${
-                      viewMode === "list" ? "text-sm mb-1" : "text-base mb-2"
+                      viewMode === "list"
+                        ? "text-base md:text-lg mb-2 line-clamp-2"
+                        : "text-base mb-2 line-clamp-2"
                     }`}
+                    style={{
+                      minHeight: viewMode === "list" ? "2.5rem" : "2.5rem",
+                    }}
                   >
                     {product.name}
                   </h3>
 
-                  {viewMode === "grid" && (
-                    <p className="text-sm text-text-secondary mb-3 line-clamp-2">
-                      {product.description || "No description available."}
-                    </p>
+                  {/* Description for both views */}
+                  <p
+                    className={`text-sm text-text-secondary mb-3 ${
+                      viewMode === "list" ? "line-clamp-2" : "line-clamp-2"
+                    }`}
+                    style={{
+                      minHeight: viewMode === "list" ? "2.5rem" : "2.5rem",
+                    }}
+                  >
+                    {product.description || "No description available."}
+                  </p>
+
+                  {/* Rating */}
+                  {product.averageRating && (
+                    <div
+                      className="flex items-center gap-1 mb-2"
+                      style={{ minHeight: "1rem" }}
+                    >
+                      <div className="flex">
+                        {[...Array(5)].map((_, i) => (
+                          <FiStar
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < Math.floor(product.averageRating)
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-300 dark:text-gray-600"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs text-text-secondary ml-1">
+                        ({product.averageRating.toFixed(1)})
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                {/* Product Footer */}
+                {/* Bottom Section - Price and Action Button */}
                 <div
-                  className={`flex items-center justify-between ${
-                    viewMode === "list" ? "mt-1" : "mt-auto"
+                  className={`flex items-center justify-between mt-auto pt-2 ${
+                    viewMode === "list" ? "flex-wrap gap-2" : ""
                   }`}
                 >
                   <div className="flex flex-col">
-                    <span
-                      className={`font-bold text-primary ${
-                        viewMode === "list" ? "text-sm" : "text-lg"
-                      }`}
-                    >
-                      ৳{product.price}
-                    </span>
-                    {product.averageRating && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <FiStar
-                          className="text-yellow-500 fill-current"
-                          size={14}
-                        />
-                        <span className="text-xs text-text-secondary">
-                          {product.averageRating.toFixed(1)}
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`font-bold text-primary ${
+                          viewMode === "list" ? "text-lg" : "text-lg"
+                        }`}
+                      >
+                        ৳{product.price}
+                      </span>
+                      {product.originalPrice &&
+                        product.originalPrice > product.price && (
+                          <span className="text-xs text-text-secondary line-through">
+                            ৳{product.originalPrice}
+                          </span>
+                        )}
+                    </div>
                   </div>
 
                   {viewMode === "grid" && (
@@ -292,7 +290,7 @@ export default function ProductGrid({
                         (product.variants &&
                           product.variants[0]?.quantity === 0)
                       }
-                      className="btn btn-primary btn-sm opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                      className="btn-icon btn-primary disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg flex-shrink-0"
                     >
                       {addingToCart[product._id] ? (
                         <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -304,49 +302,103 @@ export default function ProductGrid({
                 </div>
               </div>
             </Link>
+
+            {/* List View Add to Cart */}
+            {viewMode === "list" && (
+              <div className="p-4 flex flex-col items-center justify-center flex-shrink-0 min-w-0">
+                <button
+                  onClick={(e) => handleAddToCart(product, e)}
+                  disabled={
+                    addingToCart[product._id] ||
+                    (product.variants && product.variants[0]?.quantity === 0)
+                  }
+                  className="btn btn-primary btn-sm disabled:opacity-50 whitespace-nowrap"
+                >
+                  {addingToCart[product._id] ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                  ) : (
+                    <FiShoppingCart size={16} className="mr-2" />
+                  )}
+                  <span className="hidden sm:inline">Add to Cart</span>
+                  <span className="sm:hidden">Add</span>
+                </button>
+
+                {/* Heart icon for list view */}
+                <button className="mt-2 p-2 rounded-lg hover:bg-surface-elevated transition-colors">
+                  <FiHeart
+                    size={16}
+                    className="text-text-secondary hover:text-primary"
+                  />
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      {/* Pagination */}
+      {/* Modern Pagination */}
       {pagination && pagination.totalPages > 1 && (
-        <div className="flex items-center justify-center mt-8 gap-2">
-          <button
-            onClick={() => onPageChange(pagination.currentPage - 1)}
-            disabled={!pagination.hasPrevPage}
-            className="btn btn-secondary btn-sm disabled:opacity-50"
-          >
-            <FiChevronLeft size={16} />
-            <span className="hidden sm:inline ml-1">Previous</span>
-          </button>
-
-          <div className="flex items-center gap-1">
-            {getPageNumbers().map((page, index) => (
-              <button
-                key={index}
-                onClick={() => typeof page === "number" && onPageChange(page)}
-                disabled={typeof page !== "number"}
-                className={`w-10 h-10 flex items-center justify-center text-sm rounded-md transition-colors ${
-                  page === pagination.currentPage
-                    ? "bg-primary text-white"
-                    : typeof page === "number"
-                    ? "hover:bg-surface-elevated text-foreground"
-                    : "text-text-secondary cursor-default"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-border">
+          <div className="text-sm text-text-secondary">
+            Showing {(pagination.currentPage - 1) * 12 + 1} to{" "}
+            {Math.min(pagination.currentPage * 12, pagination.totalProducts)} of{" "}
+            {pagination.totalProducts} products
           </div>
 
-          <button
-            onClick={() => onPageChange(pagination.currentPage + 1)}
-            disabled={!pagination.hasNextPage}
-            className="btn btn-secondary btn-sm disabled:opacity-50"
-          >
-            <span className="hidden sm:inline mr-1">Next</span>
-            <FiChevronRight size={16} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onPageChange(pagination.currentPage - 1)}
+              disabled={!pagination.hasPrevPage}
+              className="btn btn-secondary btn-sm disabled:opacity-50"
+            >
+              <FiChevronLeft size={16} className="mr-1" />
+              Previous
+            </button>
+
+            <div className="flex items-center gap-1">
+              {Array.from(
+                { length: Math.min(pagination.totalPages, 5) },
+                (_, i) => {
+                  let page;
+                  if (pagination.totalPages <= 5) {
+                    page = i + 1;
+                  } else if (pagination.currentPage <= 3) {
+                    page = i + 1;
+                  } else if (
+                    pagination.currentPage >=
+                    pagination.totalPages - 2
+                  ) {
+                    page = pagination.totalPages - 4 + i;
+                  } else {
+                    page = pagination.currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => onPageChange(page)}
+                      className={`w-10 h-10 flex items-center justify-center text-sm rounded-lg transition-colors ${
+                        page === pagination.currentPage
+                          ? "bg-primary text-white shadow-md"
+                          : "hover:bg-surface-elevated text-foreground"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            <button
+              onClick={() => onPageChange(pagination.currentPage + 1)}
+              disabled={!pagination.hasNextPage}
+              className="btn btn-secondary btn-sm disabled:opacity-50"
+            >
+              Next
+              <FiChevronRight size={16} className="ml-1" />
+            </button>
+          </div>
         </div>
       )}
     </div>
