@@ -26,7 +26,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2 rounded-full hover:bg-surface-elevated transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-600 focus:ring-offset-2"
       style={{
         backgroundColor: "var(--surface-color)",
         borderColor: "var(--border-color)",
@@ -37,8 +37,7 @@ export function ThemeToggle() {
       {theme === "dark" ? (
         // Sun icon for light mode
         <svg
-          className="w-5 h-5"
-          style={{ color: "var(--warning-color)" }}
+          className="w-5 h-5 text-amber-500"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

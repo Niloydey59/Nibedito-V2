@@ -6,28 +6,26 @@ import { DUMMY_IMAGES } from "@/constants/dummyData";
 
 export default function CategoryGrid() {
   return (
-    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-gray-50 to-white dark:from-slate-800 dark:to-slate-900 relative">
+    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 relative">
       {/* Background decoration */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-red-600 to-orange-500 rounded-full"></div>
+      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-rose-700 to-rose-600 rounded-full"></div>
 
       <div className="max-w-7xl mx-auto bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-8 lg:p-12 relative overflow-hidden">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-5">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-400 to-red-500 rounded-full transform translate-x-16 -translate-y-16"></div>
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-red-400 to-orange-500 rounded-full transform -translate-x-16 translate-y-16"></div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-600 to-rose-700 rounded-full transform translate-x-16 -translate-y-16"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-rose-700 to-rose-600 rounded-full transform -translate-x-16 translate-y-16"></div>
         </div>
 
         {/* Section Header */}
         <div className="text-center mb-12 relative z-10">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
-            <span className="bg-gradient-to-r from-gray-900 to-orange-500 dark:from-gray-100 dark:to-orange-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-900 to-rose-600 dark:from-gray-100 dark:to-rose-400 bg-clip-text text-transparent">
               Shop by
             </span>{" "}
-            <span className="text-orange-500 text-4xl lg:text-5xl">
-              Category
-            </span>
+            <span className="text-rose-600 text-4xl lg:text-5xl">Category</span>
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300">
+          <p className="text-lg text-slate-600 dark:text-gray-300">
             Find the perfect gift for any occasion
           </p>
         </div>
@@ -55,7 +53,7 @@ export default function CategoryGrid() {
 
                 {/* Category Info */}
                 <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                  <h3 className="text-xl font-bold mb-2 group-hover:text-orange-300 transition-colors duration-300">
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-rose-300 transition-colors duration-300">
                     {category.name}
                   </h3>
                   <p className="text-sm opacity-90 flex items-center gap-2">
@@ -84,7 +82,7 @@ export default function CategoryGrid() {
         <div className="text-center mt-12 relative z-10">
           <Link
             href="/categories"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-red-600 to-orange-500 text-white font-medium rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
+            className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-300"
           >
             View All Categories
             <svg

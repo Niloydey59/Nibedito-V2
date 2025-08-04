@@ -94,7 +94,7 @@ export default function Navbar() {
     return (
       <Link
         href="/dashboard"
-        className="relative w-9 h-9 rounded-full overflow-hidden bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-red-500 dark:hover:border-red-400 hover:shadow-md hover:-translate-y-0.5"
+        className="relative w-9 h-9 rounded-full overflow-hidden bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 transition-all duration-200 hover:border-rose-600 dark:hover:border-rose-400 hover:shadow-md hover:-translate-y-0.5"
         onClick={() => setIsMobileMenuOpen(false)}
       >
         {user.profilePicture ? (
@@ -107,7 +107,7 @@ export default function Navbar() {
             priority={true}
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-500 to-orange-500 text-white text-sm font-semibold">
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-600 to-rose-700 text-white text-sm font-semibold">
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}
@@ -119,12 +119,12 @@ export default function Navbar() {
     return (
       <Link
         href="/cart"
-        className="relative flex items-center justify-center p-2 rounded-full text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+        className="relative flex items-center justify-center p-2 rounded-full text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
         onClick={() => setIsMobileMenuOpen(false)}
       >
         <FiShoppingCart className="w-6 h-6" />
         {itemCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold min-w-[18px] h-[18px] rounded-full flex items-center justify-center animate-pulse">
+          <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-semibold min-w-[18px] h-[18px] rounded-full flex items-center justify-center animate-pulse">
             {itemCount}
           </span>
         )}
@@ -138,7 +138,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Mobile menu button */}
           <button
-            className="lg:hidden p-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200"
+            className="lg:hidden p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 transition-colors duration-200"
             onClick={toggleMobileMenu}
           >
             {isMobileMenuOpen ? (
@@ -192,7 +192,7 @@ export default function Navbar() {
               </div>
               <button
                 type="submit"
-                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium text-sm rounded-md transition-colors duration-200"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-md transition-colors duration-200"
               >
                 Search
               </button>
@@ -203,7 +203,7 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center gap-6">
             <Link
               href="/products"
-              className="text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors duration-200"
+              className="text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 font-medium transition-colors duration-200"
             >
               Products
             </Link>
@@ -211,7 +211,7 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/my-orders"
-                className="text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors duration-200"
+                className="text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 font-medium transition-colors duration-200"
               >
                 My Orders
               </Link>
@@ -228,13 +228,13 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 font-medium transition-colors duration-200"
+                  className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 font-medium transition-colors duration-200"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors duration-200"
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-md transition-colors duration-200"
                 >
                   Register
                 </Link>
@@ -246,7 +246,7 @@ export default function Navbar() {
           <div className="flex items-center gap-2 lg:hidden">
             <ThemeToggle />
             <button
-              className="p-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all duration-200"
+              className="p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all duration-200"
               onClick={toggleSearch}
             >
               <FiSearch className="w-5 h-5" />
@@ -254,12 +254,12 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/cart"
-                className="relative p-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all duration-200"
+                className="relative p-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all duration-200"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 <FiShoppingCart className="w-5 h-5" />
                 {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-semibold min-w-[14px] h-[14px] rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-rose-600 text-white text-xs font-semibold min-w-[14px] h-[14px] rounded-full flex items-center justify-center">
                     {itemCount}
                   </span>
                 )}
@@ -295,7 +295,7 @@ export default function Navbar() {
                 />
                 <button
                   type="submit"
-                  className="w-full py-2 bg-red-500 hover:bg-red-600 text-white font-medium text-sm rounded-md transition-colors duration-200"
+                  className="w-full py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium text-sm rounded-md transition-colors duration-200"
                 >
                   Search
                 </button>
@@ -309,7 +309,7 @@ export default function Navbar() {
               <div className="p-4 space-y-3">
                 <Link
                   href="/products"
-                  className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200"
+                  className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Products
@@ -318,7 +318,7 @@ export default function Navbar() {
                 {user && (
                   <Link
                     href="/my-orders"
-                    className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200"
+                    className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     My Orders
@@ -338,14 +338,14 @@ export default function Navbar() {
                   <div className="pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
                     <Link
                       href="/login"
-                      className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200 text-center"
+                      className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-slate-50 dark:hover:bg-slate-800 font-medium rounded-md transition-all duration-200 text-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
                     </Link>
                     <Link
                       href="/register"
-                      className="block px-3 py-2 bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors duration-200 text-center"
+                      className="block px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-md transition-colors duration-200 text-center"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Register

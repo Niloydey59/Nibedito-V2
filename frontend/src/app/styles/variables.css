@@ -1,39 +1,39 @@
 :root {
-  /* Light Theme Colors - White and Red Palette */
-  --primary-color: #dc2626;           /* Red-600 */
-  --primary-light: #fecaca;           /* Red-200 */
-  --primary-dark: #991b1b;            /* Red-800 */
-  --primary-rgb: 220, 38, 38;
+  /* Light Theme Colors - White and Crimson/Scarlet Red Palette */
+  --primary-color: #be123c;           /* Rose-700 - Deep Crimson */
+  --primary-light: #fecdd3;           /* Rose-200 - Light Crimson */
+  --primary-dark: #881337;            /* Rose-900 - Dark Crimson */
+  --primary-rgb: 190, 18, 60;
   
-  --secondary-color: #6b7280;         /* Gray-500 */
-  --secondary-light: #f9fafb;         /* Gray-50 */
-  --secondary-dark: #374151;          /* Gray-700 */
-  --secondary-rgb: 107, 114, 128;
+  --secondary-color: #64748b;         /* Slate-500 */
+  --secondary-light: #f8fafc;         /* Slate-50 */
+  --secondary-dark: #334155;          /* Slate-700 */
+  --secondary-rgb: 100, 116, 139;
   
-  --accent-color: #ef4444;            /* Red-500 */
-  --accent-light: #fee2e2;            /* Red-100 */
-  --accent-dark: #b91c1c;             /* Red-700 */
-  --accent-rgb: 239, 68, 68;
+  --accent-color: #e11d48;            /* Rose-600 - Vibrant Crimson */
+  --accent-light: #fed7d7;            /* Rose-100 - Very Light Crimson */
+  --accent-dark: #9f1239;             /* Rose-800 - Darker Crimson */
+  --accent-rgb: 225, 29, 72;
   
-  --success-color: #10b981;           /* Emerald-500 */
+  --success-color: #059669;           /* Emerald-600 */
   --success-light: #d1fae5;           /* Emerald-100 */
-  --success-dark: #059669;            /* Emerald-600 */
-  --success-rgb: 16, 185, 129;
+  --success-dark: #047857;            /* Emerald-700 */
+  --success-rgb: 5, 150, 105;
   
   --danger-color: #dc2626;            /* Red-600 */
   --danger-light: #fecaca;            /* Red-200 */
   --danger-dark: #991b1b;             /* Red-800 */
   --danger-rgb: 220, 38, 38;
   
-  --warning-color: #f59e0b;           /* Amber-500 */
+  --warning-color: #d97706;           /* Amber-600 */
   --warning-light: #fef3c7;           /* Amber-100 */
-  --warning-dark: #d97706;            /* Amber-600 */
-  --warning-rgb: 245, 158, 11;
+  --warning-dark: #b45309;            /* Amber-700 */
+  --warning-rgb: 217, 119, 6;
   
-  --info-color: #3b82f6;              /* Blue-500 */
-  --info-light: #dbeafe;              /* Blue-100 */
-  --info-dark: #2563eb;               /* Blue-600 */
-  --info-rgb: 59, 130, 246;
+  --info-color: #0284c7;              /* Sky-600 */
+  --info-light: #e0f2fe;              /* Sky-100 */
+  --info-dark: #0369a1;               /* Sky-700 */
+  --info-rgb: 2, 132, 199;
   
   /* Light Theme Background & Text */
   --background-color: #ffffff;        /* White */
@@ -41,14 +41,14 @@
   --surface-color: #ffffff;           /* White */
   --surface-elevated: #f1f5f9;        /* Slate-100 */
   
-  --text-color: #1f2937;              /* Gray-800 */
-  --text-secondary: #6b7280;          /* Gray-500 */
-  --text-tertiary: #9ca3af;           /* Gray-400 */
-  --text-disabled: #d1d5db;           /* Gray-300 */
+  --text-color: #1e293b;              /* Slate-800 */
+  --text-secondary: #64748b;          /* Slate-500 */
+  --text-tertiary: #94a3b8;           /* Slate-400 */
+  --text-disabled: #cbd5e1;           /* Slate-300 */
   
-  --border-color: #e5e7eb;            /* Gray-200 */
-  --border-light: #f3f4f6;            /* Gray-100 */
-  --border-dark: #d1d5db;             /* Gray-300 */
+  --border-color: #e2e8f0;            /* Slate-200 */
+  --border-light: #f1f5f9;            /* Slate-100 */
+  --border-dark: #cbd5e1;             /* Slate-300 */
   
   /* Border Radius */
   --border-radius-sm: 0.375rem;     /* 6px */
@@ -82,64 +82,64 @@
   --z-tooltip: 1050;
 }
 
-/* Dark Theme - Previous Dark Blue Design */
+/* Dark Theme - Updated to use consistent Red/Crimson colors */
 .dark,
 [data-theme="dark"] {
-  --primary-color: #1a237e;            /* Dark Blue */
-  --primary-light: #3949ab;            /* Lighter Blue */
-  --primary-dark: #0d47a1;             /* Darker Blue */
-  --primary-rgb: 26, 35, 126;
+  --primary-color: #e11d48;            /* Rose-600 - Crimson for dark theme */
+  --primary-light: #fecdd3;            /* Rose-200 - Light Crimson */
+  --primary-dark: #be123c;             /* Rose-700 - Darker Crimson */
+  --primary-rgb: 225, 29, 72;
   
-  --secondary-color: #3949ab;          /* Lighter Blue */
-  --secondary-light: #7986cb;          /* Even Lighter Blue */
-  --secondary-dark: #1a237e;           /* Dark Blue */
-  --secondary-rgb: 57, 73, 171;
+  --secondary-color: #94a3b8;          /* Slate-400 */
+  --secondary-light: #f1f5f9;          /* Slate-100 */
+  --secondary-dark: #475569;           /* Slate-600 */
+  --secondary-rgb: 148, 163, 184;
   
-  --accent-color: #00b0ff;             /* Bright Blue */
-  --accent-light: #81d4fa;             /* Light Blue */
-  --accent-dark: #0288d1;              /* Medium Blue */
-  --accent-rgb: 0, 176, 255;
+  --accent-color: #f43f5e;             /* Rose-500 - Bright Crimson */
+  --accent-light: #fecdd3;             /* Rose-200 - Light Crimson */
+  --accent-dark: #be123c;              /* Rose-700 - Dark Crimson */
+  --accent-rgb: 244, 63, 94;
   
-  --success-color: #00c853;            /* Green */
-  --success-light: #69f0ae;            /* Light Green */
-  --success-dark: #00a152;             /* Dark Green */
-  --success-rgb: 0, 200, 83;
+  --success-color: #10b981;            /* Emerald-500 */
+  --success-light: #d1fae5;            /* Emerald-100 */
+  --success-dark: #059669;             /* Emerald-600 */
+  --success-rgb: 16, 185, 129;
   
-  --danger-color: #d50000;             /* Red */
-  --danger-light: #ff5252;             /* Light Red */
-  --danger-dark: #b71c1c;              /* Dark Red */
-  --danger-rgb: 213, 0, 0;
+  --danger-color: #ef4444;             /* Red-500 */
+  --danger-light: #fecaca;             /* Red-200 */
+  --danger-dark: #dc2626;              /* Red-600 */
+  --danger-rgb: 239, 68, 68;
   
-  --warning-color: #ffa000;            /* Orange */
-  --warning-light: #ffcc02;            /* Light Orange */
-  --warning-dark: #f57c00;             /* Dark Orange */
-  --warning-rgb: 255, 160, 0;
+  --warning-color: #f59e0b;            /* Amber-500 */
+  --warning-light: #fef3c7;            /* Amber-100 */
+  --warning-dark: #d97706;             /* Amber-600 */
+  --warning-rgb: 245, 158, 11;
   
-  --info-color: #0288d1;               /* Blue */
-  --info-light: #4fc3f7;              /* Light Blue */
-  --info-dark: #01579b;                /* Dark Blue */
-  --info-rgb: 2, 136, 209;
+  --info-color: #3b82f6;               /* Blue-500 */
+  --info-light: #dbeafe;               /* Blue-100 */
+  --info-dark: #2563eb;                /* Blue-600 */
+  --info-rgb: 59, 130, 246;
   
   /* Dark Theme Background & Text */
-  --background-color: #0a1929;         /* Dark Blue Background */
-  --background-secondary: #0f2027;     /* Darker Blue */
-  --surface-color: #132f4c;            /* Slightly Lighter Blue */
-  --surface-elevated: #1e3a5f;         /* Even Lighter Blue */
+  --background-color: #0f172a;         /* Slate-900 - Dark Background */
+  --background-secondary: #1e293b;     /* Slate-800 - Secondary Background */
+  --surface-color: #1e293b;            /* Slate-800 - Surface */
+  --surface-elevated: #334155;         /* Slate-700 - Elevated Surface */
   
-  --text-color: #ffffff;               /* White */
-  --text-secondary: #b0bec5;           /* Light Blue Gray */
-  --text-tertiary: #90a4ae;            /* Medium Blue Gray */
-  --text-disabled: #546e7a;            /* Dark Blue Gray */
+  --text-color: #f8fafc;               /* Slate-50 - Primary Text */
+  --text-secondary: #cbd5e1;           /* Slate-300 - Secondary Text */
+  --text-tertiary: #94a3b8;            /* Slate-400 - Tertiary Text */
+  --text-disabled: #64748b;            /* Slate-500 - Disabled Text */
   
-  --border-color: #1e3a5f;             /* Dark Blue Border */
-  --border-light: #263238;             /* Darker Border */
-  --border-dark: #37474f;              /* Lighter Border */
+  --border-color: #475569;             /* Slate-600 - Border */
+  --border-light: #334155;             /* Slate-700 - Light Border */
+  --border-dark: #64748b;              /* Slate-500 - Dark Border */
   
   /* Shadows for dark theme */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.2);
-  --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.25);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.4);
 }
 
 /* Responsive spacing */

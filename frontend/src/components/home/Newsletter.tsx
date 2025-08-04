@@ -19,8 +19,8 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-gray-50 to-white dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
-      <div className="max-w-4xl mx-auto bg-gradient-to-r from-red-600 to-orange-500 rounded-3xl shadow-2xl p-8 lg:p-12 relative overflow-hidden">
+    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
+      <div className="max-w-4xl mx-auto bg-gradient-to-r from-rose-700 to-rose-600 rounded-3xl shadow-2xl p-8 lg:p-12 relative overflow-hidden">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg
@@ -68,12 +68,12 @@ export default function Newsletter() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 required
-                className="flex-1 px-6 py-3 bg-white text-gray-900 placeholder-gray-500 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200"
+                className="flex-1 px-6 py-3 bg-white text-slate-900 placeholder-slate-500 rounded-xl border-0 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200"
               />
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-8 py-3 bg-white text-red-600 font-semibold rounded-xl hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                className="px-8 py-3 bg-white text-rose-700 font-semibold rounded-xl hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white/50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">

@@ -60,9 +60,9 @@ export function Toaster() {
         // Custom toast types
         custom: {
           style: {
-            background: "var(--accent-light)",
-            color: "var(--accent-dark)",
-            border: "1px solid var(--accent-color)",
+            background: "var(--primary-light)",
+            color: "var(--primary-dark)",
+            border: "1px solid var(--primary-color)",
           },
         },
       }}
