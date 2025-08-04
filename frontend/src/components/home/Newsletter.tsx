@@ -19,8 +19,8 @@ export default function Newsletter() {
   };
 
   return (
-    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
-      <div className="max-w-4xl mx-auto bg-gradient-to-r from-rose-700 to-rose-600 rounded-3xl shadow-2xl p-8 lg:p-12 relative overflow-hidden">
+    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 relative overflow-hidden">
+      <div className="max-w-4xl mx-auto bg-gradient-to-r from-rose-700 to-rose-600 rounded-3xl shadow-2xl border border-rose-500 p-8 lg:p-12 relative overflow-hidden">
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
           <svg
@@ -47,13 +47,13 @@ export default function Newsletter() {
         {/* Top border decoration */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white to-transparent"></div>
 
-        <div className="relative z-10 text-center text-white">
+        <div className="relative z-10 text-center text-white [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white">
           {/* Header */}
           <div className="mb-8">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4 [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
               Stay in the Loop
             </h2>
-            <p className="text-lg lg:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg lg:text-xl opacity-90 max-w-2xl mx-auto leading-relaxed [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
               Get exclusive offers, gift ideas, and the latest updates delivered
               straight to your inbox
             </p>
@@ -106,7 +106,7 @@ export default function Newsletter() {
           </form>
 
           {/* Footer text */}
-          <p className="text-sm opacity-75 mt-6">
+          <p className="text-sm opacity-75 mt-6 [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
             No spam, unsubscribe anytime. We respect your privacy.
           </p>
         </div>

@@ -35,11 +35,12 @@
   --info-dark: #0369a1;               /* Sky-700 */
   --info-rgb: 2, 132, 199;
   
-  /* Light Theme Background & Text */
-  --background-color: #ffffff;        /* White */
-  --background-secondary: #f8fafc;    /* Slate-50 */
-  --surface-color: #ffffff;           /* White */
-  --surface-elevated: #f1f5f9;        /* Slate-100 */
+  /* Light Theme Background & Text - UPDATED FOR BETTER CONTRAST */
+  --background-color: #f8fafc;        /* Slate-50 - Light gray background */
+  --background-secondary: #f1f5f9;    /* Slate-100 - Secondary background */
+  --surface-color: #ffffff;           /* White - Surface containers */
+  --surface-elevated: #ffffff;        /* White - Elevated surfaces with shadow */
+  --surface-soft: #f9fafb;            /* Very light gray for subtle containers */
   
   --text-color: #1e293b;              /* Slate-800 */
   --text-secondary: #64748b;          /* Slate-500 */
@@ -125,6 +126,7 @@
   --background-secondary: #1e293b;     /* Slate-800 - Secondary Background */
   --surface-color: #1e293b;            /* Slate-800 - Surface */
   --surface-elevated: #334155;         /* Slate-700 - Elevated Surface */
+  --surface-soft: #1e293b;             /* Same as surface for dark theme */
   
   --text-color: #f8fafc;               /* Slate-50 - Primary Text */
   --text-secondary: #cbd5e1;           /* Slate-300 - Secondary Text */

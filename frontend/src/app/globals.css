@@ -110,8 +110,13 @@
 
   /* Selection styles */
   ::selection {
-    background-color: rgba(var(--primary-rgb), 0.2);
-    color: var(--primary-color);
+    background-color: rgba(var(--primary-rgb), 0.3);
+    color: var(--text-color);
+  }
+
+  ::-moz-selection {
+    background-color: rgba(var(--primary-rgb), 0.3);
+    color: var(--text-color);
   }
 
   /* Scrollbar styles */
@@ -155,6 +160,19 @@
     @apply transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2;
     @apply disabled:pointer-events-none disabled:opacity-50;
     @apply px-4 py-2;
+  }
+
+  /* Button text selection styles */
+  .btn *::selection,
+  .btn::selection {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+
+  .btn *::-moz-selection,
+  .btn::-moz-selection {
+    background-color: rgba(255, 255, 255, 0.3);
+    color: white;
   }
 
   .btn-sm {
@@ -687,4 +705,27 @@
   .card-hover:hover {
     transform: none;
   }
+}
+
+/* Section components for better visual hierarchy */
+.section-container {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.section-container-soft {
+  background-color: var(--surface-soft);
+  border: 1px solid var(--border-light);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.section-bg-primary {
+  background: linear-gradient(135deg, var(--surface-color) 0%, var(--background-secondary) 100%);
+}
+
+.section-bg-alternate {
+  background: linear-gradient(135deg, var(--background-secondary) 0%, var(--surface-soft, var(--surface-color)) 100%);
 }

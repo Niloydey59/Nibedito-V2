@@ -10,6 +10,7 @@ import { categoryService } from "@/services/categoryService";
 import { getImageUrl } from "@/utils/imageUtils";
 import { useCart } from "@/contexts/CartContext";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { useTheme } from "next-themes";
 
 interface Category {
   _id: string;
@@ -20,6 +21,8 @@ interface Category {
 export default function Navbar() {
   const router = useRouter();
   const { user } = useAuth();
+  const { theme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -55,6 +58,10 @@ export default function Navbar() {
     return () => {
       window.removeEventListener("clear-navbar-search", handleClearSearch);
     };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {
@@ -132,6 +139,15 @@ export default function Navbar() {
     );
   };
 
+  // Get the appropriate logo based on theme
+  const getLogoSrc = () => {
+    if (!mounted) return "/images/logo-black.png"; // Default fallback
+    const currentTheme = resolvedTheme || theme;
+    return currentTheme === "dark"
+      ? "/images/logo-white.png"
+      : "/images/logo-black.png";
+  };
+
   return (
     <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm transition-colors duration-200">
       <div className="container mx-auto px-4">
@@ -151,12 +167,13 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex-shrink-0">
             <Image
-              src="/images/logo-white.png"
+              src={getLogoSrc()}
               alt="Nibedito"
               width={120}
               height={40}
               priority
-              className="h-8 lg:h-10 w-auto"
+              className="h-8 lg:h-10 w-auto transition-opacity duration-200"
+              key={mounted ? resolvedTheme || theme : "fallback"} // Force re-render on theme change
             />
           </Link>
 
@@ -234,9 +251,12 @@ export default function Navbar() {
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-md transition-colors duration-200"
+                  className="relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
                 >
-                  Register
+                  <span className="absolute inset-0 bg-gradient-to-r from-rose-800 to-rose-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>
+                  <span className="relative z-10 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
+                    Register
+                  </span>
                 </Link>
               </div>
             )}
@@ -345,10 +365,13 @@ export default function Navbar() {
                     </Link>
                     <Link
                       href="/register"
-                      className="block px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white font-medium rounded-md transition-colors duration-200 text-center"
+                      className="relative inline-flex items-center justify-center px-3 py-2 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-md overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group text-center [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Register
+                      <span className="absolute inset-0 bg-gradient-to-r from-rose-800 to-rose-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>
+                      <span className="relative z-10 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
+                        Register
+                      </span>
                     </Link>
                   </div>
                 )}

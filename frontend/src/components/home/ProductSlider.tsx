@@ -13,24 +13,30 @@ export default function ProductSlider() {
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-rose-700 to-rose-600 rounded-full"></div>
 
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-600 p-8 lg:p-12 relative overflow-hidden">
+        {/* Background decoration */}
+        <div className="absolute inset-0 opacity-12 dark:opacity-15">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-300 to-rose-400 dark:from-rose-500 dark:to-rose-600 rounded-full transform translate-x-16 -translate-y-16"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-rose-400 to-rose-300 dark:from-rose-600 dark:to-rose-500 rounded-full transform -translate-x-16 translate-y-16"></div>
+        </div>
+
         {/* Section Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
             <h2 className="text-3xl lg:text-4xl font-bold">
-              <span className="bg-gradient-to-r from-slate-900 to-rose-600 dark:from-gray-100 dark:to-rose-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-slate-700 to-rose-600 dark:from-gray-100 dark:to-rose-400 bg-clip-text text-transparent">
                 Trending
               </span>{" "}
               <span className="text-rose-600 text-4xl lg:text-5xl">Gifts</span>
             </h2>
-            <p className="text-lg text-slate-600 dark:text-gray-300 lg:border-l lg:border-slate-300 dark:lg:border-gray-600 lg:pl-6">
+            <p className="text-lg text-slate-600 dark:text-gray-300 lg:border-l lg:border-slate-400 dark:lg:border-gray-600 lg:pl-6">
               Discover what's popular this season
             </p>
           </div>
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative z-10">
           {DUMMY_IMAGES.products.slice(0, 4).map((product) => (
             <div
               key={product.id}
@@ -113,14 +119,17 @@ export default function ProductSlider() {
         </div>
 
         {/* View All Button */}
-        <div className="text-center mt-12">
+        <div className="text-center mt-12 relative z-10">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-gray-100 font-medium rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+            className="relative inline-flex items-center justify-center gap-2 px-8 py-3 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
           >
-            View All Products
+            <span className="absolute inset-0 bg-gradient-to-r from-rose-800 to-rose-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>
+            <span className="relative z-10 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
+              View All Products
+            </span>
             <svg
-              className="w-5 h-5"
+              className="relative z-10 w-5 h-5 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

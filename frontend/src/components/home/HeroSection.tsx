@@ -10,11 +10,12 @@ interface HeroSectionProps {
 
 export default function HeroSection({ user }: HeroSectionProps) {
   return (
-    <section className="flex items-center justify-between px-[5%] py-16 lg:py-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800 min-h-screen lg:h-[calc(100vh-72px)] relative overflow-hidden">
+    <section className="flex items-center justify-between px-[5%] py-16 lg:py-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800 min-h-screen lg:h-[calc(100vh-72px)] relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-rose-400/20 to-rose-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-rose-600/20 to-rose-700/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-rose-300/30 to-rose-500/30 dark:from-rose-400/20 dark:to-rose-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-rose-500/30 to-rose-700/30 dark:from-rose-600/20 dark:to-rose-700/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-rose-200/20 to-rose-400/20 dark:from-rose-800/10 dark:to-rose-900/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="flex flex-col lg:flex-row items-center justify-between w-full max-w-7xl mx-auto relative z-10">
@@ -40,10 +41,12 @@ export default function HeroSection({ user }: HeroSectionProps) {
           <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
             <Link
               href="/products"
-              className="group relative inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105"
+              className="relative inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-rose-700 to-rose-600 text-white font-medium rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group hover:text-white [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-600"></span>
-              <span className="relative">Shop Now</span>
+              <span className="absolute inset-0 bg-gradient-to-r from-rose-800 to-rose-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>
+              <span className="relative z-10 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
+                Shop Now
+              </span>
             </Link>
 
             <Link
@@ -59,7 +62,7 @@ export default function HeroSection({ user }: HeroSectionProps) {
         {/* Hero Image */}
         <div className="flex-1 flex justify-center lg:justify-end mt-8 lg:mt-0">
           <div className="relative w-full max-w-lg lg:max-w-xl">
-            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
+            <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
               <Image
                 src={DUMMY_IMAGES.hero}
                 alt="Gift collection"
