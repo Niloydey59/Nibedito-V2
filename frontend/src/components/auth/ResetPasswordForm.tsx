@@ -1,61 +1,62 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { authService } from '@/services/auth';
-import Error from '@/components/common/Error';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { authService } from "@/services/auth";
+import Error from "@/components/common/Error";
 
 export default function ResetPasswordForm({ token }) {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: ''
+    password: "",
+    confirmPassword: "",
   });
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState({ type: '', message: '' });
+  const [status, setStatus] = useState({ type: "", message: "" });
   const [isLoading, setIsLoading] = useState(false);
 
   const validatePasswords = () => {
     const errors = {};
     if (!formData.password) {
-      errors.password = 'Password is required';
+      errors.password = "Password is required";
     } else if (formData.password.length < 8) {
-      errors.password = 'Password must be at least 8 characters long';
+      errors.password = "Password must be at least 8 characters long";
     } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      errors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+      errors.password =
+        "Password must contain at least one uppercase letter, one lowercase letter, and one number";
     }
 
     if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Please confirm your password';
+      errors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = 'Passwords do not match';
+      errors.confirmPassword = "Passwords do not match";
     }
 
     return {
       isValid: Object.keys(errors).length === 0,
-      errors
+      errors,
     };
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     if (errors[name]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus({ type: '', message: '' });
-    
+    setStatus({ type: "", message: "" });
+
     const { isValid, errors: validationErrors } = validatePasswords();
     if (!isValid) {
       setErrors(validationErrors);
@@ -66,81 +67,157 @@ export default function ResetPasswordForm({ token }) {
     try {
       await authService.resetPassword(token, formData.password);
       setStatus({
-        type: 'success',
-        message: 'Password has been reset successfully. Redirecting to login...'
+        type: "success",
+        message:
+          "Password has been reset successfully. Redirecting to login...",
       });
       setTimeout(() => {
-        router.push('/login');
+        router.push("/login");
       }, 2000);
     } catch (error) {
       setStatus({
-        type: 'error',
-        message: error.message || 'Failed to reset password. Please try again.'
+        type: "error",
+        message: error.message || "Failed to reset password. Please try again.",
       });
     } finally {
       setIsLoading(false);
     }
   };
 
+  const inputClassName = (fieldName) =>
+    `w-full px-4 py-3 rounded-lg border transition-all duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent shadow-sm hover:shadow-md ${
+      errors[fieldName]
+        ? "border-red-500 dark:border-red-400"
+        : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500"
+    }`;
+
   return (
-    <form onSubmit={handleSubmit} className="auth-form">
-      {status.message && (
-        <Error 
-          type={status.type}
-          message={status.message}
-          action={status.type === 'error' ? '/forgot-password' : null}
-        />
-      )}
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-300 dark:border-slate-700 p-8 backdrop-blur-sm bg-white/95 dark:bg-slate-800/95">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+            Reset Password
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            Enter your new password
+          </p>
+        </div>
 
-      {Object.keys(errors).length > 0 && (
-        <Error 
-          type="warning"
-          message="Please correct the following errors:"
-          className="mb-4"
-        />
-      )}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {status.message && (
+            <div className="mb-6">
+              <Error
+                type={status.type}
+                message={status.message}
+                action={status.type === "error" ? "/forgot-password" : null}
+              />
+            </div>
+          )}
 
-      <div className="form-group">
-        <label htmlFor="password">New Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          className={errors.password ? 'error' : ''}
-          placeholder="Enter your new password"
-        />
-        {errors.password && <span className="error-message">{errors.password}</span>}
+          {Object.keys(errors).length > 0 && (
+            <div className="mb-6">
+              <Error
+                type="warning"
+                message="Please correct the following errors:"
+              />
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
+                New Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={inputClassName("password")}
+                placeholder="Enter your new password"
+              />
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                className={inputClassName("confirmPassword")}
+                placeholder="Confirm your new password"
+              />
+              {errors.confirmPassword && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Resetting Password...
+              </div>
+            ) : (
+              "Reset Password"
+            )}
+          </button>
+
+          <div className="text-center pt-4">
+            <p className="text-slate-600 dark:text-slate-400">
+              Remember your password?{" "}
+              <Link
+                href="/login"
+                className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium transition-colors duration-200"
+              >
+                Sign in
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
-
-      <div className="form-group">
-        <label htmlFor="confirmPassword">Confirm Password</label>
-        <input
-          type="password"
-          id="confirmPassword"
-          name="confirmPassword"
-          value={formData.confirmPassword}
-          onChange={handleChange}
-          className={errors.confirmPassword ? 'error' : ''}
-          placeholder="Confirm your new password"
-        />
-        {errors.confirmPassword && (
-          <span className="error-message">{errors.confirmPassword}</span>
-        )}
-      </div>
-
-      <button 
-        type="submit" 
-        className="auth-button"
-        disabled={isLoading}
-      >
-        {isLoading ? 'Resetting Password...' : 'Reset Password'}
-      </button>
-
-      <p className="auth-redirect">
-        Remember your password? <Link href="/login">Sign in</Link>
-      </p>
-    </form>
+    </div>
   );
 }

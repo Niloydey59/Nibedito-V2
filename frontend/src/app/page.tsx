@@ -11,7 +11,7 @@ export default function HomePage() {
   const { user } = useAuth();
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-900 dark:to-slate-800">
       <HeroSection user={user} />
       <ProductSlider />
       <CategoryGrid />

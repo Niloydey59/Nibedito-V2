@@ -1,150 +1,310 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { orderService } from '@/services/orderService';
-import Link from 'next/link';
-import { FiShoppingBag, FiArrowRight } from 'react-icons/fi';
+import { useState, useEffect } from "react";
+import { orderService } from "@/services/orderService";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Spinner } from "@/components/ui/spinner";
+import { Separator } from "@/components/ui/separator";
+import {
+  FiShoppingBag,
+  FiArrowRight,
+  FiTrendingUp,
+  FiPackage,
+  FiCheckCircle,
+  FiXCircle,
+} from "react-icons/fi";
 
 const OrderSummary = () => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [stats, setStats] = useState({
-        total: 0,
-        processing: 0,
-        delivered: 0,
-        cancelled: 0
-    });
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    total: 0,
+    processing: 0,
+    delivered: 0,
+    cancelled: 0,
+  });
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
-    const fetchOrders = async () => {
-        try {
-            const result = await orderService.getUserOrders();
-            if (result.success) {
-                const recentOrders = result.data.sort((a, b) => 
-                    new Date(b.createdAt) - new Date(a.createdAt)
-                ).slice(0, 3); // Get only the 3 most recent orders
-                
-                setOrders(recentOrders);
-                
-                // Calculate order statistics
-                const allOrders = result.data;
-                const processingOrders = allOrders.filter(order => 
-                    (order.status || '').toLowerCase() === 'processing'
-                );
-                const deliveredOrders = allOrders.filter(order => 
-                    (order.status || '').toLowerCase() === 'delivered'
-                );
-                const cancelledOrders = allOrders.filter(order => 
-                    (order.status || '').toLowerCase() === 'cancelled'
-                );
-                
-                setStats({
-                    total: allOrders.length,
-                    processing: processingOrders.length,
-                    delivered: deliveredOrders.length,
-                    cancelled: cancelledOrders.length
-                });
-            }
-        } catch (error) {
-            console.error('Fetch orders error:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchOrders = async () => {
+    try {
+      const result = await orderService.getUserOrders();
+      if (result.success) {
+        const recentOrders = result.data
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 3); // Get only the 3 most recent orders
 
-    const formatPrice = (price) => {
-        if (typeof price !== 'number') return '0.00';
-        return price.toFixed(2);
-    };
+        setOrders(recentOrders);
 
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    if (loading) {
-        return (
-            <div className="dashboard-card order-summary-card">
-                <h2>My Orders</h2>
-                <div className="loading-indicator">Loading orders...</div>
-            </div>
+        // Calculate order statistics
+        const allOrders = result.data;
+        const processingOrders = allOrders.filter(
+          (order) => (order.status || "").toLowerCase() === "processing"
         );
-    }
+        const deliveredOrders = allOrders.filter(
+          (order) => (order.status || "").toLowerCase() === "delivered"
+        );
+        const cancelledOrders = allOrders.filter(
+          (order) => (order.status || "").toLowerCase() === "cancelled"
+        );
 
+        setStats({
+          total: allOrders.length,
+          processing: processingOrders.length,
+          delivered: deliveredOrders.length,
+          cancelled: cancelledOrders.length,
+        });
+      }
+    } catch (error) {
+      console.error("Fetch orders error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatPrice = (price) => {
+    if (typeof price !== "number") return "0.00";
+    return price.toFixed(2);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
+  const getStatusBadgeVariant = (status) => {
+    switch ((status || "").toLowerCase()) {
+      case "delivered":
+        return "default";
+      case "processing":
+        return "secondary";
+      case "cancelled":
+        return "destructive";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch ((status || "").toLowerCase()) {
+      case "delivered":
+        return <FiCheckCircle className="w-3 h-3" />;
+      case "processing":
+        return <FiPackage className="w-3 h-3" />;
+      case "cancelled":
+        return <FiXCircle className="w-3 h-3" />;
+      default:
+        return <FiPackage className="w-3 h-3" />;
+    }
+  };
+
+  if (loading) {
     return (
-        <div className="dashboard-card order-summary-card">
-            <div className="card-header">
-                <h2>My Orders</h2>
-                <Link href="/my-orders" className="view-all-link">
-                    View All <FiArrowRight />
-                </Link>
+      <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-400/20 dark:to-pink-400/20 border-b border-purple-100 dark:border-purple-800/30">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg shadow-md">
+              <FiShoppingBag className="w-5 h-5 text-white" />
             </div>
-            
-            <div className="order-stats">
-                <div className="stat-item">
-                    <span className="stat-value">{stats.total}</span>
-                    <span className="stat-label">Total Orders</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">{stats.processing}</span>
-                    <span className="stat-label">Processing</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">{stats.delivered}</span>
-                    <span className="stat-label">Delivered</span>
-                </div>
-                <div className="stat-item">
-                    <span className="stat-value">{stats.cancelled}</span>
-                    <span className="stat-label">Cancelled</span>
-                </div>
+            <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent font-bold">
+              My Orders
+            </span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="flex flex-col items-center gap-4">
+            <div className="p-4 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full">
+              <Spinner size="lg" className="text-white" />
             </div>
-            
-            <h3 className="recent-orders-title">Recent Orders</h3>
-            
-            {orders.length === 0 ? (
-                <div className="no-orders-message">
-                    <FiShoppingBag size={24} />
-                    <p>You haven't placed any orders yet.</p>
-                    <Link href="/products">
-                        <button className="shop-now-btn">Shop Now</button>
-                    </Link>
-                </div>
-            ) : (
-                <div className="recent-orders-list">
-                    {orders.map(order => (
-                        <div key={order._id} className="recent-order-item">
-                            <div className="order-item-header">
-                                <div className="order-id">#{order._id.substring(order._id.length - 8)}</div>
-                                <div className={`order-status ${order.status?.toLowerCase() || 'processing'}`}>
-                                    {order.status || 'Processing'}
-                                </div>
-                            </div>
-                            <div className="order-item-details">
-                                <div className="order-date">
-                                    Placed on: {formatDate(order.createdAt)}
-                                </div>
-                                <div className="order-amount">
-                                    ৳{formatPrice(order.finalPrice)}
-                                </div>
-                            </div>
-                            <div className="order-items-count">
-                                {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
-                            </div>
-                            <Link href={`/my-orders`} className="view-order-link">
-                                View Details
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-            )}
-        </div>
+            <span className="text-slate-600 dark:text-slate-300 font-medium">
+              Loading orders...
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     );
+  }
+
+  return (
+    <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
+      <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-400/20 dark:to-pink-400/20 border-b border-purple-100 dark:border-purple-800/30">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg shadow-md">
+              <FiShoppingBag className="w-5 h-5 text-white" />
+            </div>
+            <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent font-bold">
+              My Orders
+            </span>
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="sm"
+            asChild
+            className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/20"
+          >
+            <Link href="/my-orders" className="flex items-center gap-1">
+              View All
+              <FiArrowRight className="w-4 h-4" />
+            </Link>
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-6 p-6 lg:p-8">
+        {/* Enhanced Order Statistics */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                  {stats.total}
+                </p>
+                <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                  Total Orders
+                </p>
+              </div>
+              <div className="p-2 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg">
+                <FiTrendingUp className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl border border-orange-200/50 dark:border-orange-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                  {stats.processing}
+                </p>
+                <p className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                  Processing
+                </p>
+              </div>
+              <div className="p-2 bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg">
+                <FiPackage className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  {stats.delivered}
+                </p>
+                <p className="text-xs font-medium text-green-600 dark:text-green-400">
+                  Delivered
+                </p>
+              </div>
+              <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
+                <FiCheckCircle className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 rounded-xl border border-red-200/50 dark:border-red-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                  {stats.cancelled}
+                </p>
+                <p className="text-xs font-medium text-red-600 dark:text-red-400">
+                  Cancelled
+                </p>
+              </div>
+              <div className="p-2 bg-gradient-to-r from-red-500 to-rose-600 rounded-lg">
+                <FiXCircle className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Separator className="bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent" />
+
+        {/* Enhanced Recent Orders */}
+        <div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6">
+            Recent Orders
+          </h3>
+
+          {orders.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="p-6 bg-gradient-to-br from-slate-100 to-gray-100 dark:from-slate-800 dark:to-gray-800 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center shadow-lg">
+                <FiShoppingBag className="w-10 h-10 text-slate-400 dark:text-slate-500" />
+              </div>
+              <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg font-medium">
+                You haven't placed any orders yet.
+              </p>
+              <Button
+                asChild
+                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <Link href="/products">Shop Now</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {orders.map((order) => (
+                <div
+                  key={order._id}
+                  className="p-5 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-sm hover:shadow-md hover:from-slate-100 hover:to-gray-100 dark:hover:from-slate-900/70 dark:hover:to-gray-900/70 transition-all duration-200"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-sm font-bold bg-slate-200 dark:bg-slate-700 px-3 py-1 rounded-full">
+                        #{order._id.substring(order._id.length - 8)}
+                      </span>
+                      <Badge
+                        variant={getStatusBadgeVariant(order.status)}
+                        className={`gap-1 px-3 py-1 font-medium shadow-sm ${
+                          (order.status || "").toLowerCase() === "delivered"
+                            ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
+                            : (order.status || "").toLowerCase() ===
+                              "processing"
+                            ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white"
+                            : "bg-gradient-to-r from-red-500 to-rose-600 text-white"
+                        }`}
+                      >
+                        {getStatusIcon(order.status)}
+                        {order.status || "Processing"}
+                      </Badge>
+                    </div>
+                    <span className="font-bold text-xl bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                      ৳{formatPrice(order.finalPrice)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400 mb-4">
+                    <span>
+                      Placed on:{" "}
+                      <span className="font-medium">
+                        {formatDate(order.createdAt)}
+                      </span>
+                    </span>
+                    <span className="font-medium">
+                      {order.items?.length || 0} item
+                      {order.items?.length !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                  >
+                    <Link href="/my-orders">View Details</Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 };
 
-export default OrderSummary; 
+export default OrderSummary;

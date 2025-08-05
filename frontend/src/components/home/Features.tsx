@@ -4,7 +4,7 @@ import { FEATURES } from "@/constants/dummyData";
 
 export default function Features() {
   return (
-    <section className="py-16 lg:py-24 px-[5%] bg-white dark:bg-slate-900 relative">
+    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-900 dark:to-slate-800 relative">
       <div className="max-w-7xl mx-auto bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-600 p-8 lg:p-12 relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 opacity-12 dark:opacity-15">

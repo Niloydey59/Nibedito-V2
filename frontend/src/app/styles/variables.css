@@ -35,21 +35,21 @@
   --info-dark: #0369a1;               /* Sky-700 */
   --info-rgb: 2, 132, 199;
   
-  /* Light Theme Background & Text - UPDATED FOR BETTER CONTRAST */
-  --background-color: #f8fafc;        /* Slate-50 - Light gray background */
-  --background-secondary: #f1f5f9;    /* Slate-100 - Secondary background */
+  /* Light Theme Background & Text - ENHANCED FOR BETTER CONTRAST */
+  --background-color: #e2e8f0;        /* Slate-200 - Darker background for better contrast */
+  --background-secondary: #cbd5e1;    /* Slate-300 - Secondary background */
   --surface-color: #ffffff;           /* White - Surface containers */
   --surface-elevated: #ffffff;        /* White - Elevated surfaces with shadow */
-  --surface-soft: #f9fafb;            /* Very light gray for subtle containers */
+  --surface-soft: #f8fafc;            /* Very light gray for subtle containers */
   
   --text-color: #1e293b;              /* Slate-800 */
   --text-secondary: #64748b;          /* Slate-500 */
   --text-tertiary: #94a3b8;           /* Slate-400 */
   --text-disabled: #cbd5e1;           /* Slate-300 */
   
-  --border-color: #e2e8f0;            /* Slate-200 */
-  --border-light: #f1f5f9;            /* Slate-100 */
-  --border-dark: #cbd5e1;             /* Slate-300 */
+  --border-color: #cbd5e1;            /* Slate-300 - Stronger border */
+  --border-light: #e2e8f0;            /* Slate-200 */
+  --border-dark: #94a3b8;             /* Slate-400 - Darker border */
   
   /* Border Radius */
   --border-radius-sm: 0.375rem;     /* 6px */
@@ -58,11 +58,12 @@
   --border-radius-xl: 1rem;         /* 16px */
   --border-radius-full: 9999px;     /* Full */
   
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Enhanced Shadows for Light Theme */
+  --shadow-sm: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 6px 12px -2px rgba(0, 0, 0, 0.15), 0 4px 8px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.2), 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 24px 48px -8px rgba(0, 0, 0, 0.25), 0 16px 32px -8px rgba(0, 0, 0, 0.2);
+  --shadow-2xl: 0 32px 64px -12px rgba(0, 0, 0, 0.3), 0 20px 40px -12px rgba(0, 0, 0, 0.25);
   
   /* Transitions */
   --transition-fast: 0.15s;

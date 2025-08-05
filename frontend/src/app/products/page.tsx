@@ -238,7 +238,7 @@ export default function ProductsPage() {
     <main className="min-h-screen bg-background py-6 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Modern Header */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-surface via-surface to-surface-elevated border border-border rounded-2xl p-6 lg:p-8 mb-8 shadow-sm">
+        <div className="product-header-gradient relative overflow-hidden border border-border rounded-2xl p-6 lg:p-8 mb-8">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-5">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
@@ -370,7 +370,7 @@ export default function ProductsPage() {
           )}
 
           {/* Products Content */}
-          <section className="h-full overflow-y-auto scrollbar-thin">
+          <section className="h-full overflow-y-auto scrollbar-none">
             <ProductGrid
               products={products}
               isLoading={isLoading}

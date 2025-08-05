@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
-import Error from '@/components/common/Error';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import Error from "@/components/common/Error";
 
 export default function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
   const [formData, setFormData] = useState({
-    emailOrPhone: '',
-    password: ''
+    emailOrPhone: "",
+    password: "",
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function LoginForm() {
     if (showError) {
       timer = setTimeout(() => {
         setShowError(false);
-      }, 5000); // Hide error after 5 seconds
+      }, 5000);
     }
     return () => {
       if (timer) clearTimeout(timer);
@@ -32,116 +32,192 @@ export default function LoginForm() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    // Clear error when user types
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
     if (errors.general) {
-      setErrors(prev => ({ ...prev, general: '' }));
+      setErrors((prev) => ({ ...prev, general: "" }));
     }
     setShowError(false);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent form submission
-    
-    // Client-side validation
+    e.preventDefault();
+
     const validationErrors = {};
     if (!formData.emailOrPhone.trim()) {
-      validationErrors.emailOrPhone = 'Email or phone is required';
+      validationErrors.emailOrPhone = "Email or phone is required";
     }
     if (!formData.password) {
-      validationErrors.password = 'Password is required';
+      validationErrors.password = "Password is required";
     }
-    
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      return; // Stop submission if validation fails
+      return;
     }
-    
+
     setErrors({});
     setIsLoading(true);
     setShowError(false);
 
     try {
       const response = await login(formData);
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (error) {
-      // Don't log the error here since it's already logged in the service
-      const errorMessage = error?.message || 'Failed to login. Please try again.';
-      
+      const errorMessage =
+        error?.message || "Failed to login. Please try again.";
+
       setErrors({
-        general: errorMessage
+        general: errorMessage,
       });
       setShowError(true);
-      
-      // Ensure we keep the form data after an error
-      setFormData(prev => ({...prev}));
+
+      setFormData((prev) => ({ ...prev }));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="auth-form">
-      {showError && errors.general && (
-        <Error 
-          type="error" 
-          message={errors.general}
-          className="mb-4"
-          onClose={() => setShowError(false)}
-        />
-      )}
+    <div className="w-full max-w-md mx-auto">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-300 dark:border-slate-700 p-8 backdrop-blur-sm bg-white/95 dark:bg-slate-800/95">
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            Sign in to your account
+          </p>
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="emailOrPhone">Email or Phone</label>
-        <input
-          type="text"
-          id="emailOrPhone"
-          name="emailOrPhone"
-          value={formData.emailOrPhone}
-          onChange={handleChange}
-          className={errors.emailOrPhone ? 'error' : ''}
-        />
-        {errors.emailOrPhone && (
-          <span className="error-message">{errors.emailOrPhone}</span>
-        )}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {showError && errors.general && (
+            <div className="mb-6">
+              <Error
+                type="error"
+                message={errors.general}
+                onClose={() => setShowError(false)}
+              />
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="emailOrPhone"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
+                Email or Phone
+              </label>
+              <input
+                type="text"
+                id="emailOrPhone"
+                name="emailOrPhone"
+                value={formData.emailOrPhone}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent shadow-sm hover:shadow-md ${
+                  errors.emailOrPhone
+                    ? "border-red-500 dark:border-red-400"
+                    : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500"
+                }`}
+                placeholder="Enter your email or phone"
+              />
+              {errors.emailOrPhone && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {errors.emailOrPhone}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+              >
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent shadow-sm hover:shadow-md ${
+                  errors.password
+                    ? "border-red-500 dark:border-red-400"
+                    : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500"
+                }`}
+                placeholder="Enter your password"
+              />
+              {errors.password && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors duration-200"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Signing in...
+              </div>
+            ) : (
+              "Sign In"
+            )}
+          </button>
+
+          <div className="text-center pt-4">
+            <p className="text-slate-600 dark:text-slate-400">
+              Don't have an account?{" "}
+              <Link
+                href="/register"
+                className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium transition-colors duration-200"
+              >
+                Register
+              </Link>
+            </p>
+          </div>
+        </form>
       </div>
-
-      <div className="form-group">
-        <label htmlFor="password">Password</label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleChange}
-          className={errors.password ? 'error' : ''}
-        />
-        {errors.password && (
-          <span className="error-message">{errors.password}</span>
-        )}
-      </div>
-
-      <Link href="/forgot-password" className="forgot-password">
-        Forgot Password?
-      </Link>
-
-      <button 
-        type="submit" 
-        className="auth-button" 
-        disabled={isLoading}
-      >
-        {isLoading ? 'Signing in...' : 'Sign In'}
-      </button>
-
-      <p className="auth-redirect">
-        Don't have an account? <Link href="/register">Register</Link>
-      </p>
-    </form>
+    </div>
   );
 }

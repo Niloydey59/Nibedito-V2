@@ -133,11 +133,14 @@ export default function ProductGrid({
         {products.map((product) => (
           <div
             key={product._id}
-            className={`group relative bg-surface border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 ${
-              viewMode === "list"
-                ? "flex flex-row h-48 md:h-40"
-                : "flex flex-col h-full"
-            }`}
+            className={`group relative bg-surface border border-border rounded-xl overflow-hidden 
+                        shadow-md hover:shadow-xl transition-all duration-300 
+                        hover:-translate-y-2 hover:scale-105 
+                        ${
+                          viewMode === "list"
+                            ? "flex flex-row h-48 md:h-40"
+                            : "flex flex-col h-full"
+                        }`}
             onMouseEnter={() => setHoveredProduct(product._id)}
             onMouseLeave={() => setHoveredProduct(null)}
           >

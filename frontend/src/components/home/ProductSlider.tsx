@@ -9,7 +9,7 @@ export default function ProductSlider() {
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
 
   return (
-    <section className="py-16 lg:py-24 px-[5%] bg-white dark:bg-slate-900 relative">
+    <section className="py-16 lg:py-24 px-[5%] bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-900 dark:to-slate-800 relative">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-gradient-to-r from-rose-700 to-rose-600 rounded-full"></div>
 
