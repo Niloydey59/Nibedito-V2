@@ -8,14 +8,18 @@ import VerificationStatus from "@/components/dashboard/VerificationStatus";
 import SecuritySettings from "@/components/dashboard/SecuritySettings";
 import OrderSummary from "@/components/dashboard/OrderSummary";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Spinner } from "@/components/ui/spinner";
-import { FiLogOut, FiUser, FiGrid } from "react-icons/fi";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import { FiLogOut, FiGrid } from "react-icons/fi";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoading, logout } = useAuth();
+  const [mounted, setMounted] = useState(false);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -24,26 +28,14 @@ export default function DashboardPage() {
   }, [isLoading, user]);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (mounted && !isLoading && !user) {
       router.push("/login");
     }
-  }, [isLoading, user, router]);
+  }, [mounted, isLoading, user, router]);
 
-  if (isLoading || !user || !isDataLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <div className="p-4 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full mb-6">
-              <Spinner size="lg" className="text-white" />
-            </div>
-            <p className="text-slate-600 dark:text-slate-300 font-medium">
-              Loading dashboard...
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  // Show loading until everything is ready
+  if (!mounted || isLoading || !user || !isDataLoaded) {
+    return <LoadingSpinner fullPage={true} />;
   }
 
   const handleLogout = async () => {
@@ -60,7 +52,7 @@ export default function DashboardPage() {
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-grid-slate-200 dark:bg-grid-slate-700/25 bg-[size:20px_20px] opacity-50"></div>
 
-      <div className="relative z-10">
+      <div className="relative z-10 animate-fade-in">
         <div className="container mx-auto px-4 py-6 lg:py-12 max-w-7xl">
           {/* Enhanced Header */}
           <div className="mb-8 lg:mb-12">
@@ -96,13 +88,13 @@ export default function DashboardPage() {
           <div className="space-y-6 lg:space-y-8">
             {/* First row: Profile and Orders */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-              {isDataLoaded && <UserProfile user={user} />}
+              <UserProfile user={user} />
               <OrderSummary />
             </div>
 
             {/* Second row: Verification and Security */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-              {isDataLoaded && <VerificationStatus user={user} />}
+              <VerificationStatus user={user} />
               <SecuritySettings />
             </div>
           </div>

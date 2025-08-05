@@ -239,12 +239,15 @@ const OrderSummary = () => {
               <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg font-medium">
                 You haven't placed any orders yet.
               </p>
-              <Button
-                asChild
-                className="bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 shadow-lg hover:shadow-xl transition-all duration-200"
+              <Link
+                href="/products"
+                className="relative inline-flex items-center justify-center px-8 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-semibold rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 group hover:text-white [&_*::selection]:bg-white/30 [&_*::selection]:text-white [&_*::-moz-selection]:bg-white/30 [&_*::-moz-selection]:text-white"
               >
-                <Link href="/products">Shop Now</Link>
-              </Button>
+                <span className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-700 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left z-[-1]"></span>
+                <span className="relative z-10 text-white [&::selection]:bg-white/30 [&::selection]:text-white [&::-moz-selection]:bg-white/30 [&::-moz-selection]:text-white">
+                  Shop Now
+                </span>
+              </Link>
             </div>
           ) : (
             <div className="space-y-4">

@@ -584,36 +584,38 @@
   }
 
   /* Enhanced Animations */
-  @keyframes gradientShift {
-    0%, 100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-  }
-
-  @keyframes loading {
-    0% {
-      background-position: -200% 0;
-    }
-    100% {
-      background-position: 200% 0;
-    }
-  }
-
-  @keyframes slideInUp {
+  @keyframes fadeIn {
     from {
       opacity: 0;
-      transform: translate3d(0, 30px, 0);
     }
     to {
       opacity: 1;
-      transform: translate3d(0, 0, 0);
     }
   }
 
-  @keyframes fadeInScale {
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
     from {
       opacity: 0;
       transform: scale(0.95);
@@ -622,6 +624,19 @@
       opacity: 1;
       transform: scale(1);
     }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%) skewX(-12deg);
+    }
+    100% {
+      transform: translateX(200%) skewX(-12deg);
+    }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 3s ease-in-out infinite;
   }
 }
 
@@ -1008,4 +1023,114 @@
 [data-theme="dark"] .product-header-gradient:hover {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
+}
+
+/* Enhanced Cart Header Gradients */
+.cart-header-gradient {
+  background: linear-gradient(135deg, 
+    #f43f5e 0%,     /* rose-500 */
+    #ec4899 25%,    /* pink-500 */
+    #a855f7 50%,    /* purple-500 */
+    #3b82f6 75%,    /* blue-500 */
+    #6366f1 100%    /* indigo-500 */
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.cart-header-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(244, 63, 94, 0.9) 0%,
+    rgba(236, 72, 153, 0.9) 25%,
+    rgba(168, 85, 247, 0.9) 50%,
+    rgba(59, 130, 246, 0.9) 75%,
+    rgba(99, 102, 241, 0.9) 100%
+  );
+  z-index: 1;
+}
+
+.cart-header-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  z-index: 2;
+}
+
+/* Enhanced Cart Header Gradients with Better Light Theme Support */
+.cart-header-gradient-light {
+  background: linear-gradient(135deg, 
+    #dbeafe 0%,     /* blue-100 */
+    #c7d2fe 25%,    /* indigo-200 */
+    #ddd6fe 50%,    /* violet-200 */
+    #e9d5ff 75%,    /* purple-200 */
+    #f3e8ff 100%    /* purple-100 */
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+.cart-header-gradient-light::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.1) 0%,    /* blue-500 with opacity */
+    rgba(99, 102, 241, 0.15) 25%,  /* indigo-500 with opacity */
+    rgba(139, 92, 246, 0.12) 50%,  /* violet-500 with opacity */
+    rgba(168, 85, 247, 0.1) 75%,   /* purple-500 with opacity */
+    rgba(196, 181, 253, 0.08) 100% /* purple-300 with opacity */
+  );
+  z-index: 1;
+}
+
+.cart-header-gradient-light::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
+  z-index: 2;
+}
+
+/* Dark theme adjustments - keep existing dark theme styles */
+.dark .cart-header-gradient,
+.dark .cart-header-gradient-light {
+  background: linear-gradient(135deg, 
+    #be185d 0%,     /* rose-700 */
+    #be1264 25%,    /* pink-700 */
+    #7c3aed 50%,    /* purple-600 */
+    #1d4ed8 75%,    /* blue-700 */
+    #4338ca 100%    /* indigo-700 */
+  );
+}
+
+.dark .cart-header-gradient::before,
+.dark .cart-header-gradient-light::before {
+  background: linear-gradient(135deg, 
+    rgba(190, 24, 93, 0.8) 0%,
+    rgba(190, 18, 100, 0.8) 25%,
+    rgba(124, 58, 237, 0.8) 50%,
+    rgba(29, 78, 216, 0.8) 75%,
+    rgba(67, 56, 202, 0.8) 100%
+  );
+}
+
+/* Premium glow effects */
+.cart-premium-glow {
+  box-shadow: 
+    0 0 20px rgba(244, 63, 94, 0.3),
+    0 0 40px rgba(168, 85, 247, 0.2),
+    0 0 60px rgba(59, 130, 246, 0.1);
+}
+
+.dark .cart-premium-glow {
+  box-shadow: 
+    0 0 20px rgba(190, 24, 93, 0.4),
+    0 0 40px rgba(124, 58, 237, 0.3),
+    0 0 60px rgba(29, 78, 216, 0.2);
 }
