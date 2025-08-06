@@ -238,10 +238,10 @@ export default function ProductsPage() {
     <main className="min-h-screen bg-background py-6 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Modern Header */}
-        <div className="product-header-gradient relative overflow-hidden border border-border rounded-2xl p-6 lg:p-8 mb-8">
+        <div className="product-header-gradient-enhanced relative overflow-hidden border border-border rounded-2xl mb-8 shadow-2xl">
           {/* Background Pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20" />
+          <div className="absolute inset-0 opacity-10 z-0">
+            <div className="absolute inset-0 bg-gradient-to-r from-rose-600/40 via-rose-400/30 to-rose-200/20 dark:from-primary/20 dark:to-accent/20" />
             <svg
               className="absolute right-0 top-0 h-full w-1/3"
               viewBox="0 0 100 100"
@@ -255,19 +255,24 @@ export default function ProductsPage() {
             </svg>
           </div>
 
-          <div className="relative">
+          <div className="relative z-10">
             {/* Header Content */}
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 p-6 lg:p-8">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl flex items-center justify-center shadow-md">
-                    <FiTrendingUp className="w-6 h-6 text-white" />
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-br from-rose-300/80 to-rose-500/70 dark:from-blue-600/40 dark:to-indigo-500/30 rounded-xl blur-sm animate-pulse" />
+                    <div className="relative w-12 h-12 bg-gradient-to-br from-white/90 to-rose-100/80 dark:from-primary dark:to-accent backdrop-blur-sm rounded-xl flex items-center justify-center shadow-lg border border-rose-300/60 dark:border-blue-700/30">
+                      <FiTrendingUp className="w-6 h-6 text-rose-700 dark:text-white drop-shadow-sm" />
+                    </div>
                   </div>
                   <div>
-                    <h1 className="text-3xl lg:text-4xl font-bold text-foreground">
-                      Discover Products
+                    <h1 className="text-3xl lg:text-4xl font-black text-white dark:text-foreground drop-shadow-md tracking-tight">
+                      <span className="bg-gradient-to-r from-white via-rose-100 to-white dark:from-slate-200 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent">
+                        Discover Products
+                      </span>
                     </h1>
-                    <p className="text-text-secondary">
+                    <p className="text-rose-50 dark:text-text-secondary font-medium drop-shadow-sm">
                       Find exactly what you're looking for
                     </p>
                   </div>
@@ -276,16 +281,16 @@ export default function ProductsPage() {
                 {/* Search Results Info */}
                 {searchParams.get("search") && (
                   <div className="flex flex-wrap items-center gap-3 mb-4">
-                    <div className="flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-2">
-                      <FiSearch className="w-4 h-4 text-primary" />
-                      <span className="text-sm text-primary font-medium">
+                    <div className="flex items-center gap-2 bg-white/20 dark:bg-primary/10 border border-rose-200/60 dark:border-primary/20 rounded-lg px-3 py-2 backdrop-blur-sm">
+                      <FiSearch className="w-4 h-4 text-white dark:text-primary" />
+                      <span className="text-sm text-white dark:text-primary font-medium">
                         "{searchParams.get("search")}"
                       </span>
                       <button
                         onClick={clearSearch}
-                        className="ml-1 p-0.5 hover:bg-primary/20 rounded transition-colors"
+                        className="ml-1 p-0.5 hover:bg-white/30 dark:hover:bg-primary/20 rounded transition-colors"
                       >
-                        <FiX className="w-3 h-3 text-primary" />
+                        <FiX className="w-3 h-3 text-white dark:text-primary" />
                       </button>
                     </div>
                   </div>
@@ -293,9 +298,9 @@ export default function ProductsPage() {
 
                 {/* Results Count */}
                 {pagination.totalProducts > 0 && (
-                  <div className="inline-flex items-center gap-2 bg-surface-elevated border border-border rounded-lg px-4 py-2">
-                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                    <span className="text-sm font-medium text-foreground">
+                  <div className="inline-flex items-center gap-2 bg-white/30 dark:bg-surface-elevated border border-rose-200/50 dark:border-border rounded-lg px-4 py-2 backdrop-blur-sm shadow-sm">
+                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    <span className="text-sm font-medium text-white dark:text-foreground drop-shadow-sm">
                       {pagination.totalProducts} product
                       {pagination.totalProducts !== 1 ? "s" : ""} found
                     </span>
@@ -346,6 +351,9 @@ export default function ProductsPage() {
               </div>
             </div>
           </div>
+
+          {/* Enhanced Bottom Accent Line */}
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-600/80 via-rose-400/70 via-rose-300/60 to-rose-200/50 dark:from-blue-600/40 dark:via-indigo-600/30 dark:via-purple-600/25 dark:to-rose-600/15 z-10" />
         </div>
 
         {/* Main Content */}
