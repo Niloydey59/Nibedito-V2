@@ -135,7 +135,7 @@ const OrderSummary = () => {
 
   return (
     <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-400/20 dark:to-pink-400/20 border-b border-purple-100 dark:border-purple-800/30">
+      <CardHeader className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 dark:from-purple-400/20 dark:to-pink-400/20 border-b border-purple-100 dark:border-purple-800/30">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-xl">
             <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg shadow-md">
@@ -296,7 +296,7 @@ const OrderSummary = () => {
                     variant="outline"
                     size="sm"
                     asChild
-                    className="w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                    className="w-full bg-slate-250 dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 shadow-sm"
                   >
                     <Link href="/my-orders">View Details</Link>
                   </Button>

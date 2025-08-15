@@ -103,7 +103,7 @@ export default function SecuritySettings() {
 
   return (
     <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-red-500/10 to-rose-500/10 dark:from-red-400/20 dark:to-rose-400/20 border-b border-red-100 dark:border-red-800/30">
+      <CardHeader className="bg-gradient-to-r from-red-500/20 to-rose-500/20 dark:from-red-400/20 dark:to-rose-400/20 border-b border-red-100 dark:border-red-800/30">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div className="p-2 bg-gradient-to-r from-red-500 to-rose-600 rounded-lg shadow-md">
             <FiLock className="w-5 h-5 text-white" />
@@ -233,15 +233,15 @@ export default function SecuritySettings() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 {isLoading ? (
                   <>
                     <Spinner size="sm" className="mr-2" />
-                    Changing...
+                    <span className="text-white">Changing...</span>
                   </>
                 ) : (
-                  "Change Password"
+                  <span className="text-white">Change Password</span>
                 )}
               </Button>
               <Button
@@ -275,14 +275,14 @@ export default function SecuritySettings() {
               </div>
               <Button
                 onClick={() => setIsChangingPassword(true)}
-                className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
               >
-                Change Password
+                <span className="text-white">Change Password</span>
               </Button>
             </div>
 
             {/* Enhanced Security Tips */}
-            <div className="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm">
+            <div className="p-5 bg-gradient-to-r from-blue-100/80 to-indigo-100/80 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
                   <FiLock className="w-5 h-5 text-white" />

@@ -306,7 +306,7 @@ export default function UserProfile({ user: initialUser }) {
 
   return (
     <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-blue-500/10 to-indigo-500/10 dark:from-blue-400/20 dark:to-indigo-400/20 border-b border-blue-100 dark:border-blue-800/30">
+      <CardHeader className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 dark:from-blue-400/20 dark:to-indigo-400/20 border-b border-blue-100 dark:border-blue-800/30">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-md">
             <FiEdit2 className="w-5 h-5 text-white" />
@@ -611,17 +611,17 @@ export default function UserProfile({ user: initialUser }) {
               type="button"
               onClick={handleSubmit}
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200"
+              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
             >
               {isLoading ? (
                 <>
                   <Spinner size="sm" className="mr-2" />
-                  Saving...
+                  <span className="text-white">Saving...</span>
                 </>
               ) : isEditing ? (
-                "Save Changes"
+                <span className="text-white">Save Changes</span>
               ) : (
-                "Edit Profile"
+                <span className="text-white">Edit Profile</span>
               )}
             </Button>
             {isEditing && (

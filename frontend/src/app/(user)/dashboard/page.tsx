@@ -56,31 +56,59 @@ export default function DashboardPage() {
         <div className="container mx-auto px-4 py-6 lg:py-12 max-w-7xl">
           {/* Enhanced Header */}
           <div className="mb-8 lg:mb-12">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 lg:p-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/30 shadow-xl">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                  <FiGrid className="w-7 h-7 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                    Dashboard
-                  </h1>
-                  <p className="text-slate-600 dark:text-slate-300 text-lg font-medium">
-                    Welcome back,{" "}
-                    <span className="text-blue-600 dark:text-blue-400">
-                      {user.name}
-                    </span>
-                  </p>
+            <div className="dashboard-header-gradient relative overflow-hidden rounded-2xl shadow-2xl">
+              {/* Background Pattern */}
+              <div className="absolute inset-0 opacity-10 z-0">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-500/40 via-red-400/30 to-red-300/20 dark:from-primary/20 dark:to-accent/20" />
+                <svg
+                  className="absolute right-0 top-0 h-full w-1/3"
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                >
+                  <polygon
+                    fill="currentColor"
+                    points="50,0 100,0 100,100"
+                    opacity="0.1"
+                  />
+                </svg>
+              </div>
+
+              <div className="relative z-10">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 lg:p-8">
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-red-300/80 to-red-500/70 dark:from-blue-600/40 dark:to-indigo-500/30 rounded-xl blur-sm animate-pulse" />
+                      <div className="relative p-3 bg-gradient-to-br from-white/90 to-red-100/80 dark:from-primary dark:to-accent backdrop-blur-sm rounded-xl shadow-lg border border-red-300/60 dark:border-blue-700/30">
+                        <FiGrid className="w-7 h-7 text-red-700 dark:text-white drop-shadow-sm" />
+                      </div>
+                    </div>
+                    <div>
+                      <h1 className="text-3xl lg:text-4xl font-black text-white dark:text-foreground drop-shadow-md tracking-tight">
+                        <span className="bg-gradient-to-r from-white via-red-100 to-white dark:from-slate-200 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent">
+                          Dashboard
+                        </span>
+                      </h1>
+                      <p className="text-red-50 dark:text-text-secondary font-medium drop-shadow-sm text-lg">
+                        Welcome back,{" "}
+                        <span className="text-white dark:text-blue-400 font-semibold">
+                          {user.name}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleLogout}
+                    variant="outline"
+                    className="gap-2 bg-white/90 dark:bg-slate-800/80 backdrop-blur-sm border-white/60 dark:border-slate-600 text-red-600 dark:text-orange-400 hover:bg-red-50/90 dark:hover:bg-orange-950/30 hover:border-red-200/80 dark:hover:border-orange-700/50 hover:text-red-700 dark:hover:text-orange-300 transition-all duration-200 shadow-lg hover:shadow-xl"
+                  >
+                    <FiLogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </Button>
                 </div>
               </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="gap-2 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 hover:border-red-300 dark:hover:border-red-700 transition-all duration-200 shadow-md"
-              >
-                <FiLogOut className="w-4 h-4" />
-                <span>Logout</span>
-              </Button>
+
+              {/* Enhanced Bottom Accent Line */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500/80 via-red-400/70 via-red-300/60 to-red-200/50 dark:from-blue-600/40 dark:via-indigo-600/30 dark:via-purple-600/25 dark:to-rose-600/15 z-10" />
             </div>
           </div>
 

@@ -41,7 +41,7 @@ export default function VerificationStatus({ user }) {
 
   return (
     <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-emerald-500/10 to-green-500/10 dark:from-emerald-400/20 dark:to-green-400/20 border-b border-emerald-100 dark:border-emerald-800/30">
+      <CardHeader className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 dark:from-emerald-400/20 dark:to-green-400/20 border-b border-emerald-100 dark:border-emerald-800/30">
         <CardTitle className="flex items-center gap-3 text-xl">
           <div className="p-2 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg shadow-md">
             <FiShield className="w-5 h-5 text-white" />
