@@ -1,52 +1,66 @@
 "use client";
 
-import { FiBox, FiActivity, FiCalendar, FiTrendingUp } from "react-icons/fi";
+import { FiMapPin, FiDollarSign, FiTruck } from "react-icons/fi";
 
-export default function CategoryStats({ categories }) {
-  const totalCategories = categories?.length || 0;
-  const activeCategories =
-    categories?.filter((cat) => cat.isActive !== false).length || 0;
-  const totalProducts =
-    categories?.reduce((sum, cat) => sum + (cat.productCount || 0), 0) || 0;
-  const averageProducts =
-    totalCategories > 0 ? Math.round(totalProducts / totalCategories) : 0;
+interface ShippingStatsProps {
+  rates: any[];
+}
+
+export default function ShippingStats({ rates }: ShippingStatsProps) {
+  // Calculate stats
+  const totalRegions = rates.length;
+  const averageCost =
+    rates.length > 0
+      ? Math.round(
+          rates.reduce((sum, rate) => sum + parseFloat(rate.cost), 0) /
+            rates.length
+        )
+      : 0;
+  const highestCost =
+    rates.length > 0
+      ? Math.max(...rates.map((rate) => parseFloat(rate.cost)))
+      : 0;
+  const lowestCost =
+    rates.length > 0
+      ? Math.min(...rates.map((rate) => parseFloat(rate.cost)))
+      : 0;
 
   const statsData = [
     {
-      title: "Total Categories",
-      value: totalCategories,
-      icon: FiBox,
+      title: "Total Regions",
+      value: totalRegions,
+      icon: FiMapPin,
       gradient: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-900/20",
       textColor: "text-blue-600 dark:text-blue-400",
-      description: "All categories in system",
+      description: "Available shipping zones",
     },
     {
-      title: "Active Categories",
-      value: activeCategories,
-      icon: FiActivity,
+      title: "Average Cost",
+      value: `৳${averageCost}`,
+      icon: FiDollarSign,
       gradient: "from-emerald-500 to-emerald-600",
       bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
       textColor: "text-emerald-600 dark:text-emerald-400",
-      description: "Currently visible categories",
+      description: "Average shipping rate",
     },
     {
-      title: "Total Products",
-      value: totalProducts,
-      icon: FiCalendar,
-      gradient: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
-      textColor: "text-purple-600 dark:text-purple-400",
-      description: "Products across all categories",
-    },
-    {
-      title: "Average Products",
-      value: averageProducts,
-      icon: FiTrendingUp,
+      title: "Highest Cost",
+      value: `৳${highestCost}`,
+      icon: FiTruck,
       gradient: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50 dark:bg-orange-900/20",
       textColor: "text-orange-600 dark:text-orange-400",
-      description: "Products per category",
+      description: "Maximum shipping rate",
+    },
+    {
+      title: "Lowest Cost",
+      value: `৳${lowestCost}`,
+      icon: FiDollarSign,
+      gradient: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      textColor: "text-purple-600 dark:text-purple-400",
+      description: "Minimum shipping rate",
     },
   ];
 
@@ -73,7 +87,7 @@ export default function CategoryStats({ categories }) {
             </h3>
 
             <p className="text-3xl font-bold text-slate-800 dark:text-slate-200 group-hover:scale-105 transition-transform duration-200">
-              {stat.value.toLocaleString()}
+              {stat.value}
             </p>
 
             <p className="text-xs text-slate-500 dark:text-slate-400">

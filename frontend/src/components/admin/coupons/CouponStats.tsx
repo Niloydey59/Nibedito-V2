@@ -1,52 +1,60 @@
 "use client";
 
-import { FiBox, FiActivity, FiCalendar, FiTrendingUp } from "react-icons/fi";
+import { FiTag, FiShield, FiPackage, FiTruck } from "react-icons/fi";
 
-export default function CategoryStats({ categories }) {
-  const totalCategories = categories?.length || 0;
-  const activeCategories =
-    categories?.filter((cat) => cat.isActive !== false).length || 0;
-  const totalProducts =
-    categories?.reduce((sum, cat) => sum + (cat.productCount || 0), 0) || 0;
-  const averageProducts =
-    totalCategories > 0 ? Math.round(totalProducts / totalCategories) : 0;
+interface CouponStatsProps {
+  coupons: any[];
+}
+
+export default function CouponStats({ coupons }: CouponStatsProps) {
+  // Calculate stats
+  const activeCoupons = coupons.filter(
+    (coupon) => new Date(coupon.expiryDate) > new Date()
+  ).length;
+  const expiredCoupons = coupons.length - activeCoupons;
+  const productDiscountCoupons = coupons.filter(
+    (coupon) => coupon.discountOptions.productDiscount.type !== "none"
+  ).length;
+  const shippingDiscountCoupons = coupons.filter(
+    (coupon) => coupon.discountOptions.shippingDiscount.type !== "none"
+  ).length;
 
   const statsData = [
     {
-      title: "Total Categories",
-      value: totalCategories,
-      icon: FiBox,
-      gradient: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
-      textColor: "text-blue-600 dark:text-blue-400",
-      description: "All categories in system",
-    },
-    {
-      title: "Active Categories",
-      value: activeCategories,
-      icon: FiActivity,
+      title: "Total Coupons",
+      value: coupons.length,
+      icon: FiTag,
       gradient: "from-emerald-500 to-emerald-600",
       bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
       textColor: "text-emerald-600 dark:text-emerald-400",
-      description: "Currently visible categories",
+      description: "All discount coupons",
     },
     {
-      title: "Total Products",
-      value: totalProducts,
-      icon: FiCalendar,
+      title: "Active Coupons",
+      value: activeCoupons,
+      icon: FiShield,
+      gradient: "from-green-500 to-green-600",
+      bgColor: "bg-green-50 dark:bg-green-900/20",
+      textColor: "text-green-600 dark:text-green-400",
+      description: "Currently valid",
+    },
+    {
+      title: "Product Discounts",
+      value: productDiscountCoupons,
+      icon: FiPackage,
+      gradient: "from-blue-500 to-blue-600",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      textColor: "text-blue-600 dark:text-blue-400",
+      description: "Product discount coupons",
+    },
+    {
+      title: "Shipping Discounts",
+      value: shippingDiscountCoupons,
+      icon: FiTruck,
       gradient: "from-purple-500 to-purple-600",
       bgColor: "bg-purple-50 dark:bg-purple-900/20",
       textColor: "text-purple-600 dark:text-purple-400",
-      description: "Products across all categories",
-    },
-    {
-      title: "Average Products",
-      value: averageProducts,
-      icon: FiTrendingUp,
-      gradient: "from-orange-500 to-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-900/20",
-      textColor: "text-orange-600 dark:text-orange-400",
-      description: "Products per category",
+      description: "Shipping discount coupons",
     },
   ];
 

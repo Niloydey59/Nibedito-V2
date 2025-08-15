@@ -1,214 +1,140 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { toast } from 'react-hot-toast';
-import { useRouter } from 'next/navigation';
-import { getShippingRates, createShippingRate, updateShippingRate, deleteShippingRate, initializeDefaultRates } from '@/services/shippingService';
+import { useState, useEffect } from "react";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { toast } from "react-hot-toast";
+import { useRouter } from "next/navigation";
+import { getShippingRates } from "@/services/shippingService";
+import { FiTruck, FiPlus, FiX } from "react-icons/fi";
+import ShippingStats from "@/components/admin/shipping/ShippingStats";
+import ShippingList from "@/components/admin/shipping/ShippingList";
+import ShippingForm from "@/components/admin/shipping/ShippingForm";
 
 export default function ShippingManagement() {
-    const router = useRouter();
-    const { admin, loading: authLoading } = useAdminAuth();
-    const [rates, setRates] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [newRate, setNewRate] = useState({
-        region: '',
-        cost: '',
-        description: ''
-    });
-    const [editMode, setEditMode] = useState(false);
-    const [editingRate, setEditingRate] = useState(null);
+  const router = useRouter();
+  const { admin, loading: authLoading } = useAdminAuth();
+  const [rates, setRates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
 
-    useEffect(() => {
-        // Wait for auth to be initialized
-        if (authLoading) return;
+  useEffect(() => {
+    // Wait for auth to be initialized
+    if (authLoading) return;
 
-        // Check if user is not admin
-        if (!admin) {
-            toast.error('Admin access required');
-            router.push('/admin-login');
-            return;
-        }
-
-        fetchRates();
-    }, [admin, authLoading]);
-
-    const fetchRates = async () => {
-        try {
-            const data = await getShippingRates();
-            setRates(data);
-        } catch (error) {
-            toast.error('Failed to fetch shipping rates');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (editMode && editingRate) {
-                const response = await updateShippingRate(editingRate._id, {
-                    cost: newRate.cost,
-                    description: newRate.description
-                });
-                
-                toast.success('Shipping rate updated successfully');
-                setEditMode(false);
-                setEditingRate(null);
-            } else {
-                await createShippingRate(newRate);
-                toast.success('Shipping rate created successfully');
-            }
-            
-            setNewRate({ region: '', cost: '', description: '' });
-            fetchRates();
-        } catch (error) {
-            toast.error(error.message || 'Failed to save shipping rate');
-        }
-    };
-
-    const handleDelete = async (rateId) => {
-        if (!confirm('Are you sure you want to delete this shipping rate?')) return;
-        
-        try {
-            await deleteShippingRate(rateId);
-            toast.success('Shipping rate deleted successfully');
-            fetchRates();
-        } catch (error) {
-            toast.error(error.message || 'Failed to delete shipping rate');
-        }
-    };
-
-    const handleInitializeDefault = async () => {
-        try {
-            await initializeDefaultRates();
-            toast.success('Default shipping rates initialized');
-            fetchRates();
-        } catch (error) {
-            toast.error(error.message || 'Failed to initialize default rates');
-        }
-    };
-
-    const handleEdit = (rate) => {
-        // Scroll to top of the page BEFORE state updates
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        
-        // Delay the state updates slightly to ensure scroll completes first
-        setTimeout(() => {
-            setEditMode(true);
-            setEditingRate(rate);
-            setNewRate({
-                region: rate.region,
-                cost: rate.cost,
-                description: rate.description || ''
-            });
-        }, 50);
-    };
-
-    const cancelEdit = () => {
-        setEditMode(false);
-        setEditingRate(null);
-        setNewRate({ region: '', cost: '', description: '' });
-    };
-
-    if (loading) {
-        return <div className="loading">Loading...</div>;
+    // Check if user is not admin
+    if (!admin) {
+      toast.error("Admin access required");
+      router.push("/admin-login");
+      return;
     }
 
+    fetchRates();
+  }, [admin, authLoading]);
+
+  const fetchRates = async () => {
+    try {
+      const data = await getShippingRates();
+      setRates(data);
+    } catch (error) {
+      toast.error("Failed to fetch shipping rates");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFormSuccess = () => {
+    setShowAddForm(false);
+    fetchRates();
+  };
+
+  const handleFormError = (message) => {
+    toast.error(message);
+  };
+
+  if (loading || authLoading) {
     return (
-        <div className="admin-container">
-            <h1>Shipping Management</h1>
-
-            <div className="form-section">
-                <h2>{editMode ? 'Edit Shipping Rate' : 'Add New Shipping Rate'}</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>Region Name</label>
-                        <input
-                            type="text"
-                            value={newRate.region}
-                            onChange={(e) => setNewRate(prev => ({ ...prev, region: e.target.value }))}
-                            required={!editMode}
-                            placeholder="Enter region name"
-                            disabled={editMode}
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Cost (BDT)</label>
-                        <input
-                            type="number"
-                            min="0"
-                            value={newRate.cost}
-                            onChange={(e) => setNewRate(prev => ({ ...prev, cost: e.target.value }))}
-                            required
-                            placeholder="Enter shipping cost"
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label>Description</label>
-                        <textarea
-                            value={newRate.description}
-                            onChange={(e) => setNewRate(prev => ({ ...prev, description: e.target.value }))}
-                            placeholder="Enter shipping description"
-                        />
-                    </div>
-
-                    <div className="button-group">
-                        <button type="submit" className="btn-primary">
-                            {editMode ? 'Update Shipping Rate' : 'Add Shipping Rate'}
-                        </button>
-                        
-                        {editMode && (
-                            <button 
-                                type="button" 
-                                onClick={cancelEdit} 
-                                className="btn-secondary cancel-edit-button"
-                            >
-                                Cancel Edit
-                            </button>
-                        )}
-                    </div>
-                </form>
-
-                {!editMode && (
-                    <button 
-                        onClick={handleInitializeDefault}
-                        className="btn-secondary"
-                    >
-                        Initialize Default Rates
-                    </button>
-                )}
-            </div>
-
-            <div className="rates-section">
-                <h2>Current Shipping Rates</h2>
-                <div className="rates-grid">
-                    {rates.map((rate) => (
-                        <div key={rate._id} className="rate-card">
-                            <h3>{rate.region}</h3>
-                            <p className="cost">৳{rate.cost}</p>
-                            <p className="description">{rate.description}</p>
-                            <div className="rate-actions">
-                                <button
-                                    onClick={() => handleEdit(rate)}
-                                    className="btn-primary"
-                                >
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(rate._id)}
-                                    className="btn-danger"
-                                >
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600"></div>
+          <p className="text-slate-600 dark:text-slate-400">
+            Loading shipping rates...
+          </p>
         </div>
+      </div>
     );
-} 
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section with Enhanced Gradient */}
+        <div className="dashboard-header-gradient rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <FiTruck className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                    Shipping Management
+                  </h1>
+                  <p className="text-white/80 text-sm sm:text-base mt-1">
+                    Configure shipping rates for different regions
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="inline-flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                {showAddForm ? (
+                  <>
+                    <FiX className="w-5 h-5" />
+                    <span className="hidden sm:inline">Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <FiPlus className="w-5 h-5" />
+                    <span className="hidden sm:inline">Add Rate</span>
+                    <span className="sm:hidden">Add</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        {!showAddForm && (
+          <div className="mb-6 sm:mb-8">
+            <ShippingStats rates={rates} />
+          </div>
+        )}
+
+        {/* Add Form Section */}
+        {showAddForm && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 sm:px-6 py-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Add New Shipping Rate
+                </h2>
+              </div>
+              <div className="p-4 sm:p-6">
+                <ShippingForm
+                  onSuccess={handleFormSuccess}
+                  onError={handleFormError}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Shipping Rates List */}
+        <ShippingList rates={rates} onRatesUpdate={fetchRates} />
+      </div>
+    </div>
+  );
+}

@@ -1,155 +1,241 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { useRouter } from 'next/navigation';
-import ProductList from '@/components/admin/products/ProductList';
-import ProductForm from '@/components/admin/products/ProductForm';
-import ProductStats from '@/components/admin/products/ProductStats';
-import Error from '@/components/common/Error';
-import { productService } from '@/services/productService';
-import ProductTester from '@/components/admin/products/ProductTester';
+import { useState, useEffect } from "react";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useRouter } from "next/navigation";
+import ProductList from "@/components/admin/products/ProductList";
+import ProductForm from "@/components/admin/products/ProductForm";
+import ProductStats from "@/components/admin/products/ProductStats";
+import Error from "@/components/common/Error";
+import { productService } from "@/services/productService";
+import ProductTester from "@/components/admin/products/ProductTester";
+import { FiPlus, FiX, FiPackage } from "react-icons/fi";
 
 export default function ProductsPage() {
-    const router = useRouter();
-    const { admin, isLoading } = useAdminAuth();
-    const [isAddMode, setIsAddMode] = useState(false);
-    const [status, setStatus] = useState({ type: '', message: '' });
-    const [products, setProducts] = useState([]);
-    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-    const [pagination, setPagination] = useState({
-        currentPage: 1,
-        totalPages: 1,
-        hasPrevPage: false,
-        hasNextPage: false
-    });
-    const [totalStats, setTotalStats] = useState({
-        totalProducts: 0,
-        totalValue: 0,
-        totalVariants: 0,
-        activeCategories: 0
-    });
+  const router = useRouter();
+  const { admin, isLoading } = useAdminAuth();
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [products, setProducts] = useState([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    hasPrevPage: false,
+    hasNextPage: false,
+  });
+  const [totalStats, setTotalStats] = useState({
+    totalProducts: 0,
+    totalValue: 0,
+    totalVariants: 0,
+    activeCategories: 0,
+  });
 
-    const fetchProducts = async (page = 1) => {
-        try {
-            setIsLoadingProducts(true);
-            const response = await productService.getAllProducts({ page, limit: 12 });
-            
-            if (!response.success) {
-                throw new Error(response.message || 'Failed to fetch products');
-            }
-            
-            setProducts(response.payload.products || []);
-            
-            // Calculate total variants and value for stats
-            const totalVariants = response.payload.products?.reduce(
-                (sum, product) => sum + (product.variants?.length || 0), 0
-            ) || 0;
-            
-            const totalValue = response.payload.products?.reduce(
-                (sum, product) => sum + (product.price || 0), 0
-            ) || 0;
-            
-            // Get unique categories count
-            const uniqueCategories = new Set();
-            response.payload.products?.forEach(product => {
-                if (product.category?._id) {
-                    uniqueCategories.add(product.category._id);
-                }
-            });
-            
-            // Handle pagination properties
-            setPagination({
-                currentPage: response.payload.pagination.currentPage,
-                totalPages: response.payload.pagination.totalPages,
-                hasPrevPage: response.payload.pagination.currentPage > 1,
-                hasNextPage: response.payload.pagination.currentPage < response.payload.pagination.totalPages
-            });
-            
-            // Set stats
-            setTotalStats({
-                totalProducts: response.payload.pagination.totalProducts || 0,
-                totalValue,
-                totalVariants,
-                activeCategories: uniqueCategories.size
-            });
-        } catch (error) {
-            setStatus({
-                type: 'error',
-                message: error.message || 'Failed to fetch products'
-            });
-        } finally {
-            setIsLoadingProducts(false);
+  const fetchProducts = async (page = 1) => {
+    try {
+      setIsLoadingProducts(true);
+      const response = await productService.getAllProducts({ page, limit: 12 });
+
+      if (!response.success) {
+        throw new Error(response.message || "Failed to fetch products");
+      }
+
+      setProducts(response.payload.products || []);
+
+      // Calculate total variants and value for stats
+      const totalVariants =
+        response.payload.products?.reduce(
+          (sum, product) => sum + (product.variants?.length || 0),
+          0
+        ) || 0;
+
+      const totalValue =
+        response.payload.products?.reduce(
+          (sum, product) => sum + (product.price || 0),
+          0
+        ) || 0;
+
+      // Get unique categories count
+      const uniqueCategories = new Set();
+      response.payload.products?.forEach((product) => {
+        if (product.category?._id) {
+          uniqueCategories.add(product.category._id);
         }
-    };
+      });
 
-    useEffect(() => {
-        if (!isLoading && !admin) {
-            router.push('/admin-login');
-        } else if (admin) {
-            fetchProducts();
-        }
-    }, [isLoading, admin, router]);
+      // Handle pagination properties
+      setPagination({
+        currentPage: response.payload.pagination.currentPage,
+        totalPages: response.payload.pagination.totalPages,
+        hasPrevPage: response.payload.pagination.currentPage > 1,
+        hasNextPage:
+          response.payload.pagination.currentPage <
+          response.payload.pagination.totalPages,
+      });
 
-    if (isLoading || !admin) {
-        return <div className="admin-loading">Loading...</div>;
+      // Set stats
+      setTotalStats({
+        totalProducts: response.payload.pagination.totalProducts || 0,
+        totalValue,
+        totalVariants,
+        activeCategories: uniqueCategories.size,
+      });
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Failed to fetch products",
+      });
+    } finally {
+      setIsLoadingProducts(false);
     }
+  };
 
-    const handleProductClick = (slug) => {
-        router.push(`/admin/products/${slug}`);
-    };
+  useEffect(() => {
+    if (!isLoading && !admin) {
+      router.push("/admin-login");
+    } else if (admin) {
+      fetchProducts();
+    }
+  }, [isLoading, admin, router]);
 
+  if (isLoading || !admin) {
     return (
-        <div className="admin-products">
-            <div className="admin-header">
-                <h1>Product Management</h1>
-                <button 
-                    className="btn btn-primary"
-                    onClick={() => setIsAddMode(!isAddMode)}
-                >
-                    {isAddMode ? 'Cancel' : 'Add New Product'}
-                </button>
-            </div>
-
-            {!isAddMode && !isLoadingProducts && (
-                <ProductStats totalStats={totalStats} />
-            )}
-
-            {status.message && (
-                <Error 
-                    type={status.type}
-                    message={status.message}
-                    className="mb-4"
-                />
-            )}
-
-            {isAddMode ? (
-                <ProductForm 
-                    onSuccess={() => {
-                        setIsAddMode(false);
-                        fetchProducts();
-                        setStatus({
-                            type: 'success',
-                            message: 'Product created successfully'
-                        });
-                    }}
-                    onError={(message) => {
-                        setStatus({
-                            type: 'error',
-                            message: message || 'Failed to create product'
-                        });
-                    }}
-                />
-            ) : (
-                <ProductList 
-                    products={products}
-                    isLoading={isLoadingProducts}
-                    pagination={pagination}
-                    onPageChange={fetchProducts}
-                    onProductClick={handleProductClick}
-                />
-            )}
-            <ProductTester />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="flex items-center space-x-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-rose-600"></div>
+          <span className="text-slate-600 dark:text-slate-400">Loading...</span>
         </div>
+      </div>
     );
+  }
+
+  const handleProductClick = (slug) => {
+    router.push(`/admin/products/${slug}`);
+  };
+
+  const clearStatus = () => {
+    setStatus({ type: "", message: "" });
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section with Enhanced Gradient */}
+        <div className="product-header-gradient-enhanced rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <FiPackage className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                    Product Management
+                  </h1>
+                  <p className="text-white/80 text-sm sm:text-base mt-1">
+                    Manage your product catalog and inventory
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsAddMode(!isAddMode);
+                  clearStatus();
+                }}
+                className="inline-flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                {isAddMode ? (
+                  <>
+                    <FiX className="w-5 h-5" />
+                    <span className="hidden sm:inline">Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <FiPlus className="w-5 h-5" />
+                    <span className="hidden sm:inline">Add Product</span>
+                    <span className="sm:hidden">Add</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Messages */}
+        {status.message && (
+          <div className="mb-6">
+            <Error
+              type={status.type}
+              message={status.message}
+              onClose={clearStatus}
+            />
+          </div>
+        )}
+
+        {/* Stats Section */}
+        {!isAddMode && !isLoadingProducts && (
+          <div className="mb-6 sm:mb-8">
+            <ProductStats totalStats={totalStats} />
+          </div>
+        )}
+
+        {/* Add Form Section */}
+        {isAddMode && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 sm:px-6 py-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Add New Product
+                </h2>
+              </div>
+              <div className="p-4 sm:p-6">
+                <ProductForm
+                  onSuccess={() => {
+                    setIsAddMode(false);
+                    fetchProducts();
+                    setStatus({
+                      type: "success",
+                      message: "Product created successfully",
+                    });
+                  }}
+                  onError={(message) => {
+                    setStatus({
+                      type: "error",
+                      message: message || "Failed to create product",
+                    });
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Products List */}
+        {!isAddMode && (
+          <div className="mb-8">
+            <ProductList
+              products={products}
+              isLoading={isLoadingProducts}
+              pagination={pagination}
+              onPageChange={fetchProducts}
+              onProductClick={handleProductClick}
+            />
+          </div>
+        )}
+
+        {/* API Tester Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-500 px-4 sm:px-6 py-4">
+            <h2 className="text-lg font-semibold text-white">API Testing</h2>
+            <p className="text-blue-100 text-sm mt-1">
+              Use this tool to test the Product API functionality
+            </p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <ProductTester />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

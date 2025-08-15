@@ -1,360 +1,126 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { getAllCoupons, deleteCoupon, createCoupon, updateCoupon, getCouponById } from '@/services/couponService';
-import { toast } from 'react-hot-toast';
-import { format } from 'date-fns';
+import { useState, useEffect } from "react";
+import { getAllCoupons } from "@/services/couponService";
+import { toast } from "react-hot-toast";
+import { FiPlus, FiX, FiTag } from "react-icons/fi";
+import CouponStats from "@/components/admin/coupons/CouponStats";
+import CouponList from "@/components/admin/coupons/CouponList";
+import CouponForm from "@/components/admin/coupons/CouponForm";
 
 export default function CouponsPage() {
-    const [coupons, setCoupons] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [showAddForm, setShowAddForm] = useState(false);
-    const [editMode, setEditMode] = useState(false);
-    const [editingCouponId, setEditingCouponId] = useState(null);
-    const [formData, setFormData] = useState({
-        code: '',
-        productDiscountType: 'none',
-        productDiscountValue: 0,
-        shippingDiscountType: 'none',
-        shippingDiscountValue: 0,
-        expiryDate: '',
-        minOrderAmount: 0,
-        maxDiscount: 0,
-        usageLimit: 1,
-    });
+  const [coupons, setCoupons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
 
-    useEffect(() => {
-        loadCoupons();
-    }, []);
-
-    const loadCoupons = async () => {
-        try {
-            const response = await getAllCoupons();
-            setCoupons(response.payload);
-            setLoading(false);
-        } catch (error) {
-            toast.error(error.message || 'Failed to load coupons');
-            setLoading(false);
-        }
-    };
-
-    const handleDelete = async (couponId) => {
-        if (window.confirm('Are you sure you want to delete this coupon?')) {
-            try {
-                await deleteCoupon(couponId);
-                toast.success('Coupon deleted successfully');
-                loadCoupons();
-            } catch (error) {
-                toast.error(error.message || 'Failed to delete coupon');
-            }
-        }
-    };
-
-    const handleEdit = async (couponId) => {
-        try {
-            setLoading(true);
-            const response = await getCouponById(couponId);
-            const coupon = response.payload;
-            
-            // Format date string to be compatible with datetime-local input
-            const expiryDate = new Date(coupon.expiryDate);
-            const formattedDate = expiryDate.toISOString().slice(0, 16);
-            
-            setFormData({
-                code: coupon.code,
-                productDiscountType: coupon.discountOptions.productDiscount.type,
-                productDiscountValue: coupon.discountOptions.productDiscount.value,
-                shippingDiscountType: coupon.discountOptions.shippingDiscount.type,
-                shippingDiscountValue: coupon.discountOptions.shippingDiscount.value,
-                expiryDate: formattedDate,
-                minOrderAmount: coupon.minOrderAmount,
-                maxDiscount: coupon.discountOptions.productDiscount.maxDiscount || 0,
-                usageLimit: coupon.usageLimit,
-            });
-            
-            setEditMode(true);
-            setEditingCouponId(couponId);
-            setShowAddForm(true);
-            setLoading(false);
-        } catch (error) {
-            toast.error(error.message || 'Failed to load coupon details');
-            setLoading(false);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (editMode) {
-                await updateCoupon(editingCouponId, formData);
-                toast.success('Coupon updated successfully');
-            } else {
-                await createCoupon(formData);
-                toast.success('Coupon created successfully');
-            }
-            
-            setShowAddForm(false);
-            setEditMode(false);
-            setEditingCouponId(null);
-            setFormData({
-                code: '',
-                productDiscountType: 'none',
-                productDiscountValue: 0,
-                shippingDiscountType: 'none',
-                shippingDiscountValue: 0,
-                expiryDate: '',
-                minOrderAmount: 0,
-                maxDiscount: 0,
-                usageLimit: 1,
-            });
-            loadCoupons();
-        } catch (error) {
-            toast.error(error.message || 'Failed to save coupon');
-        }
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const cancelEdit = () => {
-        setEditMode(false);
-        setEditingCouponId(null);
-        setShowAddForm(false);
-        setFormData({
-            code: '',
-            productDiscountType: 'none',
-            productDiscountValue: 0,
-            shippingDiscountType: 'none',
-            shippingDiscountValue: 0,
-            expiryDate: '',
-            minOrderAmount: 0,
-            maxDiscount: 0,
-            usageLimit: 1,
-        });
-    };
-
-    if (loading) {
-        return <div className="admin-coupons">Loading...</div>;
+  const loadCoupons = async () => {
+    try {
+      const response = await getAllCoupons();
+      setCoupons(response.payload);
+      setLoading(false);
+    } catch (error) {
+      toast.error(error.message || "Failed to load coupons");
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
+    loadCoupons();
+  }, []);
+
+  const handleFormSuccess = () => {
+    setShowAddForm(false);
+    loadCoupons();
+  };
+
+  const handleFormError = (message) => {
+    toast.error(message);
+  };
+
+  if (loading) {
     return (
-        <div className="admin-coupons">
-            <div className="admin-coupons-header">
-                <h1 className="admin-coupons-title">Coupon Management</h1>
-                {!showAddForm ? (
-                    <button
-                        onClick={() => setShowAddForm(true)}
-                        className="admin-coupons-add"
-                    >
-                        Add New Coupon
-                    </button>
-                ) : (
-                    <button
-                        onClick={cancelEdit}
-                        className="admin-coupons-cancel"
-                    >
-                        Cancel
-                    </button>
-                )}
-            </div>
-
-            {showAddForm && (
-                <form onSubmit={handleSubmit} className="coupon-form">
-                    <h2>{editMode ? 'Edit Coupon' : 'Add New Coupon'}</h2>
-                    <div className="coupon-form-grid">
-                        <div className="form-group">
-                            <label className="form-label">Coupon Code</label>
-                            <input
-                                type="text"
-                                name="code"
-                                value={formData.code}
-                                onChange={handleChange}
-                                className="form-input"
-                                required
-                                disabled={editMode}
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Product Discount Type</label>
-                            <select
-                                name="productDiscountType"
-                                value={formData.productDiscountType}
-                                onChange={handleChange}
-                                className="form-select"
-                            >
-                                <option value="none">None</option>
-                                <option value="fixed">Fixed Amount</option>
-                                <option value="percentage">Percentage</option>
-                            </select>
-                        </div>
-
-                        {formData.productDiscountType !== 'none' && (
-                            <div className="form-group">
-                                <label className="form-label">Product Discount Value</label>
-                                <input
-                                    type="number"
-                                    name="productDiscountValue"
-                                    value={formData.productDiscountValue}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    min="0"
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <label className="form-label">Shipping Discount Type</label>
-                            <select
-                                name="shippingDiscountType"
-                                value={formData.shippingDiscountType}
-                                onChange={handleChange}
-                                className="form-select"
-                            >
-                                <option value="none">None</option>
-                                <option value="free">Free Shipping</option>
-                                <option value="fixed">Fixed Amount</option>
-                                <option value="percentage">Percentage</option>
-                            </select>
-                        </div>
-
-                        {formData.shippingDiscountType !== 'none' && formData.shippingDiscountType !== 'free' && (
-                            <div className="form-group">
-                                <label className="form-label">Shipping Discount Value</label>
-                                <input
-                                    type="number"
-                                    name="shippingDiscountValue"
-                                    value={formData.shippingDiscountValue}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    min="0"
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <label className="form-label">Expiry Date</label>
-                            <input
-                                type="datetime-local"
-                                name="expiryDate"
-                                value={formData.expiryDate}
-                                onChange={handleChange}
-                                className="form-input"
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label className="form-label">Minimum Order Amount</label>
-                            <input
-                                type="number"
-                                name="minOrderAmount"
-                                value={formData.minOrderAmount}
-                                onChange={handleChange}
-                                className="form-input"
-                                min="0"
-                            />
-                        </div>
-
-                        {formData.productDiscountType === 'percentage' && (
-                            <div className="form-group">
-                                <label className="form-label">Maximum Discount</label>
-                                <input
-                                    type="number"
-                                    name="maxDiscount"
-                                    value={formData.maxDiscount}
-                                    onChange={handleChange}
-                                    className="form-input"
-                                    min="0"
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        <div className="form-group">
-                            <label className="form-label">Usage Limit Per User</label>
-                            <input
-                                type="number"
-                                name="usageLimit"
-                                value={formData.usageLimit}
-                                onChange={handleChange}
-                                className="form-input"
-                                min="1"
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <button type="submit" className="form-submit">
-                        {editMode ? 'Update Coupon' : 'Create Coupon'}
-                    </button>
-                </form>
-            )}
-
-            <div className="coupon-table-container">
-                <table className="coupon-table">
-                    <thead>
-                        <tr>
-                            <th>Code</th>
-                            <th>Product Discount</th>
-                            <th>Shipping Discount</th>
-                            <th>Min Order</th>
-                            <th>Expiry Date</th>
-                            <th>Usage Limit</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {coupons.map((coupon) => (
-                            <tr key={coupon._id}>
-                                <td>{coupon.code}</td>
-                                <td>
-                                    {coupon.discountOptions.productDiscount.type !== 'none'
-                                        ? `${coupon.discountOptions.productDiscount.type === 'percentage'
-                                            ? coupon.discountOptions.productDiscount.value + '%'
-                                            : '৳' + coupon.discountOptions.productDiscount.value
-                                        }`
-                                        : 'None'}
-                                </td>
-                                <td>
-                                    {coupon.discountOptions.shippingDiscount.type !== 'none'
-                                        ? coupon.discountOptions.shippingDiscount.type === 'free'
-                                            ? 'Free'
-                                            : `${coupon.discountOptions.shippingDiscount.type === 'percentage'
-                                                ? coupon.discountOptions.shippingDiscount.value + '%'
-                                                : '৳' + coupon.discountOptions.shippingDiscount.value
-                                            }`
-                                        : 'None'}
-                                </td>
-                                <td>৳{coupon.minOrderAmount}</td>
-                                <td>{format(new Date(coupon.expiryDate), 'MMM dd, yyyy HH:mm')}</td>
-                                <td>{coupon.usageLimit}</td>
-                                <td className="coupon-action-buttons">
-                                    <button
-                                        onClick={() => handleEdit(coupon._id)}
-                                        className="edit-button"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(coupon._id)}
-                                        className="delete-button"
-                                    >
-                                        Delete
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600"></div>
+          <p className="text-slate-600 dark:text-slate-400">
+            Loading coupons...
+          </p>
         </div>
+      </div>
     );
-} 
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section with Enhanced Gradient */}
+        <div className="dashboard-header-gradient rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <FiTag className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                    Coupon Management
+                  </h1>
+                  <p className="text-white/80 text-sm sm:text-base mt-1">
+                    Create and manage discount coupons
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className="inline-flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                {showAddForm ? (
+                  <>
+                    <FiX className="w-5 h-5" />
+                    <span className="hidden sm:inline">Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <FiPlus className="w-5 h-5" />
+                    <span className="hidden sm:inline">Add Coupon</span>
+                    <span className="sm:hidden">Add</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        {!showAddForm && (
+          <div className="mb-6 sm:mb-8">
+            <CouponStats coupons={coupons} />
+          </div>
+        )}
+
+        {/* Add/Edit Form Section */}
+        {showAddForm && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 sm:px-6 py-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Add New Coupon
+                </h2>
+              </div>
+              <div className="p-4 sm:p-6">
+                <CouponForm
+                  onSuccess={handleFormSuccess}
+                  onError={handleFormError}
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Coupons List */}
+        <CouponList coupons={coupons} onCouponsUpdate={loadCoupons} />
+      </div>
+    </div>
+  );
+}

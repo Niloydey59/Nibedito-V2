@@ -1,181 +1,250 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
-import { useRouter } from 'next/navigation';
-import SubcategoryList from '@/components/admin/subcategories/SubcategoryList';
-import SubcategoryForm from '@/components/admin/subcategories/SubcategoryForm';
-import SubcategoryStats from '@/components/admin/subcategories/SubcategoryStats';
-import SubcategoryTester from '@/components/admin/subcategories/SubcategoryTester';
-import { subcategoryService } from '@/services/subcategoryService';
-import { categoryService } from '@/services/categoryService';
-import Error from '@/components/common/Error';
+import { useState, useEffect } from "react";
+import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useRouter } from "next/navigation";
+import SubcategoryList from "@/components/admin/subcategories/SubcategoryList";
+import SubcategoryForm from "@/components/admin/subcategories/SubcategoryForm";
+import SubcategoryStats from "@/components/admin/subcategories/SubcategoryStats";
+import SubcategoryTester from "@/components/admin/subcategories/SubcategoryTester";
+import { subcategoryService } from "@/services/subcategoryService";
+import { categoryService } from "@/services/categoryService";
+import Error from "@/components/common/Error";
+import { FiPlus, FiX, FiFilter, FiLayers } from "react-icons/fi";
 
 export default function SubcategoriesPage() {
-    const router = useRouter();
-    const { admin, isLoading } = useAdminAuth();
-    const [isAddMode, setIsAddMode] = useState(false);
-    const [status, setStatus] = useState({ type: '', message: '' });
-    const [subcategories, setSubcategories] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [selectedCategoryId, setSelectedCategoryId] = useState('');
-    const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(true);
+  const router = useRouter();
+  const { admin, isLoading } = useAdminAuth();
+  const [isAddMode, setIsAddMode] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [subcategories, setSubcategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState("");
+  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(true);
 
-    useEffect(() => {
-        if (!isLoading && !admin) {
-            router.push('/admin-login');
-        }
-    }, [admin, isLoading, router]);
+  useEffect(() => {
+    if (!isLoading && !admin) {
+      router.push("/admin-login");
+    }
+  }, [admin, isLoading, router]);
 
-    const fetchCategories = async () => {
-        try {
-            const data = await categoryService.getAllCategories();
-            setCategories(data.categories || []);
-        } catch (error) {
-            setStatus({
-                type: 'error',
-                message: error.message || 'Failed to fetch categories'
-            });
-        }
-    };
+  const fetchCategories = async () => {
+    try {
+      const data = await categoryService.getAllCategories();
+      setCategories(data.categories || []);
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Failed to fetch categories",
+      });
+    }
+  };
 
-    const fetchSubcategories = async (categoryId = null) => {
-        try {
-            setIsLoadingSubcategories(true);
-            const data = await subcategoryService.getAllSubcategories(categoryId);
-            setSubcategories(data.subcategories || []);
-        } catch (error) {
-            setStatus({
-                type: 'error',
-                message: error.message || 'Failed to fetch subcategories'
-            });
-        } finally {
-            setIsLoadingSubcategories(false);
-        }
-    };
+  const fetchSubcategories = async (categoryId = null) => {
+    try {
+      setIsLoadingSubcategories(true);
+      const data = await subcategoryService.getAllSubcategories(categoryId);
+      setSubcategories(data.subcategories || []);
+    } catch (error) {
+      setStatus({
+        type: "error",
+        message: error.message || "Failed to fetch subcategories",
+      });
+    } finally {
+      setIsLoadingSubcategories(false);
+    }
+  };
 
-    useEffect(() => {
-        fetchCategories();
-        fetchSubcategories();
-    }, []);
+  useEffect(() => {
+    fetchCategories();
+    fetchSubcategories();
+  }, []);
 
-    useEffect(() => {
-        fetchSubcategories(selectedCategoryId || null);
-    }, [selectedCategoryId]);
+  useEffect(() => {
+    fetchSubcategories(selectedCategoryId || null);
+  }, [selectedCategoryId]);
 
-    const clearStatus = () => {
-        setStatus({ type: '', message: '' });
-    };
+  const clearStatus = () => {
+    setStatus({ type: "", message: "" });
+  };
 
-    useEffect(() => {
-        if (status.message) {
-            const timer = setTimeout(clearStatus, 5000); // Clear message after 5 seconds
-            return () => clearTimeout(timer);
-        }
-    }, [status]);
+  useEffect(() => {
+    if (status.message) {
+      const timer = setTimeout(clearStatus, 5000); // Clear message after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [status]);
 
-    const handleUpdateSuccess = async (message, updatedSubcategories = null) => {
-        if (updatedSubcategories) {
-            // If we have updated subcategories, use them directly
-            setSubcategories(updatedSubcategories);
-        } else {
-            // Otherwise fetch fresh data
-            await fetchSubcategories(selectedCategoryId || null);
-        }
-        
-        setStatus({
-            type: 'success',
-            message: message || 'Operation completed successfully'
-        });
-        
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleError = (message) => {
-        setStatus({
-            type: 'error',
-            message: message || 'An error occurred'
-        });
-        // Ensure error message is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const handleCategoryChange = (e) => {
-        setSelectedCategoryId(e.target.value);
-    };
-
-    if (isLoading || !admin) {
-        return null;
+  const handleUpdateSuccess = async (message, updatedSubcategories = null) => {
+    if (updatedSubcategories) {
+      // If we have updated subcategories, use them directly
+      setSubcategories(updatedSubcategories);
+    } else {
+      // Otherwise fetch fresh data
+      await fetchSubcategories(selectedCategoryId || null);
     }
 
-    return (
-        <div className="admin-subcategories">
-            <div className="admin-header">
-                <h1>Subcategory Management</h1>
-                <button 
-                    className="btn btn-primary"
-                    onClick={() => {
-                        setIsAddMode(!isAddMode);
-                        clearStatus();
-                    }}
-                >
-                    {isAddMode ? 'Cancel' : 'Add New Subcategory'}
-                </button>
+    setStatus({
+      type: "success",
+      message: message || "Operation completed successfully",
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleError = (message) => {
+    setStatus({
+      type: "error",
+      message: message || "An error occurred",
+    });
+    // Ensure error message is visible
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleCategoryChange = (e) => {
+    setSelectedCategoryId(e.target.value);
+  };
+
+  if (isLoading || !admin) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section with Enhanced Gradient */}
+        <div className="dashboard-header-gradient rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <FiLayers className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                    Subcategory Management
+                  </h1>
+                  <p className="text-white/80 text-sm sm:text-base mt-1">
+                    Organize your products with subcategories
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsAddMode(!isAddMode);
+                  clearStatus();
+                }}
+                className="inline-flex items-center space-x-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
+              >
+                {isAddMode ? (
+                  <>
+                    <FiX className="w-5 h-5" />
+                    <span className="hidden sm:inline">Cancel</span>
+                  </>
+                ) : (
+                  <>
+                    <FiPlus className="w-5 h-5" />
+                    <span className="hidden sm:inline">Add Subcategory</span>
+                    <span className="sm:hidden">Add</span>
+                  </>
+                )}
+              </button>
             </div>
-
-            {status.message && (
-                <Error 
-                    type={status.type}
-                    message={status.message}
-                    onClose={clearStatus}
-                />
-            )}
-
-            <div className="category-filter">
-                <label htmlFor="category-filter">Filter by Category:</label>
-                <select 
-                    id="category-filter"
-                    value={selectedCategoryId}
-                    onChange={handleCategoryChange}
-                    className="subcategory-filter-select"
-                >
-                    <option value="">All Categories</option>
-                    {categories.map(category => (
-                        <option key={category._id} value={category._id}>
-                            {category.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {!isAddMode && !isLoadingSubcategories && (
-                <SubcategoryStats subcategories={subcategories} />
-            )}
-
-            {isAddMode && (
-                <SubcategoryForm 
-                    categories={categories}
-                    onSuccess={(subcategory) => {
-                        setIsAddMode(false);
-                        handleUpdateSuccess('Subcategory created successfully');
-                    }}
-                    onError={handleError}
-                />
-            )}
-
-            <SubcategoryList 
-                subcategories={subcategories}
-                categories={categories}
-                isLoading={isLoadingSubcategories}
-                onUpdateSuccess={handleUpdateSuccess}
-                onError={handleError}
-            />
-
-            <div className="tester-section">
-                <h2>API Testing</h2>
-                <p>Use this tool to test the Subcategory API functionality.</p>
-                <SubcategoryTester />
-            </div>
+          </div>
         </div>
-    );
-} 
+
+        {/* Status Messages */}
+        {status.message && (
+          <div className="mb-6">
+            <Error
+              type={status.type}
+              message={status.message}
+              onClose={clearStatus}
+            />
+          </div>
+        )}
+
+        {/* Category Filter Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-4 sm:p-6 mb-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex items-center space-x-2 text-slate-700 dark:text-slate-300">
+              <FiFilter className="w-5 h-5" />
+              <label htmlFor="category-filter" className="text-sm font-medium">
+                Filter by Category:
+              </label>
+            </div>
+            <div className="flex-1 sm:max-w-xs">
+              <select
+                id="category-filter"
+                value={selectedCategoryId}
+                onChange={handleCategoryChange}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+              >
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        {!isAddMode && !isLoadingSubcategories && (
+          <div className="mb-6 sm:mb-8">
+            <SubcategoryStats subcategories={subcategories} />
+          </div>
+        )}
+
+        {/* Add Form Section */}
+        {isAddMode && (
+          <div className="mb-6 sm:mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+              <div className="bg-gradient-to-r from-rose-500 to-pink-500 px-4 sm:px-6 py-4">
+                <h2 className="text-lg font-semibold text-white">
+                  Add New Subcategory
+                </h2>
+              </div>
+              <div className="p-4 sm:p-6">
+                <SubcategoryForm
+                  categories={categories}
+                  onSuccess={(subcategory) => {
+                    setIsAddMode(false);
+                    handleUpdateSuccess("Subcategory created successfully");
+                  }}
+                  onError={handleError}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Subcategories List */}
+        <div className="mb-8">
+          <SubcategoryList
+            subcategories={subcategories}
+            categories={categories}
+            isLoading={isLoadingSubcategories}
+            onUpdateSuccess={handleUpdateSuccess}
+            onError={handleError}
+          />
+        </div>
+
+        {/* API Tester Section */}
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-indigo-500 px-4 sm:px-6 py-4">
+            <h2 className="text-lg font-semibold text-white">API Testing</h2>
+            <p className="text-blue-100 text-sm mt-1">
+              Use this tool to test the Subcategory API functionality
+            </p>
+          </div>
+          <div className="p-4 sm:p-6">
+            <SubcategoryTester />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

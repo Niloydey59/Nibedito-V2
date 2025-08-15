@@ -1,52 +1,57 @@
 "use client";
 
-import { FiBox, FiActivity, FiCalendar, FiTrendingUp } from "react-icons/fi";
+import { FiHelpCircle, FiEye, FiEyeOff, FiBarChart } from "react-icons/fi";
 
-export default function CategoryStats({ categories }) {
-  const totalCategories = categories?.length || 0;
-  const activeCategories =
-    categories?.filter((cat) => cat.isActive !== false).length || 0;
-  const totalProducts =
-    categories?.reduce((sum, cat) => sum + (cat.productCount || 0), 0) || 0;
-  const averageProducts =
-    totalCategories > 0 ? Math.round(totalProducts / totalCategories) : 0;
+interface FaqStatsProps {
+  faqs: any[];
+}
+
+export default function FaqStats({ faqs }: FaqStatsProps) {
+  // Calculate stats
+  const totalFaqs = faqs.length;
+  const activeFaqs = faqs.filter((faq) => faq.isActive).length;
+  const inactiveFaqs = totalFaqs - activeFaqs;
+  const averageOrder =
+    faqs.length > 0
+      ? Math.round(faqs.reduce((sum, faq) => sum + faq.order, 0) / faqs.length)
+      : 0;
 
   const statsData = [
     {
-      title: "Total Categories",
-      value: totalCategories,
-      icon: FiBox,
+      title: "Total FAQs",
+      value: totalFaqs,
+      icon: FiHelpCircle,
       gradient: "from-blue-500 to-blue-600",
       bgColor: "bg-blue-50 dark:bg-blue-900/20",
       textColor: "text-blue-600 dark:text-blue-400",
-      description: "All categories in system",
+      description: "All FAQ entries",
     },
     {
-      title: "Active Categories",
-      value: activeCategories,
-      icon: FiActivity,
+      title: "Active FAQs",
+      value: activeFaqs,
+      icon: FiEye,
       gradient: "from-emerald-500 to-emerald-600",
       bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
       textColor: "text-emerald-600 dark:text-emerald-400",
-      description: "Currently visible categories",
+      description: "Currently visible",
     },
     {
-      title: "Total Products",
-      value: totalProducts,
-      icon: FiCalendar,
-      gradient: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
-      textColor: "text-purple-600 dark:text-purple-400",
-      description: "Products across all categories",
-    },
-    {
-      title: "Average Products",
-      value: averageProducts,
-      icon: FiTrendingUp,
+      title: "Inactive FAQs",
+      value: inactiveFaqs,
+      icon: FiEyeOff,
       gradient: "from-orange-500 to-orange-600",
       bgColor: "bg-orange-50 dark:bg-orange-900/20",
       textColor: "text-orange-600 dark:text-orange-400",
-      description: "Products per category",
+      description: "Currently hidden",
+    },
+    {
+      title: "Average Order",
+      value: averageOrder,
+      icon: FiBarChart,
+      gradient: "from-purple-500 to-purple-600",
+      bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      textColor: "text-purple-600 dark:text-purple-400",
+      description: "Display position",
     },
   ];
 
@@ -73,7 +78,7 @@ export default function CategoryStats({ categories }) {
             </h3>
 
             <p className="text-3xl font-bold text-slate-800 dark:text-slate-200 group-hover:scale-105 transition-transform duration-200">
-              {stat.value.toLocaleString()}
+              {stat.value}
             </p>
 
             <p className="text-xs text-slate-500 dark:text-slate-400">

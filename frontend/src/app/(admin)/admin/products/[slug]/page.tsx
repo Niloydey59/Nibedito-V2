@@ -1,494 +1,701 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { productService } from '@/services/productService';
-import { categoryService } from '@/services/categoryService';
-import { subcategoryService } from '@/services/subcategoryService';
-import ImageManager from '@/components/admin/products/ImageManager';
-import LoadingSpinner from '@/components/common/LoadingSpinner';
-import Error from '@/components/common/Error';
-import ConfirmDialog from '@/components/common/ConfirmDialog';
-import { FiPlus, FiTrash2 } from 'react-icons/fi';
-import MarkdownEditor from '@/components/admin/common/MarkdownEditor';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { productService } from "@/services/productService";
+import { categoryService } from "@/services/categoryService";
+import { subcategoryService } from "@/services/subcategoryService";
+import ImageManager from "@/components/admin/products/ImageManager";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
+import Error from "@/components/common/Error";
+import ConfirmDialog from "@/components/common/ConfirmDialog";
+import {
+  FiPlus,
+  FiTrash2,
+  FiArrowLeft,
+  FiEdit3,
+  FiSave,
+  FiPackage,
+  FiImage,
+} from "react-icons/fi";
+import MarkdownEditor from "@/components/admin/common/MarkdownEditor";
 
 export default function ProductDetailsPage() {
-    const { slug } = useParams();
-    const router = useRouter();
-    const [product, setProduct] = useState(null);
-    const [categories, setCategories] = useState([]);
-    const [subcategories, setSubcategories] = useState([]);
-    const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        description: '',
-        price: '',
-        category: '',
-        subcategory: '',
-        shipping: false,
-        variants: []
-    });
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [error, setError] = useState('');
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const { slug } = useParams();
+  const router = useRouter();
+  const [product, setProduct] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    category: "",
+    subcategory: "",
+    shipping: false,
+    variants: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [productData, categoriesData] = await Promise.all([
-                    productService.getProduct(slug),
-                    categoryService.getAllCategories()
-                ]);
-                
-                setProduct(productData);
-                setCategories(categoriesData.categories);
-                
-                // Load subcategories if product has a category
-                if (productData.category?._id) {
-                    try {
-                        setIsLoadingSubcategories(true);
-                        const subcats = await subcategoryService.getSubcategoriesByCategory(productData.category._id);
-                        setSubcategories(subcats || []);
-                    } catch (error) {
-                        console.error('Failed to fetch subcategories:', error);
-                    } finally {
-                        setIsLoadingSubcategories(false);
-                    }
-                }
-                
-                setFormData({
-                    name: productData.name,
-                    description: productData.description,
-                    price: productData.price,
-                    category: productData.category._id,
-                    subcategory: productData.subcategory?._id || '',
-                    shipping: productData.shipping,
-                    variants: productData.variants
-                });
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchData();
-    }, [slug]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productData, categoriesData] = await Promise.all([
+          productService.getProduct(slug),
+          categoryService.getAllCategories(),
+        ]);
 
-    // Update subcategories when category changes
-    useEffect(() => {
-        if (formData.category) {
-            const fetchSubcategories = async () => {
-                try {
-                    setIsLoadingSubcategories(true);
-                    const subcats = await subcategoryService.getSubcategoriesByCategory(formData.category);
-                    setSubcategories(subcats || []);
-                    
-                    // If current subcategory doesn't belong to this category, reset it
-                    if (formData.subcategory) {
-                        const subcatBelongsToCategory = subcats.some(
-                            subcat => subcat._id === formData.subcategory
-                        );
-                        
-                        if (!subcatBelongsToCategory) {
-                            setFormData(prev => ({ ...prev, subcategory: '' }));
-                        }
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch subcategories:', error);
-                    setSubcategories([]);
-                } finally {
-                    setIsLoadingSubcategories(false);
-                }
-            };
+        setProduct(productData);
+        setCategories(categoriesData.categories);
 
-            fetchSubcategories();
-        } else {
-            setSubcategories([]);
-            // Reset subcategory if category is cleared
-            if (formData.subcategory) {
-                setFormData(prev => ({ ...prev, subcategory: '' }));
-            }
+        // Load subcategories if product has a category
+        if (productData.category?._id) {
+          try {
+            setIsLoadingSubcategories(true);
+            const subcats = await subcategoryService.getSubcategoriesByCategory(
+              productData.category._id
+            );
+            setSubcategories(subcats || []);
+          } catch (error) {
+            console.error("Failed to fetch subcategories:", error);
+          } finally {
+            setIsLoadingSubcategories(false);
+          }
         }
-    }, [formData.category]);
 
-    const handleInputChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        setFormData({
+          name: productData.name,
+          description: productData.description,
+          price: productData.price,
+          category: productData.category._id,
+          subcategory: productData.subcategory?._id || "",
+          shipping: productData.shipping,
+          variants: productData.variants,
+        });
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
     };
+    fetchData();
+  }, [slug]);
 
-    const handleDescriptionChange = (value) => {
-        setFormData(prev => ({
-            ...prev,
-            description: value
-        }));
-    };
-
-    const handleVariantChange = (index, field, value) => {
-        const updatedVariants = [...formData.variants];
-        updatedVariants[index] = {
-            ...updatedVariants[index],
-            [field]: value
-        };
-        setFormData(prev => ({ ...prev, variants: updatedVariants }));
-    };
-
-    const addVariant = () => {
-        setFormData(prev => ({
-            ...prev,
-            variants: [...prev.variants, { color: '', size: '', quantity: 0, images: [] }]
-        }));
-    };
-
-    const removeVariant = (index) => {
-        setFormData(prev => ({
-            ...prev,
-            variants: prev.variants.filter((_, i) => i !== index)
-        }));
-    };
-
-    const handleThumbnailChange = async (file) => {
+  // Update subcategories when category changes
+  useEffect(() => {
+    if (formData.category) {
+      const fetchSubcategories = async () => {
         try {
-            const formDataToSend = new FormData();
-            // Include all required fields from current formData
-            formDataToSend.append('name', formData.name);
-            formDataToSend.append('description', formData.description);
-            formDataToSend.append('price', formData.price);
-            formDataToSend.append('category', formData.category);
-            if (formData.subcategory) {
-                formDataToSend.append('subcategory', formData.subcategory);
-            }
-            formDataToSend.append('shipping', formData.shipping);
-            
-            // Keep existing variants
-            formDataToSend.append('variants', JSON.stringify(formData.variants));
-            
-            // Add the new thumbnail
-            formDataToSend.append('thumbnail', file);
-            
-            const response = await productService.updateProduct(slug, formDataToSend);
-            setProduct(response.payload.product);
-            // Don't redirect, just update the state
-            setFormData(prev => ({
-                ...prev,
-                thumbnailImage: response.payload.product.thumbnailImage
-            }));
-        } catch (err) {
-            setError(err.message);
-        }
-    };
+          setIsLoadingSubcategories(true);
+          const subcats = await subcategoryService.getSubcategoriesByCategory(
+            formData.category
+          );
+          setSubcategories(subcats || []);
 
-    const handleVariantImagesChange = async (variantIndex, files, removedIndices = []) => {
-        try {
-            const formDataToSend = new FormData();
-            // Include all required fields
-            formDataToSend.append('name', formData.name);
-            formDataToSend.append('description', formData.description);
-            formDataToSend.append('price', formData.price);
-            formDataToSend.append('category', formData.category);
-            if (formData.subcategory) {
-                formDataToSend.append('subcategory', formData.subcategory);
-            }
-            formDataToSend.append('shipping', formData.shipping);
-
-            // Prepare variants with the new images
-            const updatedVariants = [...formData.variants];
-            
-            // Add new files to formData if any
-            files.forEach(file => {
-                formDataToSend.append('variantImages', file);
-            });
-
-            // Create an update object for this variant
-            const variantUpdate = {
-                ...updatedVariants[variantIndex],
-                removedImageIndices: removedIndices,
-                newImageCount: files.length
-            };
-
-            // Keep other variants unchanged
-            const variantsToUpdate = updatedVariants.map((v, idx) => 
-                idx === variantIndex ? variantUpdate : v
+          // If current subcategory doesn't belong to this category, reset it
+          if (formData.subcategory) {
+            const subcatBelongsToCategory = subcats.some(
+              (subcat) => subcat._id === formData.subcategory
             );
 
-            formDataToSend.append('variants', JSON.stringify(variantsToUpdate));
-
-            const response = await productService.updateProduct(slug, formDataToSend);
-            setProduct(response.payload.product);
-            setFormData(prev => ({
-                ...prev,
-                variants: response.payload.product.variants
-            }));
-        } catch (err) {
-            setError(err.message);
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsSubmitting(true);
-        setError('');
-
-        try {
-            const formDataToSend = new FormData();
-            
-            // Include all required fields
-            formDataToSend.append('name', formData.name);
-            formDataToSend.append('description', formData.description);
-            formDataToSend.append('price', formData.price);
-            formDataToSend.append('category', formData.category);
-            if (formData.subcategory) {
-                formDataToSend.append('subcategory', formData.subcategory);
+            if (!subcatBelongsToCategory) {
+              setFormData((prev) => ({ ...prev, subcategory: "" }));
             }
-            formDataToSend.append('shipping', formData.shipping);
-            formDataToSend.append('variants', JSON.stringify(formData.variants));
-
-            const response = await productService.updateProduct(slug, formDataToSend);
-            setProduct(response.payload.product);
-            router.push('/admin/products');
-        } catch (err) {
-            setError(err.message);
+          }
+        } catch (error) {
+          console.error("Failed to fetch subcategories:", error);
+          setSubcategories([]);
         } finally {
-            setIsSubmitting(false);
+          setIsLoadingSubcategories(false);
         }
+      };
+
+      fetchSubcategories();
+    } else {
+      setSubcategories([]);
+      // Reset subcategory if category is cleared
+      if (formData.subcategory) {
+        setFormData((prev) => ({ ...prev, subcategory: "" }));
+      }
+    }
+  }, [formData.category]);
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleDescriptionChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      description: value,
+    }));
+  };
+
+  const handleVariantChange = (index, field, value) => {
+    const updatedVariants = [...formData.variants];
+    updatedVariants[index] = {
+      ...updatedVariants[index],
+      [field]: value,
     };
+    setFormData((prev) => ({ ...prev, variants: updatedVariants }));
+  };
 
-    const handleDelete = async () => {
-        try {
-            setIsSubmitting(true);
-            await productService.deleteProduct(slug);
-            router.push('/admin/products');
-        } catch (err) {
-            setError(err.message);
-        } finally {
-            setIsSubmitting(false);
-            setShowDeleteDialog(false);
-        }
-    };
+  const addVariant = () => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: [
+        ...prev.variants,
+        { color: "", size: "", quantity: 0, images: [] },
+      ],
+    }));
+  };
 
-    if (isLoading) return <LoadingSpinner />;
-    if (error) return <Error message={error} />;
-    if (!product) return <Error message="Product not found" />;
+  const removeVariant = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      variants: prev.variants.filter((_, i) => i !== index),
+    }));
+  };
 
+  const handleThumbnailChange = async (file) => {
+    try {
+      const formDataToSend = new FormData();
+      // Include all required fields from current formData
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("price", formData.price);
+      formDataToSend.append("category", formData.category);
+      if (formData.subcategory) {
+        formDataToSend.append("subcategory", formData.subcategory);
+      }
+      formDataToSend.append("shipping", formData.shipping);
+
+      // Keep existing variants
+      formDataToSend.append("variants", JSON.stringify(formData.variants));
+
+      // Add the new thumbnail
+      formDataToSend.append("thumbnail", file);
+
+      const response = await productService.updateProduct(slug, formDataToSend);
+      setProduct(response.payload.product);
+      // Don't redirect, just update the state
+      setFormData((prev) => ({
+        ...prev,
+        thumbnailImage: response.payload.product.thumbnailImage,
+      }));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleVariantImagesChange = async (
+    variantIndex,
+    files,
+    removedIndices = []
+  ) => {
+    try {
+      const formDataToSend = new FormData();
+      // Include all required fields
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("price", formData.price);
+      formDataToSend.append("category", formData.category);
+      if (formData.subcategory) {
+        formDataToSend.append("subcategory", formData.subcategory);
+      }
+      formDataToSend.append("shipping", formData.shipping);
+
+      // Prepare variants with the new images
+      const updatedVariants = [...formData.variants];
+
+      // Add new files to formData if any
+      files.forEach((file) => {
+        formDataToSend.append("variantImages", file);
+      });
+
+      // Create an update object for this variant
+      const variantUpdate = {
+        ...updatedVariants[variantIndex],
+        removedImageIndices: removedIndices,
+        newImageCount: files.length,
+      };
+
+      // Keep other variants unchanged
+      const variantsToUpdate = updatedVariants.map((v, idx) =>
+        idx === variantIndex ? variantUpdate : v
+      );
+
+      formDataToSend.append("variants", JSON.stringify(variantsToUpdate));
+
+      const response = await productService.updateProduct(slug, formDataToSend);
+      setProduct(response.payload.product);
+      setFormData((prev) => ({
+        ...prev,
+        variants: response.payload.product.variants,
+      }));
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const formDataToSend = new FormData();
+
+      // Include all required fields
+      formDataToSend.append("name", formData.name);
+      formDataToSend.append("description", formData.description);
+      formDataToSend.append("price", formData.price);
+      formDataToSend.append("category", formData.category);
+      if (formData.subcategory) {
+        formDataToSend.append("subcategory", formData.subcategory);
+      }
+      formDataToSend.append("shipping", formData.shipping);
+      formDataToSend.append("variants", JSON.stringify(formData.variants));
+
+      const response = await productService.updateProduct(slug, formDataToSend);
+      setProduct(response.payload.product);
+      router.push("/admin/products");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      setIsSubmitting(true);
+      await productService.deleteProduct(slug);
+      router.push("/admin/products");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  if (isLoading) {
     return (
-        <div className="product-details-admin">
-            <div className="admin-header">
-                <h1>{product.name}</h1>
-                <div className="header-actions">
-                    <button 
-                        className="btn btn-secondary"
-                        onClick={() => router.push('/admin/products')}
-                    >
-                        Back to Products
-                    </button>
-                    <button 
-                        className="btn btn-danger"
-                        onClick={() => setShowDeleteDialog(true)}
-                        disabled={isSubmitting}
-                    >
-                        <FiTrash2 /> Delete Product
-                    </button>
-                </div>
-            </div>
-
-            <form onSubmit={handleSubmit} className="product-form">
-                <div className="form-section">
-                    <div className="form-group">
-                        <label htmlFor="name">Product Name</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value={formData.name}
-                            onChange={handleInputChange}
-                            required
-                        />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="description">Description</label>
-                        <MarkdownEditor
-                            value={formData.description}
-                            onChange={handleDescriptionChange}
-                            height={300}
-                        />
-                    </div>
-
-                    <div className="admin-product-form-row">
-                        <div className="form-group">
-                            <label htmlFor="price">Price</label>
-                            <input
-                                type="number"
-                                id="price"
-                                name="price"
-                                value={formData.price}
-                                onChange={handleInputChange}
-                                required
-                            />
-                        </div>
-                    </div>
-                    <div className="form-group">
-                        <label htmlFor="category">Category</label>
-                        <select
-                            id="category"
-                            name="category"
-                            value={formData.category}
-                            onChange={handleInputChange}
-                            required
-                        >
-                            <option value="">Select Category</option>
-                            {categories.map(category => (
-                                <option key={category._id} value={category._id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    
-                    <div className="form-group">
-                        <label htmlFor="subcategory">Subcategory</label>
-                        <div className="subcategory-select-container">
-                            <select
-                                id="subcategory"
-                                name="subcategory"
-                                value={formData.subcategory}
-                                onChange={handleInputChange}
-                                disabled={!formData.category || isLoadingSubcategories}
-                            >
-                                <option value="">Select Subcategory (Optional)</option>
-                                {subcategories.map(subcategory => (
-                                    <option key={subcategory._id} value={subcategory._id}>
-                                        {subcategory.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {isLoadingSubcategories && (
-                                <div className="subcategory-loading">
-                                    <LoadingSpinner size="small" fullPage={false} />
-                                </div>
-                            )}
-                        </div>
-                        {!formData.category && (
-                            <p className="helper-text">Please select a category first</p>
-                        )}
-                    </div>
-
-                    <div className="form-group">
-                        <label>
-                            <input
-                                type="checkbox"
-                                name="shipping"
-                                checked={formData.shipping}
-                                onChange={handleInputChange}
-                            />
-                            Available for Shipping
-                        </label>
-                    </div>
-                </div>
-
-                <div className="image-management-section">
-                    <ImageManager
-                        title="Thumbnail Image"
-                        currentImage={product.thumbnailImage}
-                        onImageChange={handleThumbnailChange}
-                        onImageRemove={() => {}}
-                    />
-                </div>
-
-                <div className="variants-section">
-                    <div className="section-header">
-                        <h3>Product Variants</h3>
-                        <button
-                            type="button"
-                            onClick={addVariant}
-                            className="btn btn-secondary"
-                        >
-                            <FiPlus /> Add Variant
-                        </button>
-                    </div>
-
-                    {formData.variants.map((variant, index) => (
-                        <div key={index} className="variant-item">
-                            <div className="variant-header">
-                                <h4>Variant #{index + 1}</h4>
-                                <button
-                                    type="button"
-                                    onClick={() => removeVariant(index)}
-                                    className="btn btn-icon btn-danger"
-                                >
-                                    <FiTrash2 />
-                                </button>
-                            </div>
-
-                            <div className="variant-form">
-                                <div className="admin-product-form-row">
-                                    <div className="form-group">
-                                        <label>Color</label>
-                                        <input
-                                            type="text"
-                                            value={variant.color}
-                                            onChange={(e) => handleVariantChange(index, 'color', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Size</label>
-                                        <input
-                                            type="text"
-                                            value={variant.size}
-                                            onChange={(e) => handleVariantChange(index, 'size', e.target.value)}
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label>Quantity</label>
-                                        <input
-                                            type="number"
-                                            value={variant.quantity}
-                                            onChange={(e) => handleVariantChange(index, 'quantity', parseInt(e.target.value))}
-                                            min="0"
-                                            required
-                                        />
-                                    </div>
-                                </div>
-
-                                <ImageManager
-                                    title={`Variant Images`}
-                                    currentImage={variant.images}
-                                    onImageChange={(files, removedIndices) => handleVariantImagesChange(index, files, removedIndices)}
-                                    multiple={true}
-                                    maxImages={5}
-                                />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div className="form-actions">
-                    <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={isSubmitting}
-                    >
-                        {isSubmitting ? 'Saving...' : 'Save Changes'}
-                    </button>
-                </div>
-            </form>
-
-            <ConfirmDialog
-                isOpen={showDeleteDialog}
-                title="Delete Product"
-                message={`Are you sure you want to delete "${product.name}"? This action cannot be undone.`}
-                confirmText="Delete"
-                cancelText="Cancel"
-                onConfirm={handleDelete}
-                onCancel={() => setShowDeleteDialog(false)}
-            />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600"></div>
+          <p className="text-slate-600 dark:text-slate-400">
+            Loading product details...
+          </p>
         </div>
+      </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <Error message={error} />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
+        <Error message="Product not found" />
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header Section */}
+        <div className="product-header-gradient-enhanced rounded-2xl p-6 sm:p-8 mb-6 sm:mb-8 relative overflow-hidden">
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                  <FiEdit3 className="w-8 h-8 text-white" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white truncate">
+                    {product.name}
+                  </h1>
+                  <p className="text-white/80 text-sm sm:text-base mt-1">
+                    Edit product details and manage inventory
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => router.push("/admin/products")}
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-white/50"
+                >
+                  <FiArrowLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline">Back</span>
+                </button>
+                <button
+                  onClick={() => setShowDeleteDialog(true)}
+                  disabled={isSubmitting}
+                  className="inline-flex items-center space-x-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 backdrop-blur-sm text-white rounded-xl font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Delete</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Form Section */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+                <FiPackage className="w-5 h-5" />
+                <span>Basic Information</span>
+              </h2>
+            </div>
+            <div className="p-6 space-y-6">
+              {/* Product Name */}
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                >
+                  Product Name *
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+                  placeholder="Enter product name"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Description
+                </label>
+                <div className="border border-slate-300 dark:border-slate-600 rounded-lg overflow-hidden">
+                  <MarkdownEditor
+                    value={formData.description}
+                    onChange={handleDescriptionChange}
+                    height={300}
+                  />
+                </div>
+              </div>
+
+              {/* Price and Category Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div>
+                  <label
+                    htmlFor="price"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    Price *
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 dark:text-slate-400">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      id="price"
+                      name="price"
+                      value={formData.price}
+                      onChange={handleInputChange}
+                      required
+                      min="0"
+                      step="0.01"
+                      className="w-full pl-8 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="category"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    Category *
+                  </label>
+                  <select
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+                  >
+                    <option value="">Select Category</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="subcategory"
+                    className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2"
+                  >
+                    Subcategory
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="subcategory"
+                      name="subcategory"
+                      value={formData.subcategory}
+                      onChange={handleInputChange}
+                      disabled={!formData.category || isLoadingSubcategories}
+                      className="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select Subcategory (Optional)</option>
+                      {subcategories.map((subcategory) => (
+                        <option key={subcategory._id} value={subcategory._id}>
+                          {subcategory.name}
+                        </option>
+                      ))}
+                    </select>
+                    {isLoadingSubcategories && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-rose-600"></div>
+                      </div>
+                    )}
+                  </div>
+                  {!formData.category && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Please select a category first
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Shipping Checkbox */}
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="shipping"
+                  name="shipping"
+                  checked={formData.shipping}
+                  onChange={handleInputChange}
+                  className="w-4 h-4 text-rose-600 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded focus:ring-rose-500 focus:ring-2"
+                />
+                <label
+                  htmlFor="shipping"
+                  className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                >
+                  Available for Shipping
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Image Management */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+                <FiImage className="w-5 h-5" />
+                <span>Product Images</span>
+              </h2>
+            </div>
+            <div className="p-6">
+              <ImageManager
+                title="Thumbnail Image"
+                currentImage={product.thumbnailImage}
+                onImageChange={handleThumbnailChange}
+                onImageRemove={() => {}}
+              />
+            </div>
+          </div>
+
+          {/* Product Variants */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center space-x-2">
+                  <FiPackage className="w-5 h-5" />
+                  <span>Product Variants</span>
+                </h2>
+                <button
+                  type="button"
+                  onClick={addVariant}
+                  className="inline-flex items-center space-x-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                >
+                  <FiPlus className="w-4 h-4" />
+                  <span>Add Variant</span>
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              {formData.variants.length === 0 ? (
+                <div className="text-center py-12">
+                  <FiPackage className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100 mb-2">
+                    No variants added
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 mb-4">
+                    Add product variants to manage different sizes, colors, and
+                    inventory.
+                  </p>
+                </div>
+              ) : (
+                formData.variants.map((variant, index) => (
+                  <div
+                    key={index}
+                    className="border border-slate-200 dark:border-slate-700 rounded-lg p-6 space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-lg font-medium text-slate-900 dark:text-slate-100">
+                        Variant #{index + 1}
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => removeVariant(index)}
+                        className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                      >
+                        <FiTrash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Color *
+                        </label>
+                        <input
+                          type="text"
+                          value={variant.color}
+                          onChange={(e) =>
+                            handleVariantChange(index, "color", e.target.value)
+                          }
+                          required
+                          className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+                          placeholder="e.g., Red, Blue"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Size *
+                        </label>
+                        <input
+                          type="text"
+                          value={variant.size}
+                          onChange={(e) =>
+                            handleVariantChange(index, "size", e.target.value)
+                          }
+                          required
+                          className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+                          placeholder="e.g., S, M, L"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                          Quantity *
+                        </label>
+                        <input
+                          type="number"
+                          value={variant.quantity}
+                          onChange={(e) =>
+                            handleVariantChange(
+                              index,
+                              "quantity",
+                              parseInt(e.target.value)
+                            )
+                          }
+                          min="0"
+                          required
+                          className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
+                          placeholder="0"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <ImageManager
+                        title="Variant Images"
+                        currentImage={variant.images}
+                        onImageChange={(files, removedIndices) =>
+                          handleVariantImagesChange(
+                            index,
+                            files,
+                            removedIndices
+                          )
+                        }
+                        multiple={true}
+                        maxImages={5}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Form Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-6">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center space-x-2 px-6 py-3 bg-rose-600 hover:bg-rose-700 disabled:bg-rose-400 text-white font-medium rounded-lg transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <FiSave className="w-5 h-5" />
+                  <span>Save Changes</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/admin/products")}
+              disabled={isSubmitting}
+              className="inline-flex items-center justify-center px-6 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-lg transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+
+        {/* Delete Confirmation Dialog */}
+        <ConfirmDialog
+          isOpen={showDeleteDialog}
+          title="Delete Product"
+          message={`Are you sure you want to delete "${product.name}"? This action cannot be undone.`}
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteDialog(false)}
+        />
+      </div>
+    </div>
+  );
 }
