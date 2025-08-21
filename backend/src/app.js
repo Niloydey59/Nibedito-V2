@@ -36,9 +36,6 @@ app.use(
   })
 );
 
-// Handle preflight requests
-app.options("*", cors());
-
 const rateLimiter = rateLimit({
   windowMs: 1 * 60 * 1000,
   max: 300,
