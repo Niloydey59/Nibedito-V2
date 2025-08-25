@@ -20,6 +20,7 @@ const shippingRouter = require("./routers/shippingRouter");
 const paymentRouter = require("./routers/paymentRouter");
 const faqRouter = require("./routers/faqRouter");
 const secret = require("./secret");
+const reviewRouter = require("./routers/reviewRouter");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -55,6 +56,7 @@ app.use("/api/coupon", couponRouter);
 app.use("/api/shipping", shippingRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/faqs", faqRouter);
+app.use("/api/review", reviewRouter);
 
 app.get("/test", (req, res) => {
   res.status(200).send({
