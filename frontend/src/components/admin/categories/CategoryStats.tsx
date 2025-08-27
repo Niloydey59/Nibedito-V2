@@ -1,17 +1,36 @@
 "use client";
 
+import React from "react";
 import { FiBox, FiActivity, FiCalendar, FiTrendingUp } from "react-icons/fi";
+import type { Category } from "@/types/category";
+import type { IconType } from "react-icons";
 
-export default function CategoryStats({ categories }) {
-  const totalCategories = categories?.length || 0;
-  const activeCategories =
+interface CategoryStatsProps {
+  categories: Category[];
+}
+
+interface StatData {
+  title: string;
+  value: number;
+  icon: IconType;
+  gradient: string;
+  bgColor: string;
+  textColor: string;
+  description: string;
+}
+
+export default function CategoryStats({
+  categories,
+}: CategoryStatsProps): React.JSX.Element {
+  const totalCategories: number = categories?.length || 0;
+  const activeCategories: number =
     categories?.filter((cat) => cat.isActive !== false).length || 0;
-  const totalProducts =
+  const totalProducts: number =
     categories?.reduce((sum, cat) => sum + (cat.productCount || 0), 0) || 0;
-  const averageProducts =
+  const averageProducts: number =
     totalCategories > 0 ? Math.round(totalProducts / totalCategories) : 0;
 
-  const statsData = [
+  const statsData: StatData[] = [
     {
       title: "Total Categories",
       value: totalCategories,

@@ -1,67 +1,92 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { adminService } from '@/services/adminService';
-import { API_URL } from '@/config/constants';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
+import { adminService } from "@/services/adminService";
+import type { Admin, AdminLoginCredentials } from "@/types";
 
-const AdminAuthContext = createContext();
-
-export function AdminAuthProvider({ children }) {
-    const [admin, setAdmin] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        const initAdminAuth = async () => {
-            try {
-                const adminData = await adminService.getCurrentAdmin();
-                if (adminData) {
-                    setAdmin(adminData);
-                }
-            } catch (error) {
-                console.error('Admin auth initialization error:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        initAdminAuth();
-    }, []);
-
-    const loginAdmin = async (credentials) => {
-        try {
-            const adminInfo = await adminService.login(credentials);
-            setAdmin(adminInfo);
-        } catch (error) {
-            throw error;
-        }
-    };
-
-    const logoutAdmin = async () => {
-        try {
-            await adminService.logout();
-            setAdmin(null);
-        } catch (error) {
-            console.error('Logout error:', error);
-            // Still clear local state even if API call fails
-            setAdmin(null);
-        }
-    };
-
-    return (
-        <AdminAuthContext.Provider value={{
-            admin,
-            loginAdmin,
-            logoutAdmin,
-            isLoading
-        }}>
-            {children}
-        </AdminAuthContext.Provider>
-    );
+interface AdminAuthContextType {
+  admin: Admin | null;
+  isLoading: boolean;
+  loginAdmin: (credentials: AdminLoginCredentials) => Promise<void>;
+  logoutAdmin: () => Promise<void>;
 }
 
-export const useAdminAuth = () => {
-    const context = useContext(AdminAuthContext);
-    if (!context) {
-        throw new Error('useAdminAuth must be used within an AdminAuthProvider');
+interface AdminAuthProviderProps {
+  children: ReactNode;
+}
+
+const AdminAuthContext = createContext<AdminAuthContextType | undefined>(
+  undefined
+);
+
+export function AdminAuthProvider({
+  children,
+}: AdminAuthProviderProps): React.JSX.Element {
+  const [admin, setAdmin] = useState<Admin | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const initAdminAuth = async (): Promise<void> => {
+      try {
+        const adminData: Admin | null = await adminService.getCurrentAdmin();
+        if (adminData) {
+          setAdmin(adminData);
+        }
+      } catch (error: any) {
+        console.error("Admin auth initialization error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    initAdminAuth();
+  }, []);
+
+  const loginAdmin = async (
+    credentials: AdminLoginCredentials
+  ): Promise<void> => {
+    try {
+      const adminInfo: Admin = await adminService.login(credentials);
+      setAdmin(adminInfo);
+    } catch (error: any) {
+      throw error;
     }
-    return context;
+  };
+
+  const logoutAdmin = async (): Promise<void> => {
+    try {
+      await adminService.logout();
+      setAdmin(null);
+    } catch (error: any) {
+      console.error("Logout error:", error);
+      // Still clear local state even if API call fails
+      setAdmin(null);
+    }
+  };
+
+  const contextValue: AdminAuthContextType = {
+    admin,
+    loginAdmin,
+    logoutAdmin,
+    isLoading,
+  };
+
+  return (
+    <AdminAuthContext.Provider value={contextValue}>
+      {children}
+    </AdminAuthContext.Provider>
+  );
+}
+
+export const useAdminAuth = (): AdminAuthContextType => {
+  const context = useContext(AdminAuthContext);
+  if (!context) {
+    throw new Error("useAdminAuth must be used within an AdminAuthProvider");
+  }
+  return context;
 };

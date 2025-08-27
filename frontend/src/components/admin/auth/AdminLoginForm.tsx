@@ -1,22 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import useToast from "@/hooks/useToast";
+import type { AdminLoginCredentials, Admin } from "@/types";
 
-export default function AdminLoginForm() {
+interface AdminAuthContextType {
+  loginAdmin: (credentials: AdminLoginCredentials) => Promise<void>;
+}
+
+interface ToastType {
+  error: (message: string) => void;
+  success: (message: string) => void;
+}
+
+export default function AdminLoginForm(): React.JSX.Element {
   const router = useRouter();
-  const { loginAdmin } = useAdminAuth();
-  const toast = useToast();
-  const [formData, setFormData] = useState({
+  const { loginAdmin }: AdminAuthContextType = useAdminAuth();
+  const toast: ToastType = useToast();
+  const [formData, setFormData] = useState<AdminLoginCredentials>({
     email: "",
     password: "",
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -24,7 +34,9 @@ export default function AdminLoginForm() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
 
     // Client-side validation
@@ -39,11 +51,15 @@ export default function AdminLoginForm() {
       await loginAdmin(formData);
       toast.success("Login successful! Redirecting...");
       router.push("/admin/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const togglePasswordVisibility = (): void => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -119,9 +135,10 @@ export default function AdminLoginForm() {
           />
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={togglePasswordVisibility}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-tertiary hover:text-foreground transition-colors"
             disabled={isLoading}
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
               <svg

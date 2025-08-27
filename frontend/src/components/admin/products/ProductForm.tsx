@@ -18,42 +18,76 @@ import { subcategoryService } from "@/services/subcategoryService";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import Error from "@/components/common/Error";
 import MarkdownEditor from "@/components/admin/common/MarkdownEditor";
+import type { Product, ProductVariant, Category, Subcategory } from "@/types";
 
-export default function ProductForm({ product, onSuccess, onError, onCancel }) {
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
-  const [formData, setFormData] = useState({
+interface ProductFormProps {
+  product?: Product;
+  onSuccess: () => void;
+  onError: (message: string) => void;
+  onCancel?: () => void;
+}
+
+interface FormData {
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  subcategory: string;
+  shipping: boolean;
+  variants: ProductVariant[];
+}
+
+export default function ProductForm({
+  product,
+  onSuccess,
+  onError,
+  onCancel,
+}: ProductFormProps) {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [formData, setFormData] = useState<FormData>({
     name: product?.name || "",
     description: product?.description || "",
-    price: product?.price || "",
-    category: product?.category?._id || "",
-    subcategory: product?.subcategory?._id || "",
+    price: product?.price?.toString() || "",
+    category:
+      typeof product?.category === "object"
+        ? product.category._id || ""
+        : product?.category || "",
+    subcategory:
+      typeof product?.subcategory === "object"
+        ? product.subcategory._id || ""
+        : product?.subcategory || "",
     shipping: product?.shipping || false,
     variants: product?.variants || [],
   });
-  const [thumbnailImage, setThumbnailImage] = useState(null);
-  const [thumbnailPreview, setThumbnailPreview] = useState("");
-  const [variantImages, setVariantImages] = useState({});
-  const [variantPreviews, setVariantPreviews] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
-  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
-  const [error, setError] = useState("");
-  const fileInputRef = useRef(null);
+  const [thumbnailImage, setThumbnailImage] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>("");
+  const [variantImages, setVariantImages] = useState<Record<number, File[]>>(
+    {}
+  );
+  const [variantPreviews, setVariantPreviews] = useState<
+    Record<number, string[]>
+  >({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
+  const [isLoadingSubcategories, setIsLoadingSubcategories] =
+    useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleError = (message) => {
+  const handleError = (message: string): void => {
     setError(message);
     onError(message);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategories = async (): Promise<void> => {
       try {
         setIsLoadingCategories(true);
         const data = await categoryService.getAllCategories();
-        setCategories(data.categories || []);
-      } catch (error) {
+        setCategories(data.payload!.categories || []);
+      } catch (error: any) {
         handleError(error.message);
       } finally {
         setIsLoadingCategories(false);
@@ -68,12 +102,17 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
     }
 
     // If product has a subcategory, prefetch the subcategories for that category
-    if (product?.category?._id && product?.subcategory?._id) {
-      const fetchInitialSubcategories = async () => {
+    if (
+      typeof product?.category === "object" &&
+      product.category._id &&
+      typeof product?.subcategory === "object" &&
+      product.subcategory._id
+    ) {
+      const fetchInitialSubcategories = async (): Promise<void> => {
         try {
           setIsLoadingSubcategories(true);
           const subcats = await subcategoryService.getSubcategoriesByCategory(
-            product.category._id
+            product.category._id!
           );
           setSubcategories(subcats || []);
         } catch (error) {
@@ -90,7 +129,7 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
   // Fetch subcategories when category changes
   useEffect(() => {
     if (formData.category) {
-      const fetchSubcategories = async () => {
+      const fetchSubcategories = async (): Promise<void> => {
         try {
           setIsLoadingSubcategories(true);
           const subcats = await subcategoryService.getSubcategoriesByCategory(
@@ -115,19 +154,24 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
     }
   }, [formData.category]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleDescriptionChange = (value) => {
+  const handleDescriptionChange = (value: string): void => {
     setFormData((prev) => ({ ...prev, description: value }));
   };
 
-  const handleThumbnailChange = (e) => {
+  const handleThumbnailChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       setThumbnailImage(file);
@@ -135,7 +179,12 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
     }
   };
 
-  const handleVariantImageChange = (variantIndex, e) => {
+  const handleVariantImageChange = (
+    variantIndex: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    if (!e.target.files) return;
+
     const newFiles = Array.from(e.target.files);
     const existingFiles = variantImages[variantIndex] || [];
 
@@ -161,7 +210,10 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
     }));
   };
 
-  const removeVariantImage = (variantIndex, imageIndex) => {
+  const removeVariantImage = (
+    variantIndex: number,
+    imageIndex: number
+  ): void => {
     setVariantImages((prev) => ({
       ...prev,
       [variantIndex]: prev[variantIndex].filter((_, i) => i !== imageIndex),
@@ -173,7 +225,11 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
     }));
   };
 
-  const handleVariantChange = (index, field, value) => {
+  const handleVariantChange = (
+    index: number,
+    field: keyof ProductVariant,
+    value: string | number
+  ): void => {
     const updatedVariants = [...formData.variants];
     updatedVariants[index] = {
       ...updatedVariants[index],
@@ -182,24 +238,26 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
     setFormData((prev) => ({ ...prev, variants: updatedVariants }));
   };
 
-  const addVariant = () => {
+  const addVariant = (): void => {
     setFormData((prev) => ({
       ...prev,
       variants: [
         ...prev.variants,
-        { color: "", size: "", quantity: 0, images: [], imageIndices: [] },
+        { _id: `temp-${Date.now()}`, color: "", size: "", quantity: 0 },
       ],
     }));
   };
 
-  const removeVariant = (index) => {
+  const removeVariant = (index: number): void => {
     setFormData((prev) => ({
       ...prev,
       variants: prev.variants.filter((_, i) => i !== index),
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -219,7 +277,7 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
         formDataToSend.append("subcategory", formData.subcategory);
       }
 
-      formDataToSend.append("shipping", formData.shipping);
+      formDataToSend.append("shipping", formData.shipping.toString());
 
       // Append thumbnail with specific name if it's a new image
       if (thumbnailImage) {
@@ -234,7 +292,7 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
         );
       }
 
-      // Process variants and their images
+      // Process variants and their images - remove _id for new variants
       let totalImageIndex = 0;
       const variantsWithImageInfo = formData.variants.map(
         (variant, variantIndex) => {
@@ -247,8 +305,14 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
             (_, index) => startIndex + index
           );
 
+          // Remove _id for new variants (those with temp IDs)
+          const cleanVariant = { ...variant };
+          if (cleanVariant._id?.startsWith("temp-")) {
+            delete cleanVariant._id;
+          }
+
           return {
-            ...variant,
+            ...cleanVariant,
             imageIndices,
           };
         }
@@ -277,7 +341,7 @@ export default function ProductForm({ product, onSuccess, onError, onCancel }) {
       }
 
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       handleError(error.message);
     } finally {
       setIsLoading(false);

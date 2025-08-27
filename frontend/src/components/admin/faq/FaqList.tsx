@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { deleteFaq } from "@/services/faqService";
+import { faqService } from "@/services/faqService";
+import { FAQ } from "@/types/faq";
 import { toast } from "react-hot-toast";
 import {
   FiHelpCircle,
@@ -13,12 +14,12 @@ import {
 import FaqForm from "./FaqForm";
 
 interface FaqListProps {
-  faqs: any[];
+  faqs: FAQ[];
   onFaqsUpdate: () => void;
 }
 
 export default function FaqList({ faqs, onFaqsUpdate }: FaqListProps) {
-  const [editingFaq, setEditingFaq] = useState<any>(null);
+  const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDelete = async (faqId: string) => {
@@ -28,7 +29,7 @@ export default function FaqList({ faqs, onFaqsUpdate }: FaqListProps) {
 
     try {
       setIsLoading(true);
-      await deleteFaq(faqId);
+      await faqService.deleteFaq(faqId);
       toast.success("FAQ deleted successfully");
       onFaqsUpdate();
     } catch (error: any) {
@@ -38,7 +39,7 @@ export default function FaqList({ faqs, onFaqsUpdate }: FaqListProps) {
     }
   };
 
-  const handleEdit = (faq: any) => {
+  const handleEdit = (faq: FAQ) => {
     // Scroll to top of the page BEFORE state updates
     window.scrollTo({ top: 0, behavior: "smooth" });
 

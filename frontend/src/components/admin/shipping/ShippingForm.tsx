@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { shippingService } from "@/services/shippingService";
 import {
-  createShippingRate,
-  updateShippingRate,
-  initializeDefaultRates,
-} from "@/services/shippingService";
+  ShippingRate,
+  CreateShippingRateRequest,
+  UpdateShippingRateRequest,
+} from "@/types/shipping";
 import { toast } from "react-hot-toast";
 import { FiSave, FiX, FiMapPin, FiRefreshCw } from "react-icons/fi";
 
 interface ShippingFormProps {
-  editingRate?: any;
+  editingRate?: ShippingRate;
   onSuccess: () => void;
   onError: (message: string) => void;
   onCancel: () => void;
@@ -45,13 +46,19 @@ export default function ShippingForm({
 
     try {
       if (editingRate) {
-        await updateShippingRate(editingRate._id, {
-          cost: formData.cost,
+        const updateData: UpdateShippingRateRequest = {
+          cost: Number(formData.cost),
           description: formData.description,
-        });
+        };
+        await shippingService.updateShippingRate(editingRate._id, updateData);
         toast.success("Shipping rate updated successfully");
       } else {
-        await createShippingRate(formData);
+        const createData: CreateShippingRateRequest = {
+          region: formData.region,
+          cost: Number(formData.cost),
+          description: formData.description,
+        };
+        await shippingService.createShippingRate(createData);
         toast.success("Shipping rate created successfully");
       }
 
@@ -66,7 +73,7 @@ export default function ShippingForm({
   const handleInitializeDefaults = async () => {
     try {
       setIsSubmitting(true);
-      await initializeDefaultRates();
+      await shippingService.initializeDefaultRates();
       toast.success("Default shipping rates initialized");
       onSuccess();
     } catch (error: any) {

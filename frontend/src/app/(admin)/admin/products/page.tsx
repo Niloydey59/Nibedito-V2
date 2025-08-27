@@ -10,28 +10,45 @@ import Error from "@/components/common/Error";
 import { productService } from "@/services/productService";
 import ProductTester from "@/components/admin/products/ProductTester";
 import { FiPlus, FiX, FiPackage } from "react-icons/fi";
+import type { Product, Pagination } from "@/types";
+
+interface StatusState {
+  type: string;
+  message: string;
+}
+
+interface TotalStats {
+  totalProducts: number;
+  totalValue: number;
+  totalVariants: number;
+  activeCategories: number;
+}
 
 export default function ProductsPage() {
   const router = useRouter();
   const { admin, isLoading } = useAdminAuth();
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [products, setProducts] = useState([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
-  const [pagination, setPagination] = useState({
+  const [isAddMode, setIsAddMode] = useState<boolean>(false);
+  const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
+  const [pagination, setPagination] = useState<Pagination>({
     currentPage: 1,
     totalPages: 1,
     hasPrevPage: false,
     hasNextPage: false,
+    total: 0,
+    page: 1,
+    pages: 1,
+    limit: 12,
   });
-  const [totalStats, setTotalStats] = useState({
+  const [totalStats, setTotalStats] = useState<TotalStats>({
     totalProducts: 0,
     totalValue: 0,
     totalVariants: 0,
     activeCategories: 0,
   });
 
-  const fetchProducts = async (page = 1) => {
+  const fetchProducts = async (page: number = 1): Promise<void> => {
     try {
       setIsLoadingProducts(true);
       const response = await productService.getAllProducts({ page, limit: 12 });
@@ -40,47 +57,50 @@ export default function ProductsPage() {
         throw new Error(response.message || "Failed to fetch products");
       }
 
-      setProducts(response.payload.products || []);
+      setProducts(response.payload!.products || []);
 
       // Calculate total variants and value for stats
       const totalVariants =
-        response.payload.products?.reduce(
+        response.payload!.products?.reduce(
           (sum, product) => sum + (product.variants?.length || 0),
           0
         ) || 0;
 
       const totalValue =
-        response.payload.products?.reduce(
+        response.payload!.products?.reduce(
           (sum, product) => sum + (product.price || 0),
           0
         ) || 0;
 
       // Get unique categories count
-      const uniqueCategories = new Set();
-      response.payload.products?.forEach((product) => {
-        if (product.category?._id) {
+      const uniqueCategories = new Set<string>();
+      response.payload!.products?.forEach((product) => {
+        if (typeof product.category === "object" && product.category?._id) {
           uniqueCategories.add(product.category._id);
         }
       });
 
-      // Handle pagination properties
+      // Handle pagination properties - map from API response to component expected format
+      const apiPagination = response.payload!.pagination;
       setPagination({
-        currentPage: response.payload.pagination.currentPage,
-        totalPages: response.payload.pagination.totalPages,
-        hasPrevPage: response.payload.pagination.currentPage > 1,
-        hasNextPage:
-          response.payload.pagination.currentPage <
-          response.payload.pagination.totalPages,
+        currentPage: apiPagination.page,
+        totalPages: apiPagination.pages,
+        hasPrevPage: apiPagination.page > 1,
+        hasNextPage: apiPagination.page < apiPagination.pages,
+        total: apiPagination.total,
+        page: apiPagination.page,
+        pages: apiPagination.pages,
+        limit: apiPagination.limit,
       });
 
       // Set stats
       setTotalStats({
-        totalProducts: response.payload.pagination.totalProducts || 0,
+        totalProducts: apiPagination.total || 0,
         totalValue,
         totalVariants,
         activeCategories: uniqueCategories.size,
       });
-    } catch (error) {
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to fetch products",
@@ -109,11 +129,11 @@ export default function ProductsPage() {
     );
   }
 
-  const handleProductClick = (slug) => {
+  const handleProductClick = (slug: string): void => {
     router.push(`/admin/products/${slug}`);
   };
 
-  const clearStatus = () => {
+  const clearStatus = (): void => {
     setStatus({ type: "", message: "" });
   };
 

@@ -10,19 +10,41 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ImageMagnifier from "@/components/products/ImageMagnifier";
 import { toast } from "react-hot-toast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
+import type { Product, Variant } from "@/types/product";
+
+interface CartItem {
+  product: {
+    _id: string;
+  };
+  variant: {
+    _id: string;
+  };
+  quantity: number;
+}
+
+interface Cart {
+  items: CartItem[];
+}
 
 export default function ProductDetailsPage() {
-  const { slug } = useParams();
-  const { addToCart, cart } = useCart();
-  const [product, setProduct] = useState(null);
-  const [selectedVariant, setSelectedVariant] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const { slug } = useParams() as { slug: string };
+  const { addToCart, cart } = useCart() as {
+    addToCart: (
+      productId: string,
+      quantity: number,
+      variantId: string
+    ) => Promise<boolean>;
+    cart: Cart | null;
+  };
+  const [product, setProduct] = useState<Product | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState<number>(1);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchProduct = async (): Promise<void> => {
       try {
         setLoading(true);
         const data = await productService.getProduct(slug);
@@ -31,7 +53,7 @@ export default function ProductDetailsPage() {
         if (data.variants?.length > 0) {
           setSelectedVariant(data.variants[0]);
         }
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message || "Failed to fetch product");
       } finally {
         setLoading(false);
@@ -41,7 +63,7 @@ export default function ProductDetailsPage() {
     fetchProduct();
   }, [slug]);
 
-  const handleVariantSelect = (variant) => {
+  const handleVariantSelect = (variant: Variant): void => {
     setSelectedVariant(variant);
     if (variant.images?.length > 0) {
       setSelectedImage(variant.images[0]);
@@ -50,14 +72,17 @@ export default function ProductDetailsPage() {
     // Check if this variant is in cart and update quantity
     const existingCartItem = cart?.items?.find(
       (item) =>
-        item.product._id === product._id && item.variant._id === variant._id
+        item.product._id === product?._id &&
+        item.variant._id === (variant as any)._id
     );
 
     // Set initial quantity to 1 or existing cart quantity
     setQuantity(existingCartItem ? existingCartItem.quantity : 1);
   };
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (): Promise<void> => {
+    if (!product || !selectedVariant) return;
+
     try {
       if (!selectedVariant) {
         toast.error("Please select a variant");
@@ -68,13 +93,13 @@ export default function ProductDetailsPage() {
       const existingCartItem = cart?.items?.find(
         (item) =>
           item.product._id === product._id &&
-          item.variant._id === selectedVariant._id
+          item.variant._id === (selectedVariant as any)._id
       );
 
       const success = await addToCart(
-        product._id,
+        product._id!,
         quantity,
-        selectedVariant._id
+        (selectedVariant as any)._id
       );
       if (success) {
         toast.success(

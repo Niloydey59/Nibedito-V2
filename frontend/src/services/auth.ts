@@ -1,11 +1,21 @@
 import axios from '@/utils/axios';
+import { 
+    AuthService, 
+    LoginCredentials, 
+    LoginResponse, 
+    RegisterData, 
+    RegisterResponse,
+    User,
+    Address,
+    ApiResponse
+} from '@/types';
 
-export const authService = {
-    async login(formData) {
+export const authService: AuthService = {
+    async login(formData: LoginCredentials): Promise<LoginResponse> {
         try {
             console.log('Sending login request with:', formData);
 
-            const { data } = await axios.post('/auth/login', {
+            const { data } = await axios.post<ApiResponse<LoginResponse>>('/auth/login', {
                 emailOrPhone: formData.emailOrPhone,
                 password: formData.password
             });
@@ -24,10 +34,10 @@ export const authService = {
                     success: true,
                     user: data.payload.user,
                     message: data.message
-                };
+                } as LoginResponse;
             }
             throw new Error(data.message || 'Authentication failed');
-        } catch (error) {
+        } catch (error: any) {
             // Only log response data if it exists
             if (error.response?.data) {
                 console.error('Login error details:', error.response.data);
@@ -49,9 +59,9 @@ export const authService = {
         }
     },
 
-    async register(userData) {
+    async register(userData: RegisterData): Promise<RegisterResponse> {
         try {
-            const { data } = await axios.post('/auth/process-register', {
+            const { data } = await axios.post<ApiResponse>('/auth/process-register', {
                 name: userData.name,
                 email: userData.email,
                 phone: userData.phone,
@@ -72,7 +82,7 @@ export const authService = {
                 };
             }
             throw new Error(data.message || 'Registration failed');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Registration error:', error.response?.data || error);
             if (error.response?.data?.message) {
                 throw new Error(error.response.data.message);
@@ -81,46 +91,46 @@ export const authService = {
         }
     },
 
-    async addAddress(userId, addressData) {
+    async addAddress(userId: string, addressData: Omit<Address, '_id' | 'createdAt' | 'updatedAt'>): Promise<User> {
         try {
-            const { data } = await axios.post(`/users/${userId}/addresses`, addressData);
+            const { data } = await axios.post<ApiResponse<{ user: User }>>(`/users/${userId}/addresses`, addressData);
             if (data.success && data.payload?.user) {
                 localStorage.setItem('user', JSON.stringify(data.payload.user));
                 return data.payload.user;
             }
             throw new Error(data.message || 'Failed to add address');
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to add address');
         }
     },
 
-    async updateAddress(userId, addressId, addressData) {
+    async updateAddress(userId: string, addressId: string, addressData: Partial<Address>): Promise<User> {
         try {
-            const { data } = await axios.put(`/users/${userId}/addresses/${addressId}`, addressData);
+            const { data } = await axios.put<ApiResponse<{ user: User }>>(`/users/${userId}/addresses/${addressId}`, addressData);
             if (data.success && data.payload?.user) {
                 localStorage.setItem('user', JSON.stringify(data.payload.user));
                 return data.payload.user;
             }
             throw new Error(data.message || 'Failed to update address');
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to update address');
         }
     },
 
-    async deleteAddress(userId, addressId) {
+    async deleteAddress(userId: string, addressId: string): Promise<User> {
         try {
-            const { data } = await axios.delete(`/users/${userId}/addresses/${addressId}`);
+            const { data } = await axios.delete<ApiResponse<{ user: User }>>(`/users/${userId}/addresses/${addressId}`);
             if (data.success && data.payload?.user) {
                 localStorage.setItem('user', JSON.stringify(data.payload.user));
                 return data.payload.user;
             }
             throw new Error(data.message || 'Failed to delete address');
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to delete address');
         }
     },
 
-    async logout() {
+    async logout(): Promise<void> {
         try {
             await axios.post('/auth/logout');
             // Clear all relevant localStorage items
@@ -141,35 +151,35 @@ export const authService = {
         }
     },
 
-    async getCurrentUser() {
+    async getCurrentUser(): Promise<User | null> {
         try {
             const userStr = localStorage.getItem('user');
             if (!userStr) return null;
 
-            const user = JSON.parse(userStr);
+            const user: User = JSON.parse(userStr);
             
             try {
-                const { data } = await axios.get(`/users/${user._id}`);
+                const { data } = await axios.get<ApiResponse<{ user: User }>>(`/users/${user._id}`);
                 
                 if (data.success && data.payload?.user) {
                     localStorage.setItem('user', JSON.stringify(data.payload.user));
                     return data.payload.user;
                 }
                 return null;
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error getting current user:', error);
                 
                 // Only attempt refresh token if status is 401 and it's not already a refresh attempt
                 if (error.response?.status === 401 && !error.config?._isRefreshAttempt) {
                     try {
                         // Mark this as a refresh attempt to prevent infinite loops
-                        const refreshResponse = await axios.get('/auth/refresh-token', {
+                        const refreshResponse = await axios.get<ApiResponse<{ token: string }>>('/auth/refresh-token', {
                             _isRefreshAttempt: true
-                        });
+                        } as any);
                         
                         if (refreshResponse.data.success) {
                             // Retry getting user data with a fresh request instead of recursion
-                            const retryResponse = await axios.get(`/users/${user._id}`);
+                            const retryResponse = await axios.get<ApiResponse<{ user: User }>>(`/users/${user._id}`);
                             if (retryResponse.data.success && retryResponse.data.payload?.user) {
                                 localStorage.setItem('user', JSON.stringify(retryResponse.data.payload.user));
                                 return retryResponse.data.payload.user;
@@ -196,29 +206,29 @@ export const authService = {
         }
     },
 
-    async forgotPassword(email) {
-        const { data } = await axios.post('/auth/forgot-password', { emailOrPhone: email });
+    async forgotPassword(email: string): Promise<ApiResponse> {
+        const { data } = await axios.post<ApiResponse>('/auth/forgot-password', { emailOrPhone: email });
         return data;
     },
 
-    async resetPassword(token, newPassword) {
-        const { data } = await axios.post('/auth/reset-password', {
+    async resetPassword(token: string, newPassword: string): Promise<ApiResponse> {
+        const { data } = await axios.post<ApiResponse>('/auth/reset-password', {
             token: token,
             newPassword: newPassword
         });
         return data;
     },
 
-    async activateAccount(token) {
-        const { data } = await axios.post('/auth/activate-account', { token });
+    async activateAccount(token: string): Promise<ApiResponse> {
+        const { data } = await axios.post<ApiResponse>('/auth/activate-account', { token });
         return data;
     },
 
-    async resendVerificationEmail(email) {
+    async resendVerificationEmail(email: string): Promise<ApiResponse> {
         try {
-            const { data } = await axios.post('/auth/resend-verification', { email });
+            const { data } = await axios.post<ApiResponse>('/auth/resend-verification', { email });
             return data;
-        } catch (error) {
+        } catch (error: any) {
             if (error.response) {
                 throw new Error(error.response.data.message || 'Failed to resend verification email');
             }
@@ -226,9 +236,9 @@ export const authService = {
         }
     },
 
-    async changePassword(currentPassword, newPassword) {
+    async changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }> {
         try {
-            const { data } = await axios.post('/auth/change-password', {
+            const { data } = await axios.post<ApiResponse>('/auth/change-password', {
                 currentPassword,
                 newPassword
             });
@@ -240,7 +250,7 @@ export const authService = {
                 };
             }
             throw new Error(data.message || 'Failed to change password');
-        } catch (error) {
+        } catch (error: any) {
             if (error.response?.data?.message) {
                 throw new Error(error.response.data.message);
             }

@@ -69,7 +69,6 @@ const createReview = async (req, res, next) => {
     }
 
     // Return success response
-
     return successResponse(res, {
       statusCode: 200,
       message: `Review created successfully`,

@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { adminService } from "@/services/adminService";
+import type { UserStats } from "@/types/admin";
+import type { IconType } from "react-icons";
 import {
   FiUser,
   FiUserCheck,
@@ -13,8 +15,24 @@ import {
   FiTrendingUp,
 } from "react-icons/fi";
 
-export default function UserOverview() {
-  const [userStats, setUserStats] = useState({
+interface UserStatsState extends UserStats {
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface StatCardData {
+  title: string;
+  value: number;
+  icon: IconType;
+  gradient: string;
+  bgColor: string;
+  textColor: string;
+  change: string | number | null;
+  changeLabel: string | null;
+}
+
+export default function UserOverview(): React.JSX.Element {
+  const [userStats, setUserStats] = useState<UserStatsState>({
     totalUsers: 0,
     activeUsers: 0,
     bannedUsers: 0,
@@ -28,19 +46,19 @@ export default function UserOverview() {
   });
 
   useEffect(() => {
-    const fetchUserStats = async () => {
+    const fetchUserStats = async (): Promise<void> => {
       try {
-        const response = await adminService.getUserStats();
+        const response: UserStats = await adminService.getUserStats();
         setUserStats({
-          ...response.payload,
+          ...response,
           isLoading: false,
           error: null,
         });
-      } catch (error) {
+      } catch (error: any) {
         setUserStats((prev) => ({
           ...prev,
           isLoading: false,
-          error: error.message,
+          error: error.message || "Failed to load user statistics",
         }));
       }
     };
@@ -82,7 +100,7 @@ export default function UserOverview() {
     );
   }
 
-  const statsData = [
+  const statsData: StatCardData[] = [
     {
       title: "Total Users",
       value: userStats.totalUsers,

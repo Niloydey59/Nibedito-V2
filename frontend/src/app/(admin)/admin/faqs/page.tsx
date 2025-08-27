@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { FiHelpCircle, FiPlus, FiX, FiAlertCircle } from "react-icons/fi";
-import { getAllFaqs } from "@/services/faqService";
+import { faqService } from "@/services/faqService";
+import { FAQ } from "@/types/faq";
 import toast from "react-hot-toast";
 import FaqStats from "@/components/admin/faq/FaqStats";
 import FaqList from "@/components/admin/faq/FaqList";
@@ -13,9 +14,9 @@ import FaqForm from "@/components/admin/faq/FaqForm";
 export default function FaqsAdminPage() {
   const router = useRouter();
   const { admin, isLoading: authLoading } = useAdminAuth();
-  const [faqs, setFaqs] = useState([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
@@ -30,19 +31,21 @@ export default function FaqsAdminPage() {
     }
 
     fetchFaqs();
-  }, [admin, authLoading]);
+  }, [admin, authLoading, router]);
 
   // Fetch all FAQs
   const fetchFaqs = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await getAllFaqs();
+      const response = await faqService.getAllFaqs();
 
       // Sort FAQs by order
-      const sortedFaqs = response.data.sort((a, b) => a.order - b.order);
+      const sortedFaqs = response.payload!.faqs.sort(
+        (a, b) => a.order - b.order
+      );
       setFaqs(sortedFaqs);
-    } catch (err) {
+    } catch (err: any) {
       setError("Failed to fetch FAQs: " + err.message);
       toast.error("Failed to fetch FAQs");
     } finally {
@@ -55,7 +58,7 @@ export default function FaqsAdminPage() {
     fetchFaqs();
   };
 
-  const handleFormError = (message) => {
+  const handleFormError = (message: string) => {
     toast.error(message);
   };
 

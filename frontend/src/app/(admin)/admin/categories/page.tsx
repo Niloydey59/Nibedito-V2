@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useRouter } from "next/navigation";
 import CategoryList from "@/components/admin/categories/CategoryList";
@@ -8,6 +8,7 @@ import CategoryForm from "@/components/admin/categories/CategoryForm";
 import CategoryStats from "@/components/admin/categories/CategoryStats";
 import { categoryService } from "@/services/categoryService";
 import CategoryTester from "@/components/admin/categories/CategoryTester";
+import type { Admin, Category, ApiResponse } from "@/types";
 import {
   FiCheckCircle,
   FiX,
@@ -17,13 +18,23 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 
-export default function CategoriesPage() {
+interface AdminAuthContextType {
+  admin: Admin | null;
+  isLoading: boolean;
+}
+
+interface StatusState {
+  type: "success" | "error" | "";
+  message: string;
+}
+
+export default function CategoriesPage(): React.JSX.Element {
   const router = useRouter();
-  const { admin, isLoading } = useAdminAuth();
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [categories, setCategories] = useState([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+  const { admin, isLoading }: AdminAuthContextType = useAdminAuth();
+  const [isAddMode, setIsAddMode] = useState<boolean>(false);
+  const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
 
   useEffect(() => {
     if (!isLoading && !admin) {
@@ -31,12 +42,13 @@ export default function CategoriesPage() {
     }
   }, [admin, isLoading, router]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<void> => {
     try {
       setIsLoadingCategories(true);
-      const data = await categoryService.getAllCategories();
-      setCategories(data.categories);
-    } catch (error) {
+      const data: ApiResponse<{ categories: Category[] }> =
+        await categoryService.getAllCategories();
+      setCategories(data.payload?.categories || []);
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to fetch categories",
@@ -50,26 +62,30 @@ export default function CategoriesPage() {
     fetchCategories();
   }, []);
 
-  const clearStatus = () => {
+  const clearStatus = (): void => {
     setStatus({ type: "", message: "" });
   };
 
   useEffect(() => {
     if (status.message) {
-      const timer = setTimeout(clearStatus, 5000);
+      const timer: NodeJS.Timeout = setTimeout(clearStatus, 5000);
       return () => clearTimeout(timer);
     }
   }, [status]);
 
-  const handleUpdateSuccess = async (message, updatedCategories = null) => {
+  const handleUpdateSuccess = async (
+    message: string,
+    updatedCategories?: Category[]
+  ): Promise<void> => {
     if (updatedCategories) {
       setCategories(updatedCategories);
     } else {
       try {
         setIsLoadingCategories(true);
-        const data = await categoryService.getAllCategories();
-        setCategories(data.categories);
-      } catch (error) {
+        const data: ApiResponse<{ categories: Category[] }> =
+          await categoryService.getAllCategories();
+        setCategories(data.payload?.categories || []);
+      } catch (error: any) {
         handleError(error.message);
       } finally {
         setIsLoadingCategories(false);
@@ -84,12 +100,17 @@ export default function CategoriesPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleError = (message) => {
+  const handleError = (message: string): void => {
     setStatus({
       type: "error",
       message: message || "An error occurred",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleAddModeToggle = (): void => {
+    setIsAddMode(!isAddMode);
+    clearStatus();
   };
 
   if (isLoading || !admin) {
@@ -105,8 +126,8 @@ export default function CategoriesPage() {
     );
   }
 
-  const totalCategories = categories.length;
-  const activeCategories = categories.filter(
+  const totalCategories: number = categories.length;
+  const activeCategories: number = categories.filter(
     (cat) => cat.isActive !== false
   ).length;
 

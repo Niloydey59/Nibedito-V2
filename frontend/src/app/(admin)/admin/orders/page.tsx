@@ -5,6 +5,7 @@ import { adminService } from "@/services/adminService";
 import OrdersTable from "@/components/admin/orders/OrdersTable";
 import OrderFilters from "@/components/admin/orders/OrderFilters";
 import { toast } from "react-hot-toast";
+import { Order, GetAllOrdersParams, OrdersResponse } from "@/types";
 import {
   FiShoppingCart,
   FiGift,
@@ -13,18 +14,18 @@ import {
 } from "react-icons/fi";
 
 export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [pagination, setPagination] = useState({
     total: 0,
     page: 1,
     pages: 1,
   });
   const [giftOrdersCount, setGiftOrdersCount] = useState(0);
-  const [filters, setFilters] = useState({
-    status: "",
-    userId: "",
+  const [filters, setFilters] = useState<GetAllOrdersParams>({
+    status: undefined,
+    userId: undefined,
     isGift: undefined,
     page: 1,
     limit: 10,
@@ -36,20 +37,22 @@ export default function AdminOrdersPage() {
     try {
       setLoading(true);
       const response = await adminService.getAllOrders(filters);
-      setOrders(response.payload.orders);
-      setPagination(response.payload.pagination);
+      const ordersData = response.payload as OrdersResponse;
+      setOrders(ordersData.orders);
+      setPagination(ordersData.pagination);
       setError(null);
 
       // Count gift orders if viewing all orders
       if (filters.isGift === undefined) {
-        const giftOrders = response.payload.orders.filter(
+        const giftOrders = ordersData.orders.filter(
           (order) => order.isGift === true
         );
         setGiftOrdersCount(giftOrders.length);
       }
-    } catch (err) {
-      setError(err.message || "Failed to fetch orders");
-      toast.error(err.message || "Failed to fetch orders");
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to fetch orders";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -59,35 +62,35 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [filters]);
 
-  const handleFilterChange = (newFilters) => {
+  const handleFilterChange = (newFilters: GetAllOrdersParams) => {
     setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number) => {
     setFilters((prev) => ({ ...prev, page: newPage }));
   };
 
-  const handleStatusUpdate = async (orderId, newStatus) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
       await adminService.updateOrderStatus(orderId, newStatus);
       toast.success("Order status updated successfully");
       fetchOrders();
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to update order status");
     }
   };
 
-  const handlePaidStatusUpdate = async (orderId, isPaid) => {
+  const handlePaidStatusUpdate = async (orderId: string, isPaid: boolean) => {
     try {
       await adminService.updateOrderPaidStatus(orderId, isPaid);
       toast.success(`Order marked as ${isPaid ? "paid" : "unpaid"}`);
       fetchOrders();
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to update payment status");
     }
   };
 
-  const handleOrderDelete = async (orderId) => {
+  const handleOrderDelete = async (orderId: string) => {
     if (!window.confirm("Are you sure you want to delete this order?")) {
       return;
     }
@@ -96,7 +99,7 @@ export default function AdminOrdersPage() {
       await adminService.deleteOrder(orderId);
       toast.success("Order deleted successfully");
       fetchOrders();
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to delete order");
     }
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiUsers,
   FiShoppingBag,
@@ -11,10 +11,43 @@ import {
   FiActivity,
   FiAlertCircle,
 } from "react-icons/fi";
+import type { IconType } from "react-icons";
 import { adminService } from "@/services/adminService";
 
-export default function AdminStats() {
-  const [stats, setStats] = useState({
+interface GrowthStats {
+  usersGrowth: number;
+  ordersGrowth: number;
+  revenueGrowth: number;
+  productsGrowth: number;
+}
+
+interface DashboardStats {
+  totalUsers: number;
+  totalOrders: number;
+  totalRevenue: number;
+  totalProducts: number;
+  growthStats?: GrowthStats;
+}
+
+interface StatsState extends DashboardStats {
+  growthStats: GrowthStats;
+  isLoading: boolean;
+  error: string | null;
+}
+
+interface StatCard {
+  title: string;
+  value: string;
+  icon: IconType;
+  gradient: string;
+  bgColor: string;
+  textColor: string;
+  growth: number;
+  growthLabel: string;
+}
+
+export default function AdminStats(): React.JSX.Element {
+  const [stats, setStats] = useState<StatsState>({
     totalUsers: 0,
     totalOrders: 0,
     totalRevenue: 0,
@@ -30,9 +63,9 @@ export default function AdminStats() {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchStats = async (): Promise<void> => {
       try {
-        const data = await adminService.getDashboardStats();
+        const data: DashboardStats = await adminService.getDashboardStats();
         setStats({
           ...data,
           growthStats: data.growthStats || {
@@ -44,11 +77,11 @@ export default function AdminStats() {
           isLoading: false,
           error: null,
         });
-      } catch (error) {
+      } catch (error: any) {
         setStats((prev) => ({
           ...prev,
           isLoading: false,
-          error: error.message,
+          error: error.message || "Failed to load statistics",
         }));
       }
     };
@@ -91,7 +124,7 @@ export default function AdminStats() {
     );
   }
 
-  const statCards = [
+  const statCards: StatCard[] = [
     {
       title: "Total Users",
       value: stats.totalUsers.toLocaleString(),
@@ -137,8 +170,10 @@ export default function AdminStats() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
       {statCards.map((stat, index) => {
-        const isPositiveGrowth = stat.growth >= 0;
-        const GrowthIcon = isPositiveGrowth ? FiTrendingUp : FiTrendingDown;
+        const isPositiveGrowth: boolean = stat.growth >= 0;
+        const GrowthIcon: IconType = isPositiveGrowth
+          ? FiTrendingUp
+          : FiTrendingDown;
 
         return (
           <div

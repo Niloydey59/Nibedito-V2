@@ -4,13 +4,18 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiX } from "react-icons/fi";
 import { useRouter, useSearchParams } from "next/navigation";
 
+interface ProductSearchProps {
+  onSearch?: (query: string) => void;
+  placeholder?: string;
+}
+
 export default function ProductSearch({
   onSearch,
   placeholder = "Search products...",
-}) {
+}: ProductSearchProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(
+  const [searchQuery, setSearchQuery] = useState<string>(
     searchParams.get("search") || ""
   );
 
@@ -18,7 +23,7 @@ export default function ProductSearch({
     setSearchQuery(searchParams.get("search") || "");
   }, [searchParams]);
 
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     if (onSearch) {
       onSearch(searchQuery);
@@ -33,7 +38,7 @@ export default function ProductSearch({
     }
   };
 
-  const clearSearch = () => {
+  const clearSearch = (): void => {
     setSearchQuery("");
     const params = new URLSearchParams(searchParams.toString());
     params.delete("search");

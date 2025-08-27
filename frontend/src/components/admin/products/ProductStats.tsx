@@ -1,18 +1,31 @@
 "use client";
 
 import { FiBox, FiDollarSign, FiLayers, FiTag } from "react-icons/fi";
+import type { IconType } from "react-icons";
+
+interface TotalStats {
+  totalProducts: number;
+  totalValue: number;
+  totalVariants: number;
+  activeCategories: number;
+}
 
 interface ProductStatsProps {
-  totalStats: {
-    totalProducts: number;
-    totalValue: number;
-    totalVariants: number;
-    activeCategories: number;
-  };
+  totalStats: TotalStats;
+}
+
+interface StatCard {
+  title: string;
+  value: string | number;
+  icon: IconType;
+  gradient: string;
+  bgColor: string;
+  textColor: string;
+  description: string;
 }
 
 export default function ProductStats({ totalStats }: ProductStatsProps) {
-  const statsData = [
+  const statsData: StatCard[] = [
     {
       title: "Total Products",
       value: totalStats.totalProducts,

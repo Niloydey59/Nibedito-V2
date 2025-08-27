@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import {
   FiEdit2,
@@ -16,51 +16,67 @@ import {
 } from "react-icons/fi";
 import { categoryService } from "@/services/categoryService";
 import CategoryForm from "./CategoryForm";
+import type { Category, ApiResponse } from "@/types";
+
+interface CategoryListProps {
+  categories: Category[];
+  isLoading: boolean;
+  onUpdateSuccess: (message: string, updatedCategories?: Category[]) => void;
+  onError: (message: string) => void;
+}
+
+interface DeleteDialogProps {
+  isOpen: boolean;
+  category: Category | null;
+  isDeleting: boolean;
+}
 
 export default function CategoryList({
   categories,
   isLoading,
   onUpdateSuccess,
   onError,
-}) {
-  const [editingCategory, setEditingCategory] = useState(null);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [categoryToDelete, setCategoryToDelete] = useState(null);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isUpdatingCounts, setIsUpdatingCounts] = useState(false);
+}: CategoryListProps): React.JSX.Element {
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [deleteDialog, setDeleteDialog] = useState<DeleteDialogProps>({
+    isOpen: false,
+    category: null,
+    isDeleting: false,
+  });
+  const [isUpdatingCounts, setIsUpdatingCounts] = useState<boolean>(false);
 
-  const handleDeleteClick = (category) => {
-    setCategoryToDelete(category);
-    setShowDeleteDialog(true);
+  const handleDeleteClick = (category: Category): void => {
+    setDeleteDialog({
+      isOpen: true,
+      category,
+      isDeleting: false,
+    });
   };
 
-  const handleDeleteConfirm = async () => {
-    if (!categoryToDelete) return;
+  const handleDeleteConfirm = async (): Promise<void> => {
+    if (!deleteDialog.category) return;
 
     try {
-      setIsDeleting(true);
-      const response = await categoryService.deleteCategory(
-        categoryToDelete.slug
+      setDeleteDialog((prev) => ({ ...prev, isDeleting: true }));
+
+      const response: ApiResponse = await categoryService.deleteCategory(
+        deleteDialog.category.slug
       );
 
-      const updatedCategories = categories.filter(
-        (cat) => cat.slug !== categoryToDelete.slug
+      const updatedCategories: Category[] = categories.filter(
+        (cat) => cat.slug !== deleteDialog.category!.slug
       );
 
-      setShowDeleteDialog(false);
-      setCategoryToDelete(null);
-      setIsDeleting(false);
+      setDeleteDialog({ isOpen: false, category: null, isDeleting: false });
 
       await onUpdateSuccess("Category deleted successfully", updatedCategories);
 
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }, 100);
-    } catch (error) {
+    } catch (error: any) {
       onError(error.message);
-      setShowDeleteDialog(false);
-      setCategoryToDelete(null);
-      setIsDeleting(false);
+      setDeleteDialog({ isOpen: false, category: null, isDeleting: false });
 
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: "smooth" });
@@ -68,36 +84,53 @@ export default function CategoryList({
     }
   };
 
-  const handleStatusToggle = async (category) => {
+  const handleDeleteCancel = (): void => {
+    setDeleteDialog({ isOpen: false, category: null, isDeleting: false });
+  };
+
+  const handleStatusToggle = async (category: Category): Promise<void> => {
     try {
       const formData = new FormData();
-      formData.append("isActive", !category.isActive);
+      formData.append("isActive", (!category.isActive).toString());
 
-      const response = await categoryService.updateCategory(
-        category.slug,
-        formData
-      );
+      const response: ApiResponse<{ category: Category }> =
+        await categoryService.updateCategory(category.slug, formData);
+
       if (response.statusCode === 200) {
         onUpdateSuccess("Category status updated successfully");
       }
-    } catch (error) {
+    } catch (error: any) {
       onError(error.message);
     }
   };
 
-  const handleUpdateCounts = async () => {
+  const handleUpdateCounts = async (): Promise<void> => {
     try {
       setIsUpdatingCounts(true);
-      const response = await categoryService.recalculateProductCounts();
+      const response: ApiResponse =
+        await categoryService.recalculateProductCounts();
       onUpdateSuccess(
         "Product counts updated successfully",
-        response.payload.categories
+        response.payload?.categories
       );
-    } catch (error) {
+    } catch (error: any) {
       onError(error.message);
     } finally {
       setIsUpdatingCounts(false);
     }
+  };
+
+  const handleEditStart = (category: Category): void => {
+    setEditingCategory(category);
+  };
+
+  const handleEditCancel = (): void => {
+    setEditingCategory(null);
+  };
+
+  const handleEditSuccess = (): void => {
+    setEditingCategory(null);
+    onUpdateSuccess("Category updated successfully");
   };
 
   if (isLoading) {
@@ -158,7 +191,7 @@ export default function CategoryList({
       {/* Categories Grid */}
       <div className="space-y-4">
         {categories
-          .filter((category) => category.slug !== categoryToDelete?.slug)
+          .filter((category) => category.slug !== deleteDialog.category?.slug)
           .map((category) => (
             <div
               key={category._id}
@@ -168,12 +201,9 @@ export default function CategoryList({
                 <div className="p-6">
                   <CategoryForm
                     category={category}
-                    onSuccess={() => {
-                      setEditingCategory(null);
-                      onUpdateSuccess("Category updated successfully");
-                    }}
+                    onSuccess={handleEditSuccess}
                     onError={onError}
-                    onCancel={() => setEditingCategory(null)}
+                    onCancel={handleEditCancel}
                   />
                 </div>
               ) : (
@@ -268,16 +298,13 @@ export default function CategoryList({
       </div>
 
       {/* Delete Confirmation Dialog */}
-      {showDeleteDialog && (
+      {deleteDialog.isOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             {/* Backdrop */}
             <div
               className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
-              onClick={() => {
-                setShowDeleteDialog(false);
-                setCategoryToDelete(null);
-              }}
+              onClick={handleDeleteCancel}
             />
 
             {/* Dialog */}
@@ -296,10 +323,7 @@ export default function CategoryList({
                     </div>
                   </div>
                   <button
-                    onClick={() => {
-                      setShowDeleteDialog(false);
-                      setCategoryToDelete(null);
-                    }}
+                    onClick={handleDeleteCancel}
                     className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200"
                   >
                     <FiX className="w-5 h-5" />
@@ -313,7 +337,7 @@ export default function CategoryList({
                   <p className="text-sm text-slate-600 dark:text-slate-400">
                     Are you sure you want to delete{" "}
                     <span className="font-semibold text-slate-800 dark:text-slate-200">
-                      {categoryToDelete?.name}
+                      {deleteDialog.category?.name}
                     </span>
                     ?
                   </p>
@@ -327,20 +351,17 @@ export default function CategoryList({
               {/* Actions */}
               <div className="px-6 py-4 bg-slate-50 dark:bg-slate-900/50 flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
                 <button
-                  onClick={() => {
-                    setShowDeleteDialog(false);
-                    setCategoryToDelete(null);
-                  }}
+                  onClick={handleDeleteCancel}
                   className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors duration-200"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
-                  disabled={isDeleting}
+                  disabled={deleteDialog.isDeleting}
                   className="w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isDeleting ? "Deleting..." : "Delete Category"}
+                  {deleteDialog.isDeleting ? "Deleting..." : "Delete Category"}
                 </button>
               </div>
             </div>

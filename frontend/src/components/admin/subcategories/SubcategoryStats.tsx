@@ -1,16 +1,48 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FiLayers, FiTag, FiTrendingUp, FiPackage } from "react-icons/fi";
+import type { Subcategory, Category } from "@/types";
+import type { IconType } from "react-icons";
 
 interface SubcategoryStatsProps {
-  subcategories: any[];
+  subcategories: Subcategory[];
+}
+
+interface CategoryCount {
+  count: number;
+  name: string;
+}
+
+interface Stats {
+  total: number;
+  active: number;
+  inactive: number;
+  totalProducts: number;
+  categoryCounts: Record<string, CategoryCount>;
+}
+
+interface StatData {
+  title: string;
+  value: string | number;
+  icon: IconType;
+  gradient: string;
+  bgColor: string;
+  textColor: string;
+  description: string;
+  subValue?: string;
+}
+
+interface CategoryStat {
+  id: string;
+  name: string;
+  count: number;
 }
 
 export default function SubcategoryStats({
   subcategories,
-}: SubcategoryStatsProps) {
-  const [stats, setStats] = useState({
+}: SubcategoryStatsProps): React.JSX.Element {
+  const [stats, setStats] = useState<Stats>({
     total: 0,
     active: 0,
     inactive: 0,
@@ -20,17 +52,23 @@ export default function SubcategoryStats({
 
   useEffect(() => {
     if (subcategories && subcategories.length > 0) {
-      const active = subcategories.filter((cat) => cat.isActive).length;
-      const totalProducts = subcategories.reduce(
+      const active: number = subcategories.filter((cat) => cat.isActive).length;
+      const totalProducts: number = subcategories.reduce(
         (sum, cat) => sum + (cat.productCount || 0),
         0
       );
 
       // Count subcategories per parent category
-      const categoryCounts = {};
+      const categoryCounts: Record<string, CategoryCount> = {};
       subcategories.forEach((subcat) => {
-        const categoryId = subcat.category._id || subcat.category;
-        const categoryName = subcat.category.name || "Unknown";
+        const categoryId: string =
+          typeof subcat.category === "object"
+            ? subcat.category?._id || ""
+            : subcat.category || "";
+        const categoryName: string =
+          typeof subcat.category === "object"
+            ? (subcat.category as Category)?.name || "Unknown"
+            : "Unknown";
 
         if (!categoryCounts[categoryId]) {
           categoryCounts[categoryId] = { count: 0, name: categoryName };
@@ -48,22 +86,23 @@ export default function SubcategoryStats({
     }
   }, [subcategories]);
 
-  const categoryStats = Object.entries(stats.categoryCounts).map(
-    ([id, data]) => ({
-      id,
-      name: data.name,
-      count: data.count,
-    })
-  );
+  const categoryStats: CategoryStat[] = Object.entries(
+    stats.categoryCounts
+  ).map(([id, data]) => ({
+    id,
+    name: data.name,
+    count: data.count,
+  }));
 
-  const mostPopularCategory = categoryStats.reduce(
+  const mostPopularCategory: CategoryStat = categoryStats.reduce(
     (prev, current) => {
       return prev.count > current.count ? prev : current;
     },
-    { count: 0 }
+    { count: 0, name: "", id: "" }
   );
 
-  const recentCount = subcategories.filter((subcat) => {
+  const recentCount: number = subcategories.filter((subcat) => {
+    if (!subcat.createdAt) return false;
     const createdAt = new Date(subcat.createdAt);
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - createdAt.getTime());
@@ -71,7 +110,7 @@ export default function SubcategoryStats({
     return diffDays <= 7;
   }).length;
 
-  const statsData = [
+  const statsData: StatData[] = [
     {
       title: "Total Subcategories",
       value: subcategories.length,

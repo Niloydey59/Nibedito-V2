@@ -11,16 +11,30 @@ import {
   FiChevronUp,
 } from "react-icons/fi";
 import { subcategoryService } from "@/services/subcategoryService";
+import type { Product, Category, Subcategory } from "@/types";
+
+interface TestResult {
+  id: string;
+  timestamp: string;
+  testName: string;
+  success: boolean;
+  error: string | null;
+  response: string | null;
+}
 
 export default function ProductTester() {
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
-  const [createdProduct, setCreatedProduct] = useState(null);
+  const [results, setResults] = useState<TestResult[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [createdProduct, setCreatedProduct] = useState<Product | null>(null);
 
   // Helper function to add test results to the list
   // Handles both success and error cases with proper formatting
-  const addResult = (testName, response, success = true) => {
+  const addResult = (
+    testName: string,
+    response: any,
+    success: boolean = true
+  ): void => {
     // If it's an error response, format it once
     if (!success) {
       const errorMessage = response.error || response.message || response;
@@ -56,16 +70,16 @@ export default function ProductTester() {
 
   // Helper function to fetch a random image from picsum
   // Returns a File object that can be used in FormData
-  const getRandomImage = async () => {
+  const getRandomImage = async (): Promise<File> => {
     const response = await fetch("https://picsum.photos/800/600");
     const blob = await response.blob();
     return new File([blob], "test-image.jpg", { type: "image/jpeg" });
   };
 
-  const runAllTests = async () => {
+  const runAllTests = async (): Promise<void> => {
     setLoading(true);
     setResults([]);
-    let testProduct = null;
+    let testProduct: Product | null = null;
     try {
       // Test 1: Category and Subcategory Selection
       // - Fetches all active categories
@@ -85,9 +99,9 @@ export default function ProductTester() {
 
       // Get subcategories for the selected category
       const subcategories = await subcategoryService.getSubcategoriesByCategory(
-        selectedCategory._id
+        selectedCategory._id!
       );
-      let selectedSubcategory = null;
+      let selectedSubcategory: Subcategory | null = null;
       if (subcategories && subcategories.length > 0) {
         const subIndex = Math.floor(Math.random() * subcategories.length);
         selectedSubcategory = subcategories[subIndex];
@@ -118,9 +132,9 @@ export default function ProductTester() {
         "This is a detailed test product description that meets the minimum length requirement."
       );
       createFormData.append("price", (Math.random() * 1000).toFixed(2));
-      createFormData.append("category", selectedCategory._id);
+      createFormData.append("category", selectedCategory._id!);
       if (selectedSubcategory) {
-        createFormData.append("subcategory", selectedSubcategory._id);
+        createFormData.append("subcategory", selectedSubcategory._id!);
       }
       createFormData.append("shipping", "true");
 
@@ -146,7 +160,7 @@ export default function ProductTester() {
       const createdProductResponse = await productService.createProduct(
         createFormData
       );
-      testProduct = createdProductResponse.payload.product;
+      testProduct = createdProductResponse.payload!.product;
       addResult("Create Product", createdProductResponse);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -168,18 +182,15 @@ export default function ProductTester() {
         "description",
         "Updated description that meets the minimum length requirement"
       );
-      updateFormData.append(
-        "price",
-        (parseFloat(testProduct.price) + 100).toFixed(2)
-      );
-      updateFormData.append("category", selectedCategory._id);
+      updateFormData.append("price", (testProduct.price + 100).toFixed(2));
+      updateFormData.append("category", selectedCategory._id!);
       if (selectedSubcategory) {
-        updateFormData.append("subcategory", selectedSubcategory._id);
+        updateFormData.append("subcategory", selectedSubcategory._id!);
       }
-      updateFormData.append("shipping", testProduct.shipping);
+      updateFormData.append("shipping", testProduct.shipping!.toString());
 
       // Keep existing variant images
-      const updatedVariants = testProduct.variants.map((variant) => ({
+      const updatedVariants = testProduct.variants!.map((variant) => ({
         ...variant,
         images: variant.images, // Preserve existing images
       }));
@@ -188,7 +199,7 @@ export default function ProductTester() {
         testProduct.slug,
         updateFormData
       );
-      testProduct = updatedProduct.payload.product;
+      testProduct = updatedProduct.payload!.product;
       addResult("Update Product Details", updatedProduct);
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
@@ -201,10 +212,10 @@ export default function ProductTester() {
           testProduct.slug
         );
         addResult("Delete Product", deleteResponse);
-      } catch (error) {
+      } catch (error: any) {
         addResult("Delete Product", error, false);
       }
-    } catch (error) {
+    } catch (error: any) {
       addResult("Test Failed", error, false);
     } finally {
       setLoading(false);

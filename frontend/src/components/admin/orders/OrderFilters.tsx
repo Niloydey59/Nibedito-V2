@@ -2,18 +2,11 @@
 
 import { useState } from "react";
 import { FiFilter, FiX, FiSearch, FiUser, FiGift } from "react-icons/fi";
+import { GetAllOrdersParams } from "@/types";
 
 interface OrderFiltersProps {
-  filters: {
-    status: string;
-    userId: string;
-    isGift: boolean | undefined;
-    page: number;
-    limit: number;
-    sortBy: string;
-    order: string;
-  };
-  onFilterChange: (filters: any) => void;
+  filters: GetAllOrdersParams;
+  onFilterChange: (filters: GetAllOrdersParams) => void;
 }
 
 export default function OrderFilters({
@@ -21,18 +14,18 @@ export default function OrderFilters({
   onFilterChange,
 }: OrderFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [localFilters, setLocalFilters] = useState(filters);
+  const [localFilters, setLocalFilters] = useState<GetAllOrdersParams>(filters);
 
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: keyof GetAllOrdersParams, value: any) => {
     const newFilters = { ...localFilters, [key]: value };
     setLocalFilters(newFilters);
     onFilterChange(newFilters);
   };
 
   const clearFilters = () => {
-    const clearedFilters = {
-      status: "",
-      userId: "",
+    const clearedFilters: GetAllOrdersParams = {
+      status: undefined,
+      userId: undefined,
       isGift: undefined,
       page: 1,
       limit: 10,
@@ -91,8 +84,10 @@ export default function OrderFilters({
               Order Status
             </label>
             <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange("status", e.target.value)}
+              value={filters.status || ""}
+              onChange={(e) =>
+                handleFilterChange("status", e.target.value || undefined)
+              }
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
             >
               <option value="">All Statuses</option>
@@ -133,7 +128,7 @@ export default function OrderFilters({
               Sort By
             </label>
             <select
-              value={filters.sortBy}
+              value={filters.sortBy || "createdAt"}
               onChange={(e) => handleFilterChange("sortBy", e.target.value)}
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
             >
@@ -150,8 +145,10 @@ export default function OrderFilters({
               Order
             </label>
             <select
-              value={filters.order}
-              onChange={(e) => handleFilterChange("order", e.target.value)}
+              value={filters.order || "desc"}
+              onChange={(e) =>
+                handleFilterChange("order", e.target.value as "asc" | "desc")
+              }
               className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
             >
               <option value="desc">Descending</option>
@@ -180,9 +177,12 @@ export default function OrderFilters({
                     <FiUser className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                     <input
                       type="text"
-                      value={filters.userId}
+                      value={filters.userId || ""}
                       onChange={(e) =>
-                        handleFilterChange("userId", e.target.value)
+                        handleFilterChange(
+                          "userId",
+                          e.target.value || undefined
+                        )
                       }
                       placeholder="Enter customer ID"
                       className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 transition-colors"
@@ -196,7 +196,7 @@ export default function OrderFilters({
                     Items Per Page
                   </label>
                   <select
-                    value={filters.limit}
+                    value={filters.limit || 10}
                     onChange={(e) =>
                       handleFilterChange("limit", parseInt(e.target.value))
                     }

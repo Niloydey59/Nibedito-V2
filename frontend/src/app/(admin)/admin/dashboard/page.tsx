@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import AdminStats from "@/components/admin/dashboard/AdminStats";
 import RecentOrders from "@/components/admin/dashboard/RecentOrders";
 import UserOverview from "@/components/admin/dashboard/UserOverview";
 import AdminProfile from "@/components/admin/dashboard/AdminProfile";
+import type { Admin } from "@/types";
 import {
   FiUser,
   FiShield,
@@ -16,10 +17,15 @@ import {
   FiTrendingUp,
 } from "react-icons/fi";
 
-export default function AdminDashboardPage() {
+interface AdminAuthContextType {
+  admin: Admin | null;
+  isLoading: boolean;
+}
+
+export default function AdminDashboardPage(): React.JSX.Element {
   const router = useRouter();
-  const { admin, isLoading } = useAdminAuth();
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const { admin, isLoading }: AdminAuthContextType = useAdminAuth();
+  const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     if (!isLoading && admin) {
@@ -46,7 +52,7 @@ export default function AdminDashboardPage() {
     );
   }
 
-  const currentTime = new Date().toLocaleString("en-US", {
+  const currentTime: string = new Date().toLocaleString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -54,6 +60,10 @@ export default function AdminDashboardPage() {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const getAdminInitial = (): string => {
+    return admin.name?.charAt(0).toUpperCase() || "A";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
@@ -88,7 +98,7 @@ export default function AdminDashboardPage() {
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 bg-gradient-to-br from-white/20 to-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/30">
                     <span className="text-white text-xl font-bold">
-                      {admin.name?.charAt(0).toUpperCase() || "A"}
+                      {getAdminInitial()}
                     </span>
                   </div>
                   <div>

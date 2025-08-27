@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useRouter } from "next/navigation";
 import SubcategoryList from "@/components/admin/subcategories/SubcategoryList";
@@ -11,16 +11,28 @@ import { subcategoryService } from "@/services/subcategoryService";
 import { categoryService } from "@/services/categoryService";
 import Error from "@/components/common/Error";
 import { FiPlus, FiX, FiFilter, FiLayers } from "react-icons/fi";
+import type { Admin, Category, Subcategory, ApiResponse } from "@/types";
 
-export default function SubcategoriesPage() {
+interface AdminAuthContextType {
+  admin: Admin | null;
+  isLoading: boolean;
+}
+
+interface StatusState {
+  type: "success" | "error" | "";
+  message: string;
+}
+
+export default function SubcategoriesPage(): React.JSX.Element {
   const router = useRouter();
-  const { admin, isLoading } = useAdminAuth();
-  const [isAddMode, setIsAddMode] = useState(false);
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [subcategories, setSubcategories] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState("");
-  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(true);
+  const { admin, isLoading }: AdminAuthContextType = useAdminAuth();
+  const [isAddMode, setIsAddMode] = useState<boolean>(false);
+  const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+  const [isLoadingSubcategories, setIsLoadingSubcategories] =
+    useState<boolean>(true);
 
   useEffect(() => {
     if (!isLoading && !admin) {
@@ -28,11 +40,12 @@ export default function SubcategoriesPage() {
     }
   }, [admin, isLoading, router]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<void> => {
     try {
-      const data = await categoryService.getAllCategories();
-      setCategories(data.categories || []);
-    } catch (error) {
+      const data: ApiResponse<{ categories: Category[] }> =
+        await categoryService.getAllCategories();
+      setCategories(data.payload?.categories || []);
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to fetch categories",
@@ -40,12 +53,15 @@ export default function SubcategoriesPage() {
     }
   };
 
-  const fetchSubcategories = async (categoryId = null) => {
+  const fetchSubcategories = async (
+    categoryId: string | null = null
+  ): Promise<void> => {
     try {
       setIsLoadingSubcategories(true);
-      const data = await subcategoryService.getAllSubcategories(categoryId);
-      setSubcategories(data.subcategories || []);
-    } catch (error) {
+      const data: ApiResponse<{ subcategories: Subcategory[] }> =
+        await subcategoryService.getAllSubcategories(categoryId);
+      setSubcategories(data.payload?.subcategories || []);
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to fetch subcategories",
@@ -64,23 +80,24 @@ export default function SubcategoriesPage() {
     fetchSubcategories(selectedCategoryId || null);
   }, [selectedCategoryId]);
 
-  const clearStatus = () => {
+  const clearStatus = (): void => {
     setStatus({ type: "", message: "" });
   };
 
   useEffect(() => {
     if (status.message) {
-      const timer = setTimeout(clearStatus, 5000); // Clear message after 5 seconds
+      const timer: NodeJS.Timeout = setTimeout(clearStatus, 5000);
       return () => clearTimeout(timer);
     }
   }, [status]);
 
-  const handleUpdateSuccess = async (message, updatedSubcategories = null) => {
+  const handleUpdateSuccess = async (
+    message: string,
+    updatedSubcategories?: Subcategory[]
+  ): Promise<void> => {
     if (updatedSubcategories) {
-      // If we have updated subcategories, use them directly
       setSubcategories(updatedSubcategories);
     } else {
-      // Otherwise fetch fresh data
       await fetchSubcategories(selectedCategoryId || null);
     }
 
@@ -92,21 +109,36 @@ export default function SubcategoriesPage() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleError = (message) => {
+  const handleError = (message: string): void => {
     setStatus({
       type: "error",
       message: message || "An error occurred",
     });
-    // Ensure error message is visible
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleCategoryChange = (e) => {
+  const handleCategoryChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
     setSelectedCategoryId(e.target.value);
   };
 
+  const handleFormSuccess = (subcategory?: Subcategory): void => {
+    setIsAddMode(false);
+    handleUpdateSuccess("Subcategory created successfully");
+  };
+
   if (isLoading || !admin) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600 mx-auto"></div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">
+            Loading subcategories...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

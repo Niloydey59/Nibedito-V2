@@ -14,16 +14,12 @@ import {
 } from "react-icons/fi";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
+import type { Product, Pagination } from "@/types";
 
 interface ProductListProps {
-  products: any[];
+  products: Product[];
   isLoading: boolean;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    hasPrevPage: boolean;
-    hasNextPage: boolean;
-  };
+  pagination: Pagination;
   onPageChange: (page: number) => void;
   onProductClick: (slug: string) => void;
 }

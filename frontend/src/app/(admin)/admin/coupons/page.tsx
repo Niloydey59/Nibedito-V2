@@ -1,24 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getAllCoupons } from "@/services/couponService";
+import { couponService } from "@/services/couponService";
 import { toast } from "react-hot-toast";
 import { FiPlus, FiX, FiTag } from "react-icons/fi";
+import { Coupon } from "@/types";
 import CouponStats from "@/components/admin/coupons/CouponStats";
 import CouponList from "@/components/admin/coupons/CouponList";
 import CouponForm from "@/components/admin/coupons/CouponForm";
 
 export default function CouponsPage() {
-  const [coupons, setCoupons] = useState([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const loadCoupons = async () => {
     try {
-      const response = await getAllCoupons();
-      setCoupons(response.payload);
+      const response = await couponService.getAllCoupons();
+      setCoupons(response.payload?.coupons || []);
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       toast.error(error.message || "Failed to load coupons");
       setLoading(false);
     }
@@ -33,7 +34,7 @@ export default function CouponsPage() {
     loadCoupons();
   };
 
-  const handleFormError = (message) => {
+  const handleFormError = (message: string) => {
     toast.error(message);
   };
 

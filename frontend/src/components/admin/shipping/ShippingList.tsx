@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import {
-  deleteShippingRate,
-  initializeDefaultRates,
-} from "@/services/shippingService";
+import { shippingService } from "@/services/shippingService";
+import { ShippingRate } from "@/types/shipping";
 import { toast } from "react-hot-toast";
 import {
   FiTruck,
@@ -16,7 +14,7 @@ import {
 import ShippingForm from "./ShippingForm";
 
 interface ShippingListProps {
-  rates: any[];
+  rates: ShippingRate[];
   onRatesUpdate: () => void;
 }
 
@@ -24,7 +22,7 @@ export default function ShippingList({
   rates,
   onRatesUpdate,
 }: ShippingListProps) {
-  const [editingRate, setEditingRate] = useState<any>(null);
+  const [editingRate, setEditingRate] = useState<ShippingRate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDelete = async (rateId: string) => {
@@ -35,7 +33,7 @@ export default function ShippingList({
     }
 
     try {
-      await deleteShippingRate(rateId);
+      await shippingService.deleteShippingRate(rateId);
       toast.success("Shipping rate deleted successfully");
       onRatesUpdate();
     } catch (error: any) {
@@ -43,7 +41,7 @@ export default function ShippingList({
     }
   };
 
-  const handleEdit = (rate: any) => {
+  const handleEdit = (rate: ShippingRate) => {
     // Scroll to top of the page BEFORE state updates
     window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -65,7 +63,7 @@ export default function ShippingList({
   const handleInitializeDefaults = async () => {
     try {
       setIsLoading(true);
-      await initializeDefaultRates();
+      await shippingService.initializeDefaultRates();
       toast.success("Default shipping rates initialized");
       onRatesUpdate();
     } catch (error: any) {

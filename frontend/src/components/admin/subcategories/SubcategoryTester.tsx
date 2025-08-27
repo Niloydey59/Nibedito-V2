@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { FiPlay, FiCode, FiCheck, FiX, FiLoader, FiCopy } from "react-icons/fi";
+import React, { useState } from "react";
 import { subcategoryService } from "@/services/subcategoryService";
+import type { Subcategory, ApiResponse } from "@/types";
+import { FiPlay, FiLoader, FiCheck, FiX, FiCopy, FiCode } from "react-icons/fi";
 
-export default function SubcategoryTester() {
+interface TestResult {
+  success: boolean;
+  message: string;
+  data?: any;
+}
+
+export default function SubcategoryTester(): React.JSX.Element {
   const [activeTest, setActiveTest] = useState("");
   const [testData, setTestData] = useState({});
-  const [results, setResults] = useState({});
+  const [results, setResults] = useState<Record<string, TestResult>>({});
   const [isLoading, setIsLoading] = useState(false);
 
   const addResult = (operation, success, message) => {

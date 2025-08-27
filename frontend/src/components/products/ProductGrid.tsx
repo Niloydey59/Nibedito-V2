@@ -14,6 +14,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "react-hot-toast";
+import type { Product, Pagination } from "@/types/product";
+
+interface ProductGridProps {
+  products: Product[];
+  isLoading: boolean;
+  error?: string | null;
+  pagination?: Pagination;
+  onPageChange?: (page: number) => void;
+  viewMode?: "grid" | "list";
+}
 
 export default function ProductGrid({
   products,
@@ -22,12 +32,15 @@ export default function ProductGrid({
   pagination,
   onPageChange,
   viewMode = "grid",
-}) {
+}: ProductGridProps) {
   const { addToCart } = useCart();
-  const [addingToCart, setAddingToCart] = useState({});
-  const [hoveredProduct, setHoveredProduct] = useState(null);
+  const [addingToCart, setAddingToCart] = useState<Record<string, boolean>>({});
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
 
-  const handleAddToCart = async (product, e) => {
+  const handleAddToCart = async (
+    product: Product,
+    e: React.MouseEvent
+  ): Promise<void> => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -36,11 +49,11 @@ export default function ProductGrid({
       return;
     }
 
-    const productId = product._id;
+    const productId = product._id!;
     setAddingToCart((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      const success = await addToCart(productId, 1, product.variants[0]._id);
+      const success = await addToCart(productId, 1, product.variants[0]._id!);
       if (success) {
         toast.success("Added to cart successfully!");
       } else {

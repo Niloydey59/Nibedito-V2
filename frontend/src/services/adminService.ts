@@ -1,9 +1,19 @@
 import axios from '@/utils/axios';
+import { 
+    AdminService, 
+    AdminLoginCredentials, 
+    Admin, 
+    GetAllUsersParams, 
+    GetAllUsersResponse,
+    UserStats,
+    OrderParams,
+    ApiResponse 
+} from '@/types';
 
-export const adminService = {
-    async login(credentials) {
+export const adminService: AdminService = {
+    async login(credentials: AdminLoginCredentials): Promise<Admin> {
         try {
-            const response = await axios.post('/admin/login', credentials, {
+            const response = await axios.post<ApiResponse<{ adminInfo: Admin; accessToken?: string }>>('/admin/login', credentials, {
                 withCredentials: true
             });
             const { data } = response;
@@ -23,7 +33,7 @@ export const adminService = {
                 return data.payload.adminInfo;
             }
             throw new Error(data.message || 'Login failed');
-        } catch (error) {
+        } catch (error: any) {
             // Only log response data if it exists
             if (error.response?.data) {
                 console.error('Admin login error details:', error.response.data);
@@ -45,7 +55,7 @@ export const adminService = {
         }
     },
 
-    async logout() {
+    async logout(): Promise<void> {
         try {
             await axios.post('/admin/logout', {}, {
                 withCredentials: true
@@ -61,7 +71,7 @@ export const adminService = {
         }
     },
 
-    async getCurrentAdmin() {
+    async getCurrentAdmin(): Promise<Admin | null> {
         try {
             // First check localStorage
             const adminStr = localStorage.getItem('admin');
@@ -69,7 +79,7 @@ export const adminService = {
 
             // Verify session with server
             try {
-                const { data } = await axios.get('/admin/verify-session', {
+                const { data } = await axios.get<ApiResponse<{ adminInfo?: Admin }>>('/admin/verify-session', {
                     withCredentials: true
                 });
 
@@ -79,7 +89,7 @@ export const adminService = {
                         localStorage.setItem('admin', JSON.stringify(data.payload.adminInfo));
                         return data.payload.adminInfo;
                     }
-                    return JSON.parse(adminStr);
+                    return JSON.parse(adminStr) as Admin;
                 } else {
                     // If server session is invalid, clear localStorage
                     localStorage.removeItem('admin');
@@ -102,109 +112,109 @@ export const adminService = {
         }
     },
 
-    async getUserStats() {
-        const { data } = await axios.get('/admin/stats/users');
+    async getUserStats(): Promise<UserStats> {
+        const { data } = await axios.get<ApiResponse<UserStats>>('/admin/users/stats');
+        return data.payload!;
+    },
+
+    async getRecentOrders(): Promise<any> {
+        const { data } = await axios.get<ApiResponse>('/admin/orders/recent');
         return data.payload;
     },
 
-    async getRecentOrders() {
-        const { data } = await axios.get('/admin/orders/recent');
+    async getDashboardStats(): Promise<any> {
+        const { data } = await axios.get<ApiResponse>('/admin/stats/dashboard');
         return data.payload;
     },
 
-    async getDashboardStats() {
-        const { data } = await axios.get('/admin/stats/dashboard');
-        return data.payload;
-    },
-
-    async getAllUsers(params) {
+    async getAllUsers(params: GetAllUsersParams): Promise<ApiResponse<GetAllUsersResponse>> {
         const { page, limit, search, filter, sortBy, order } = params;
         const query = new URLSearchParams({
-            page: page || 1,
-            limit: limit || 10,
+            page: (page || 1).toString(),
+            limit: (limit || 10).toString(),
             ...(search && { search }),
             ...(filter && { filter }),
             ...(sortBy && { sortBy }),
             ...(order && { order })
         });
 
-        const { data } = await axios.get(`/admin/users?${query}`);
+        const { data } = await axios.get<ApiResponse<GetAllUsersResponse>>(`/admin/users?${query}`);
         return data;
     },
 
-    async banUser(userId) {
+    async banUser(userId: string): Promise<any> {
         try {
-            const { data } = await axios.put(`/admin/users/${userId}/ban`);
+            const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}/ban`);
             if (data.success) {
                 return data.payload;
             }
             throw new Error(data.message || 'Failed to ban user');
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to ban user');
         }
     },
 
-    async unbanUser(userId) {
+    async unbanUser(userId: string): Promise<any> {
         try {
-            const { data } = await axios.put(`/admin/users/${userId}/unban`);
+            const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}/unban`);
             if (data.success) {
                 return data.payload;
             }
             throw new Error(data.message || 'Failed to unban user');
-        } catch (error) {
+        } catch (error: any) {
             throw new Error(error.response?.data?.message || 'Failed to unban user');
         }
     },
 
-    async deleteUser(userId) {
-        const { data } = await axios.delete(`/admin/users/${userId}`);
+    async deleteUser(userId: string): Promise<ApiResponse> {
+        const { data } = await axios.delete<ApiResponse>(`/admin/users/${userId}`);
         return data;
     },
 
-    async getUserById(userId) {
-        const { data } = await axios.get(`/admin/users/${userId}`);
+    async getUserById(userId: string): Promise<ApiResponse<{ user: any }>> {
+        const { data } = await axios.get<ApiResponse<{ user: any }>>(`/admin/users/${userId}`);
         return data;
     },
 
-    async updateUser(userId, userData) {
-        const { data } = await axios.patch(`/admin/users/${userId}`, userData);
+    async updateUser(userId: string, userData: any): Promise<ApiResponse> {
+        const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}`, userData);
         return data;
     },
 
     // Order Management API calls
-    async getAllOrders(params = {}) {
+    async getAllOrders(params: OrderParams = {}): Promise<ApiResponse> {
         const { status, userId, isGift, page, limit, sortBy, order } = params;
         const query = new URLSearchParams({
             ...(status && { status }),
             ...(userId && { userId }),
             ...(isGift !== undefined && { isGift: isGift.toString() }),
-            page: page || 1,
-            limit: limit || 10,
+            page: (page || 1).toString(),
+            limit: (limit || 10).toString(),
             ...(sortBy && { sortBy }),
             ...(order && { order })
         });
 
-        const { data } = await axios.get(`/orders?${query}`);
+        const { data } = await axios.get<ApiResponse>(`/orders?${query}`);
         return data;
     },
 
-    async getOrderById(orderId) {
-        const { data } = await axios.get(`/orders/${orderId}`);
+    async getOrderById(orderId: string): Promise<ApiResponse> {
+        const { data } = await axios.get<ApiResponse>(`/orders/${orderId}`);
         return data;
     },
 
-    async updateOrderStatus(orderId, status) {
-        const { data } = await axios.put(`/orders/${orderId}`, { status });
+    async updateOrderStatus(orderId: string, status: string): Promise<ApiResponse> {
+        const { data } = await axios.put<ApiResponse>(`/orders/${orderId}`, { status });
         return data;
     },
 
-    async updateOrderPaidStatus(orderId, isPaid) {
-        const { data } = await axios.put(`/orders/${orderId}/payment-status`, { isPaid });
+    async updateOrderPaidStatus(orderId: string, isPaid: boolean): Promise<ApiResponse> {
+        const { data } = await axios.put<ApiResponse>(`/orders/${orderId}/payment-status`, { isPaid });
         return data;
     },
 
-    async deleteOrder(orderId) {
-        const { data } = await axios.delete(`/orders/${orderId}`);
+    async deleteOrder(orderId: string): Promise<ApiResponse> {
+        const { data } = await axios.delete<ApiResponse>(`/orders/${orderId}`);
         return data;
     }
 };

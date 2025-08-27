@@ -12,13 +12,25 @@ import {
   FiClock,
   FiCode,
 } from "react-icons/fi";
+import type { Category } from "@/types/category";
+
+interface TestResult {
+  operation: string;
+  success: boolean;
+  message: string;
+  timestamp: string;
+}
 
 export default function CategoryTester() {
-  const [testResults, setTestResults] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [testResults, setTestResults] = useState<TestResult[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  const addResult = (operation, success, message) => {
+  const addResult = (
+    operation: string,
+    success: boolean,
+    message: string
+  ): void => {
     setTestResults((prev) => [
       {
         operation,
@@ -30,7 +42,7 @@ export default function CategoryTester() {
     ]);
   };
 
-  const runTests = async () => {
+  const runTests = async (): Promise<void> => {
     setIsLoading(true);
     setTestResults([]);
 
@@ -45,12 +57,12 @@ export default function CategoryTester() {
         );
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
+      } catch (error: any) {
         addResult("Get All Categories", false, error.message);
       }
 
       // Test 2: Create Category
-      let newCategory;
+      let newCategory: Category | undefined;
       try {
         const formData = new FormData();
         const testName = "Test Category " + Date.now();
@@ -74,7 +86,7 @@ export default function CategoryTester() {
         );
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
+      } catch (error: any) {
         addResult("Create Category", false, error.message);
         setIsLoading(false);
         return;
@@ -90,14 +102,14 @@ export default function CategoryTester() {
         );
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
+      } catch (error: any) {
         addResult("Get Active Categories", false, error.message);
       }
 
       // Test 4: Get Single Category
       try {
         const fetchedCategory = await categoryService.getCategory(
-          newCategory.slug
+          newCategory!.slug
         );
         addResult(
           "Get Single Category",
@@ -106,20 +118,20 @@ export default function CategoryTester() {
         );
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
+      } catch (error: any) {
         addResult("Get Single Category", false, error.message);
       }
 
       // Test 5: Update Category
-      let updatedSlug;
+      let updatedSlug: string | undefined;
       try {
         const formData = new FormData();
-        const updatedName = newCategory.name + " (Updated)";
+        const updatedName = newCategory!.name + " (Updated)";
         formData.append("name", updatedName);
         formData.append("description", "Updated Description");
 
         const updateResponse = await categoryService.updateCategory(
-          newCategory.slug,
+          newCategory!.slug,
           formData
         );
         const updatedCategory = updateResponse.payload.category;
@@ -131,7 +143,7 @@ export default function CategoryTester() {
         );
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
+      } catch (error: any) {
         addResult("Update Category", false, error.message);
         return;
       }
@@ -147,7 +159,7 @@ export default function CategoryTester() {
         );
 
         await new Promise((resolve) => setTimeout(resolve, 1000));
-      } catch (error) {
+      } catch (error: any) {
         addResult("Recalculate Product Counts", false, error.message);
       }
 
@@ -162,11 +174,11 @@ export default function CategoryTester() {
             true,
             `Deleted category: ${deleteResponse.payload.category.name}`
           );
-        } catch (error) {
+        } catch (error: any) {
           addResult("Delete Category", false, error.message);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       addResult("Test Suite", false, "Test suite failed: " + error.message);
     } finally {
       setIsLoading(false);

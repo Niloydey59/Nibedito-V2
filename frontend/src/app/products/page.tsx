@@ -14,18 +14,28 @@ import ProductGrid from "@/components/products/ProductGrid";
 import ProductFilters from "@/components/products/ProductFilter";
 import { productService } from "@/services/productService";
 import { categoryService } from "@/services/categoryService";
+import type { Product, Pagination, Category } from "@/types";
+
+interface FilterState {
+  minPrice: string;
+  maxPrice: string;
+  category: string;
+  subcategory: string;
+  inStock?: boolean;
+  sort: string;
+}
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [products, setProducts] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
-  const [viewMode, setViewMode] = useState(
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isFilterVisible, setIsFilterVisible] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">(
     searchParams.get("view") === "list" ? "list" : "grid"
   );
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FilterState>({
     minPrice: "",
     maxPrice: "",
     category: "",
@@ -33,17 +43,17 @@ export default function ProductsPage() {
     inStock: undefined,
     sort: "newest",
   });
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<Pagination>({
     currentPage: 1,
     totalPages: 1,
     totalProducts: 0,
     hasNextPage: false,
     hasPrevPage: false,
   });
-  const [categories, setCategories] = useState([]);
-  const [isMobile, setIsMobile] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
 
-  const fetchProducts = async (page = 1) => {
+  const fetchProducts = async (page: number = 1): Promise<void> => {
     try {
       setIsLoading(true);
 
@@ -79,15 +89,6 @@ export default function ProductsPage() {
         }
       }
 
-      console.log("Fetching products with filters:", {
-        // Debug log
-        minPrice: filters.minPrice,
-        maxPrice: filters.maxPrice,
-        category: filters.category,
-        subcategory: filters.subcategory,
-        inStock: filters.inStock,
-      });
-
       const response = await productService.getAllProducts({
         page,
         limit: viewMode === "list" ? 15 : 12,
@@ -101,15 +102,15 @@ export default function ProductsPage() {
         sortOrder,
       });
 
-      setProducts(response.payload.products);
+      setProducts(response.payload!.products);
       setPagination({
-        currentPage: response.payload.pagination.currentPage,
-        totalPages: response.payload.pagination.totalPages,
-        totalProducts: response.payload.pagination.totalProducts,
-        hasNextPage: response.payload.pagination.hasNextPage,
-        hasPrevPage: response.payload.pagination.hasPrevPage,
+        currentPage: response.payload!.pagination.page,
+        totalPages: response.payload!.pagination.pages,
+        totalProducts: response.payload!.pagination.total,
+        hasNextPage: response.payload!.pagination.page < response.payload!.pagination.pages,
+        hasPrevPage: response.payload!.pagination.page > 1,
       });
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message || "Failed to fetch products");
     } finally {
       setIsLoading(false);
@@ -171,14 +172,14 @@ export default function ProductsPage() {
     };
   }, [searchParams, viewMode]);
 
-  const handleFilterChange = (newFilters) => {
+  const handleFilterChange = (newFilters: FilterState): void => {
     console.log("Filter change received:", newFilters); // Debug log
 
     // Ensure empty strings are handled properly for price filters
     const processedFilters = {
       ...newFilters,
-      minPrice: newFilters.minPrice === "" ? undefined : newFilters.minPrice,
-      maxPrice: newFilters.maxPrice === "" ? undefined : newFilters.maxPrice,
+      minPrice: newFilters.minPrice === "" ? "" : newFilters.minPrice,
+      maxPrice: newFilters.maxPrice === "" ? "" : newFilters.maxPrice,
     };
 
     setFilters((prev) => {
@@ -188,13 +189,13 @@ export default function ProductsPage() {
     });
   };
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (newPage: number): void => {
     setIsLoading(true);
     fetchProducts(newPage);
   };
 
   // Function to clear search and show all products
-  const clearSearch = () => {
+  const clearSearch = (): void => {
     // Clear the URL parameter
     const params = new URLSearchParams(searchParams);
     params.delete("search");
@@ -208,7 +209,7 @@ export default function ProductsPage() {
   };
 
   // Reset all filters to default values
-  const resetFilters = () => {
+  const resetFilters = (): void => {
     setFilters({
       minPrice: "",
       maxPrice: "",
@@ -220,7 +221,7 @@ export default function ProductsPage() {
   };
 
   // Handle view mode change
-  const handleViewModeChange = (mode) => {
+  const handleViewModeChange = (mode: "grid" | "list"): void => {
     // Prevent switching to list view on mobile
     if (isMobile && mode === "list") {
       return;
@@ -383,6 +384,16 @@ export default function ProductsPage() {
               products={products}
               isLoading={isLoading}
               error={error}
+              pagination={pagination}
+              onPageChange={handlePageChange}
+              viewMode={viewMode}
+            />
+          </section>
+        </div>
+      </div>
+    </main>
+  );
+}
               pagination={pagination}
               onPageChange={handlePageChange}
               viewMode={viewMode}

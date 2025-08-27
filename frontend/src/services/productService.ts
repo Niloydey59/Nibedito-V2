@@ -2,11 +2,20 @@ import axios from '@/utils/axios';
 import { API_URL } from '@/config/constants';
 import { categoryService } from './categoryService';
 import { subcategoryService } from './subcategoryService';
+import { 
+    ProductService, 
+    Product, 
+    GetProductsParams, 
+    ProductsResponse, 
+    ApiResponse,
+    Category,
+    Subcategory
+} from '@/types';
 
 const PRODUCT_URL = `${API_URL}/products`;
 
-export const productService = {
-    async createProduct(formData) {
+export const productService: ProductService = {
+    async createProduct(formData: FormData): Promise<ApiResponse<{ product: Product }>> {
         const response = await fetch(PRODUCT_URL, {
             method: 'POST',
             headers: {
@@ -24,18 +33,20 @@ export const productService = {
         return response.json();
     },
 
-    getAllProducts: async ({ 
-        page = 1, 
-        limit = 10, 
-        search = '', 
-        category = '', 
-        subcategory = '',
-        minPrice = '',
-        maxPrice = '',
-        inStock,
-        sortField = 'createdAt',
-        sortOrder = 'desc'
-    }) => {
+    async getAllProducts(params: GetProductsParams): Promise<ApiResponse<ProductsResponse>> {
+        const { 
+            page = 1, 
+            limit = 10, 
+            search = '', 
+            category = '', 
+            subcategory = '',
+            minPrice = '',
+            maxPrice = '',
+            inStock,
+            sortField = 'createdAt',
+            sortOrder = 'desc'
+        } = params;
+
         const queryParams = new URLSearchParams({
             page: page.toString(),
             limit: limit.toString(),
@@ -61,7 +72,7 @@ export const productService = {
         return response.json();
     },
 
-    getProduct: async (slug) => {
+    async getProduct(slug: string): Promise<Product> {
         const response = await fetch(`${PRODUCT_URL}/${slug}`, {
             credentials: 'include'
         });
@@ -72,50 +83,46 @@ export const productService = {
         }
 
         const data = await response.json();
-        return data.payload.product;
+        return data.payload.product as Product;
     },
 
-    getProductsByCategory: async (categorySlug, params = {}) => {
+    async getProductsByCategory(categorySlug: string, params: Record<string, any> = {}): Promise<ProductsResponse> {
         try {
             // First get the category by slug to get its ID
-            const categoryData = await categoryService.getCategory(categorySlug);
+            const categoryData = await categoryService.getCategory(categorySlug) as Category;
             
             // Then query products with the category ID
-            const response = await axios.get(`${PRODUCT_URL}`, {
+            const response = await axios.get<ApiResponse<ProductsResponse>>(PRODUCT_URL, {
                 params: { 
                     ...params, 
                     category: categoryData._id // Pass categoryId instead of slug
                 }
             });
-            return response.data.payload;
-        } catch (error) {
-            throw error.response?.data || error.message;
+            return response.data.payload!;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || error.message);
         }
     },
 
-    getProductsBySubcategory: async (subcategorySlug, params = {}) => {
+    async getProductsBySubcategory(subcategorySlug: string, params: Record<string, any> = {}): Promise<ProductsResponse> {
         try {
-            console.log(`Fetching products for subcategory slug: ${subcategorySlug}`);
             // First get the subcategory by slug to get its ID
-            const subcategoryData = await subcategoryService.getSubcategory(subcategorySlug);
-            console.log('Subcategory data:', subcategoryData);
+            const subcategoryData = await subcategoryService.getSubcategory(subcategorySlug) as Subcategory;
             
             // Then query products with the subcategory ID
-            const response = await axios.get(`${PRODUCT_URL}`, {
+            const response = await axios.get<ApiResponse<ProductsResponse>>(PRODUCT_URL, {
                 params: { 
                     ...params, 
                     subcategory: subcategoryData._id // Pass subcategoryId instead of slug
                 }
             });
-            console.log('Products response for subcategory:', response.data);
-            return response.data.payload;
-        } catch (error) {
-            console.error('Error fetching products by subcategory:', error);
-            throw error.response?.data || error.message;
+            return response.data.payload!;
+        } catch (error: any) {
+            throw new Error(error.response?.data?.message || error.message);
         }
     },
 
-    updateProduct: async (slug, formData) => {
+    async updateProduct(slug: string, formData: FormData): Promise<ApiResponse<{ product: Product }>> {
         try {
             const response = await fetch(`${PRODUCT_URL}/${slug}`, {
                 method: 'PUT',
@@ -132,12 +139,12 @@ export const productService = {
             }
 
             return response.json();
-        } catch (error) {
+        } catch (error: any) {
             throw error;
         }
     },
 
-    deleteProduct: async (slug) => {
+    async deleteProduct(slug: string): Promise<ApiResponse<{ product: Product }>> {
         try {
             const response = await fetch(`${PRODUCT_URL}/${slug}`, {
                 method: 'DELETE',
@@ -153,7 +160,7 @@ export const productService = {
             }
 
             return response.json();
-        } catch (error) {
+        } catch (error: any) {
             throw error;
         }
     }

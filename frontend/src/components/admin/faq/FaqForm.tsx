@@ -1,16 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { createFaq, updateFaq } from "@/services/faqService";
+import { faqService } from "@/services/faqService";
+import { FAQ, CreateFAQRequest, UpdateFAQRequest } from "@/types/faq";
 import { toast } from "react-hot-toast";
 import { FiSave, FiX, FiHelpCircle } from "react-icons/fi";
 
 interface FaqFormProps {
-  editingFaq?: any;
+  editingFaq?: FAQ;
   onSuccess: () => void;
   onError: (message: string) => void;
   onCancel: () => void;
-  faqs?: any[];
+  faqs?: FAQ[];
 }
 
 export default function FaqForm({
@@ -53,10 +54,22 @@ export default function FaqForm({
 
     try {
       if (editingFaq) {
-        await updateFaq(editingFaq._id, formData);
+        const updateData: UpdateFAQRequest = {
+          question: formData.question,
+          answer: formData.answer,
+          order: formData.order,
+          isActive: formData.isActive,
+        };
+        await faqService.updateFaq(editingFaq._id, updateData);
         toast.success("FAQ updated successfully");
       } else {
-        await createFaq(formData);
+        const createData: CreateFAQRequest = {
+          question: formData.question,
+          answer: formData.answer,
+          order: formData.order,
+          isActive: formData.isActive,
+        };
+        await faqService.createFaq(createData);
         toast.success("FAQ created successfully");
       }
 

@@ -2,34 +2,67 @@
 
 import { useState, useEffect } from "react";
 import { FiChevronDown, FiX, FiFilter, FiCheck } from "react-icons/fi";
+import type { Category } from "@/types/category";
+import type { Subcategory } from "@/types/subcategory";
+
+interface FilterState {
+  minPrice: string;
+  maxPrice: string;
+  category: string;
+  subcategory: string;
+  inStock?: boolean;
+  sort: string;
+}
+
+interface ProductFiltersProps {
+  filters: FilterState;
+  onFilterChange: (filters: FilterState) => void;
+  categories: Category[];
+  onHideFilters: () => void;
+}
+
+interface QuickPriceRange {
+  label: string;
+  min: string;
+  max: string;
+}
+
+interface SelectedFilter {
+  type: string;
+  value: string;
+  key: string;
+}
 
 export default function ProductFilters({
   filters,
   onFilterChange,
   categories,
   onHideFilters,
-}) {
-  const [openSections, setOpenSections] = useState({
+}: ProductFiltersProps) {
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     price: true,
     category: true,
     availability: true,
   });
 
-  const [localFilters, setLocalFilters] = useState(filters);
+  const [localFilters, setLocalFilters] = useState<FilterState>(filters);
 
   useEffect(() => {
     console.log("Filters prop changed:", filters); // Debug log
     setLocalFilters(filters);
   }, [filters]);
 
-  const toggleSection = (section) => {
+  const toggleSection = (section: string): void => {
     setOpenSections((prev) => ({
       ...prev,
       [section]: !prev[section],
     }));
   };
 
-  const handleFilterChange = (key, value) => {
+  const handleFilterChange = (
+    key: keyof FilterState,
+    value: string | boolean | undefined
+  ): void => {
     console.log(`Changing filter ${key} to:`, value); // Debug log
 
     const newFilters = { ...localFilters, [key]: value };
@@ -47,7 +80,7 @@ export default function ProductFilters({
     }
   };
 
-  const handleQuickPriceSelect = (minPrice, maxPrice) => {
+  const handleQuickPriceSelect = (minPrice: string, maxPrice: string): void => {
     console.log("Quick price select:", { minPrice, maxPrice }); // Debug log
 
     // Update local state immediately for both min and max price
@@ -63,8 +96,8 @@ export default function ProductFilters({
     onFilterChange(newFilters);
   };
 
-  const clearAllFilters = () => {
-    const clearedFilters = {
+  const clearAllFilters = (): void => {
+    const clearedFilters: FilterState = {
       minPrice: "",
       maxPrice: "",
       category: "",
@@ -76,7 +109,7 @@ export default function ProductFilters({
     onFilterChange(clearedFilters);
   };
 
-  const getActiveFilterCount = () => {
+  const getActiveFilterCount = (): number => {
     let count = 0;
     if (localFilters.minPrice) count++;
     if (localFilters.maxPrice) count++;
@@ -86,8 +119,8 @@ export default function ProductFilters({
     return count;
   };
 
-  const getSelectedFiltersDisplay = () => {
-    const selected = [];
+  const getSelectedFiltersDisplay = (): SelectedFilter[] => {
+    const selected: SelectedFilter[] = [];
 
     if (localFilters.minPrice || localFilters.maxPrice) {
       const priceRange = `৳${localFilters.minPrice || "0"} - ৳${
@@ -111,8 +144,8 @@ export default function ProductFilters({
       const category = categories.find(
         (cat) => cat._id === localFilters.category
       );
-      const subcategory = category?.subcategories?.find(
-        (sub) => sub._id === localFilters.subcategory
+      const subcategory = (category as any)?.subcategories?.find(
+        (sub: Subcategory) => sub._id === localFilters.subcategory
       );
       selected.push({
         type: "Subcategory",
@@ -132,7 +165,7 @@ export default function ProductFilters({
     return selected;
   };
 
-  const removeFilter = (key) => {
+  const removeFilter = (key: string): void => {
     switch (key) {
       case "price":
         handleFilterChange("minPrice", "");
@@ -151,7 +184,19 @@ export default function ProductFilters({
     }
   };
 
-  const FilterSection = ({ title, isOpen, onToggle, children }) => (
+  interface FilterSectionProps {
+    title: string;
+    isOpen: boolean;
+    onToggle: () => void;
+    children: React.ReactNode;
+  }
+
+  const FilterSection = ({
+    title,
+    isOpen,
+    onToggle,
+    children,
+  }: FilterSectionProps) => (
     <div className="border-b border-border last:border-b-0">
       <button
         onClick={onToggle}

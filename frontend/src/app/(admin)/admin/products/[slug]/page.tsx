@@ -19,15 +19,27 @@ import {
   FiImage,
 } from "react-icons/fi";
 import MarkdownEditor from "@/components/admin/common/MarkdownEditor";
+import type { Product, Category, Subcategory, ProductVariant } from "@/types";
+
+interface FormData {
+  name: string;
+  description: string;
+  price: string;
+  category: string;
+  subcategory: string;
+  shipping: boolean;
+  variants: ProductVariant[];
+}
 
 export default function ProductDetailsPage() {
-  const { slug } = useParams();
+  const { slug } = useParams() as { slug: string };
   const router = useRouter();
-  const [product, setProduct] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [subcategories, setSubcategories] = useState([]);
-  const [isLoadingSubcategories, setIsLoadingSubcategories] = useState(false);
-  const [formData, setFormData] = useState({
+  const [product, setProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [isLoadingSubcategories, setIsLoadingSubcategories] =
+    useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
     price: "",
@@ -36,13 +48,13 @@ export default function ProductDetailsPage() {
     shipping: false,
     variants: [],
   });
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchData = async (): Promise<void> => {
       try {
         const [productData, categoriesData] = await Promise.all([
           productService.getProduct(slug),
@@ -50,14 +62,18 @@ export default function ProductDetailsPage() {
         ]);
 
         setProduct(productData);
-        setCategories(categoriesData.categories);
+        setCategories(categoriesData.payload!.categories);
 
         // Load subcategories if product has a category
-        if (productData.category?._id) {
+        const categoryId =
+          typeof productData.category === "object"
+            ? productData.category._id
+            : productData.category;
+        if (categoryId) {
           try {
             setIsLoadingSubcategories(true);
             const subcats = await subcategoryService.getSubcategoriesByCategory(
-              productData.category._id
+              categoryId
             );
             setSubcategories(subcats || []);
           } catch (error) {
@@ -67,16 +83,21 @@ export default function ProductDetailsPage() {
           }
         }
 
+        const subcategoryId =
+          typeof productData.subcategory === "object"
+            ? productData.subcategory?._id
+            : productData.subcategory;
+
         setFormData({
           name: productData.name,
           description: productData.description,
-          price: productData.price,
-          category: productData.category._id,
-          subcategory: productData.subcategory?._id || "",
-          shipping: productData.shipping,
-          variants: productData.variants,
+          price: productData.price.toString(),
+          category: categoryId || "",
+          subcategory: subcategoryId || "",
+          shipping: productData.shipping || false,
+          variants: productData.variants || [],
         });
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -88,7 +109,7 @@ export default function ProductDetailsPage() {
   // Update subcategories when category changes
   useEffect(() => {
     if (formData.category) {
-      const fetchSubcategories = async () => {
+      const fetchSubcategories = async (): Promise<void> => {
         try {
           setIsLoadingSubcategories(true);
           const subcats = await subcategoryService.getSubcategoriesByCategory(
@@ -124,22 +145,29 @@ export default function ProductDetailsPage() {
     }
   }, [formData.category]);
 
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ): void => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleDescriptionChange = (value) => {
+  const handleDescriptionChange = (value: string): void => {
     setFormData((prev) => ({
       ...prev,
       description: value,
     }));
   };
 
-  const handleVariantChange = (index, field, value) => {
+  const handleVariantChange = (
+    index: number,
+    field: keyof ProductVariant,
+    value: string | number
+  ): void => {
     const updatedVariants = [...formData.variants];
     updatedVariants[index] = {
       ...updatedVariants[index],
@@ -148,24 +176,26 @@ export default function ProductDetailsPage() {
     setFormData((prev) => ({ ...prev, variants: updatedVariants }));
   };
 
-  const addVariant = () => {
+  const addVariant = (): void => {
     setFormData((prev) => ({
       ...prev,
       variants: [
         ...prev.variants,
-        { color: "", size: "", quantity: 0, images: [] },
+        { _id: `temp-${Date.now()}`, color: "", size: "", quantity: 0 },
       ],
     }));
   };
 
-  const removeVariant = (index) => {
+  const removeVariant = (index: number): void => {
     setFormData((prev) => ({
       ...prev,
       variants: prev.variants.filter((_, i) => i !== index),
     }));
   };
 
-  const handleThumbnailChange = async (file) => {
+  const handleThumbnailChange = async (file: File): Promise<void> => {
+    if (!product) return;
+
     try {
       const formDataToSend = new FormData();
       // Include all required fields from current formData
@@ -176,7 +206,7 @@ export default function ProductDetailsPage() {
       if (formData.subcategory) {
         formDataToSend.append("subcategory", formData.subcategory);
       }
-      formDataToSend.append("shipping", formData.shipping);
+      formDataToSend.append("shipping", formData.shipping.toString());
 
       // Keep existing variants
       formDataToSend.append("variants", JSON.stringify(formData.variants));
@@ -184,23 +214,30 @@ export default function ProductDetailsPage() {
       // Add the new thumbnail
       formDataToSend.append("thumbnail", file);
 
-      const response = await productService.updateProduct(slug, formDataToSend);
-      setProduct(response.payload.product);
-      // Don't redirect, just update the state
-      setFormData((prev) => ({
-        ...prev,
-        thumbnailImage: response.payload.product.thumbnailImage,
-      }));
-    } catch (err) {
+      const response = await productService.updateProduct(
+        product.slug,
+        formDataToSend
+      );
+      if (response.payload) {
+        setProduct(response.payload.product);
+        // Don't redirect, just update the state
+        setFormData((prev) => ({
+          ...prev,
+          thumbnailImage: response.payload.product.thumbnailImage,
+        }));
+      }
+    } catch (err: any) {
       setError(err.message);
     }
   };
 
   const handleVariantImagesChange = async (
-    variantIndex,
-    files,
-    removedIndices = []
-  ) => {
+    variantIndex: number,
+    files: File[],
+    removedIndices: number[] = []
+  ): Promise<void> => {
+    if (!product) return;
+
     try {
       const formDataToSend = new FormData();
       // Include all required fields
@@ -211,7 +248,7 @@ export default function ProductDetailsPage() {
       if (formData.subcategory) {
         formDataToSend.append("subcategory", formData.subcategory);
       }
-      formDataToSend.append("shipping", formData.shipping);
+      formDataToSend.append("shipping", formData.shipping.toString());
 
       // Prepare variants with the new images
       const updatedVariants = [...formData.variants];
@@ -235,19 +272,28 @@ export default function ProductDetailsPage() {
 
       formDataToSend.append("variants", JSON.stringify(variantsToUpdate));
 
-      const response = await productService.updateProduct(slug, formDataToSend);
-      setProduct(response.payload.product);
-      setFormData((prev) => ({
-        ...prev,
-        variants: response.payload.product.variants,
-      }));
-    } catch (err) {
+      const response = await productService.updateProduct(
+        product.slug,
+        formDataToSend
+      );
+      if (response.payload) {
+        setProduct(response.payload.product);
+        setFormData((prev) => ({
+          ...prev,
+          variants: response.payload.product.variants || [],
+        }));
+      }
+    } catch (err: any) {
       setError(err.message);
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
+    if (!product) return;
+
     setIsSubmitting(true);
     setError("");
 
@@ -262,25 +308,32 @@ export default function ProductDetailsPage() {
       if (formData.subcategory) {
         formDataToSend.append("subcategory", formData.subcategory);
       }
-      formDataToSend.append("shipping", formData.shipping);
+      formDataToSend.append("shipping", formData.shipping.toString());
       formDataToSend.append("variants", JSON.stringify(formData.variants));
 
-      const response = await productService.updateProduct(slug, formDataToSend);
-      setProduct(response.payload.product);
+      const response = await productService.updateProduct(
+        product.slug,
+        formDataToSend
+      );
+      if (response.payload) {
+        setProduct(response.payload.product);
+      }
       router.push("/admin/products");
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = async (): Promise<void> => {
+    if (!product) return;
+
     try {
       setIsSubmitting(true);
-      await productService.deleteProduct(slug);
+      await productService.deleteProduct(product.slug);
       router.push("/admin/products");
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     } finally {
       setIsSubmitting(false);

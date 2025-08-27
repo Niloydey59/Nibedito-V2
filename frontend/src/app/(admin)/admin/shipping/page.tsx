@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import { getShippingRates } from "@/services/shippingService";
+import { shippingService } from "@/services/shippingService";
+import { ShippingRate } from "@/types/shipping";
 import { FiTruck, FiPlus, FiX } from "react-icons/fi";
 import ShippingStats from "@/components/admin/shipping/ShippingStats";
 import ShippingList from "@/components/admin/shipping/ShippingList";
@@ -12,8 +13,8 @@ import ShippingForm from "@/components/admin/shipping/ShippingForm";
 
 export default function ShippingManagement() {
   const router = useRouter();
-  const { admin, loading: authLoading } = useAdminAuth();
-  const [rates, setRates] = useState([]);
+  const { admin, isLoading: authLoading } = useAdminAuth();
+  const [rates, setRates] = useState<ShippingRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -29,11 +30,11 @@ export default function ShippingManagement() {
     }
 
     fetchRates();
-  }, [admin, authLoading]);
+  }, [admin, authLoading, router]);
 
   const fetchRates = async () => {
     try {
-      const data = await getShippingRates();
+      const data = await shippingService.getShippingRates();
       setRates(data);
     } catch (error) {
       toast.error("Failed to fetch shipping rates");
@@ -47,7 +48,7 @@ export default function ShippingManagement() {
     fetchRates();
   };
 
-  const handleFormError = (message) => {
+  const handleFormError = (message: string) => {
     toast.error(message);
   };
 

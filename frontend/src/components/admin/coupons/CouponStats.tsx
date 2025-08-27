@@ -1,9 +1,20 @@
 "use client";
 
 import { FiTag, FiShield, FiPackage, FiTruck } from "react-icons/fi";
+import { Coupon } from "@/types";
 
 interface CouponStatsProps {
-  coupons: any[];
+  coupons: Coupon[];
+}
+
+interface StatData {
+  title: string;
+  value: number;
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  bgColor: string;
+  textColor: string;
+  description: string;
 }
 
 export default function CouponStats({ coupons }: CouponStatsProps) {
@@ -19,7 +30,7 @@ export default function CouponStats({ coupons }: CouponStatsProps) {
     (coupon) => coupon.discountOptions.shippingDiscount.type !== "none"
   ).length;
 
-  const statsData = [
+  const statsData: StatData[] = [
     {
       title: "Total Coupons",
       value: coupons.length,

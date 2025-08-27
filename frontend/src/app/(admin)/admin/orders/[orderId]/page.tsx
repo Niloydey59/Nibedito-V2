@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { adminService } from "@/services/adminService";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
+import { Order } from "@/types";
 import {
   FiArrowLeft,
   FiUser,
@@ -23,22 +24,23 @@ import {
 } from "react-icons/fi";
 
 export default function OrderDetailsPage() {
-  const { orderId } = useParams();
+  const { orderId } = useParams() as { orderId: string };
   const router = useRouter();
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         setLoading(true);
         const response = await adminService.getOrderById(orderId);
-        setOrder(response.payload);
+        setOrder(response.payload as Order);
         setError(null);
-      } catch (err) {
-        setError(err.message || "Failed to fetch order details");
-        toast.error(err.message || "Failed to fetch order details");
+      } catch (err: any) {
+        const errorMessage = err.message || "Failed to fetch order details";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -49,8 +51,8 @@ export default function OrderDetailsPage() {
     }
   }, [orderId]);
 
-  const formatDate = (dateString) => {
-    const options = {
+  const formatDate = (dateString: string): string => {
+    const options: Intl.DateTimeFormatOptions = {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -60,37 +62,37 @@ export default function OrderDetailsPage() {
     return new Date(dateString).toLocaleString("en-US", options);
   };
 
-  const formatPrice = (price) => {
+  const formatPrice = (price: number): string => {
     if (!price || isNaN(price)) return "৳0.00";
     return "৳" + price.toFixed(2);
   };
 
-  const handleStatusUpdate = async (newStatus) => {
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (!order) return;
+
     try {
       await adminService.updateOrderStatus(orderId, newStatus);
       toast.success("Order status updated successfully");
 
       // Update local state to reflect change
-      setOrder((prev) => ({
-        ...prev,
-        status: newStatus,
-      }));
-    } catch (err) {
+      setOrder((prev) =>
+        prev ? { ...prev, status: newStatus as Order["status"] } : null
+      );
+    } catch (err: any) {
       toast.error(err.message || "Failed to update order status");
     }
   };
 
-  const handlePaidStatusUpdate = async (isPaid) => {
+  const handlePaidStatusUpdate = async (isPaid: boolean) => {
+    if (!order) return;
+
     try {
       await adminService.updateOrderPaidStatus(orderId, isPaid);
       toast.success(`Order marked as ${isPaid ? "paid" : "unpaid"}`);
 
       // Update local state to reflect change
-      setOrder((prev) => ({
-        ...prev,
-        isPaid: isPaid,
-      }));
-    } catch (err) {
+      setOrder((prev) => (prev ? { ...prev, isPaid } : null));
+    } catch (err: any) {
       toast.error(err.message || "Failed to update payment status");
     }
   };
@@ -104,7 +106,7 @@ export default function OrderDetailsPage() {
       await adminService.deleteOrder(orderId);
       toast.success("Order deleted successfully");
       router.push("/admin/orders");
-    } catch (err) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to delete order");
     }
   };
@@ -235,14 +237,18 @@ export default function OrderDetailsPage() {
                 <div className="flex items-start space-x-4">
                   <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <span className="text-white font-semibold text-lg">
-                      {(order.user?.name || "Guest").charAt(0).toUpperCase()}
+                      {typeof order.user === "object"
+                        ? order.user?.name
+                        : "Guest"}
                     </span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-medium text-slate-900 dark:text-slate-100">
-                      {order.user?.name || "Guest Customer"}
+                      {typeof order.user === "object"
+                        ? order.user?.name
+                        : "Guest Customer"}
                     </h3>
-                    {order.user?._id && (
+                    {typeof order.user === "object" && order.user?._id && (
                       <Link
                         href={`/admin/users/${order.user._id}`}
                         className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 text-sm font-medium"
@@ -253,11 +259,21 @@ export default function OrderDetailsPage() {
                     <div className="mt-4 space-y-2">
                       <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
                         <FiMail className="w-4 h-4" />
-                        <span>{order.email || order.user?.email || "N/A"}</span>
+                        <span>
+                          {order.email ||
+                            (typeof order.user === "object"
+                              ? order.user?.email
+                              : "N/A")}
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2 text-sm text-slate-600 dark:text-slate-400">
                         <FiPhone className="w-4 h-4" />
-                        <span>{order.phone || order.user?.phone || "N/A"}</span>
+                        <span>
+                          {order.phone ||
+                            (typeof order.user === "object"
+                              ? order.user?.phone
+                              : "N/A")}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -413,19 +429,16 @@ export default function OrderDetailsPage() {
                             <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
                               {item.productDetails?.name || "Unknown Product"}
                             </div>
-                            {item.product &&
-                              typeof item.product === "string" && (
-                                <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                                  {item.productDetails?.slug
-                                    ? `Slug: ${item.productDetails.slug}`
-                                    : `ID: ${item.product.slice(-8)}`}
-                                </div>
-                              )}
-                            {item.product && (
+                            {typeof item.product === "string" && (
+                              <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                {item.productDetails?.slug
+                                  ? `Slug: ${item.productDetails.slug}`
+                                  : `ID: ${item.product.slice(-8)}`}
+                              </div>
+                            )}
+                            {item.productDetails?.slug && (
                               <Link
-                                href={`/admin/products/${
-                                  item.productDetails?.slug || item.product
-                                }`}
+                                href={`/admin/products/${item.productDetails.slug}`}
                                 className="text-xs text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 font-medium"
                               >
                                 View Product →
@@ -451,11 +464,12 @@ export default function OrderDetailsPage() {
                                 <span>{item.variantDetails.size}</span>
                               </div>
                             )}
-                            {!item.variantDetails && item.variant && (
-                              <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                                ID: {item.variant.slice(-8)}
-                              </div>
-                            )}
+                            {!item.variantDetails &&
+                              typeof item.variant === "string" && (
+                                <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                                  ID: {item.variant.slice(-8)}
+                                </div>
+                              )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
@@ -464,15 +478,11 @@ export default function OrderDetailsPage() {
                         <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
                           {formatPrice(
                             item.productDetails?.price ||
-                              item.price ||
                               item.cost / item.quantity
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">
-                          {formatPrice(
-                            item.cost ||
-                              item.productDetails?.price * item.quantity
-                          )}
+                          {formatPrice(item.cost)}
                         </td>
                       </tr>
                     ))}

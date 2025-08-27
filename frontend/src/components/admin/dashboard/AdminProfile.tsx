@@ -10,24 +10,57 @@ import {
   FiEdit3,
   FiSettings,
 } from "react-icons/fi";
+import type { Admin } from "@/types";
+import React from "react";
 
-export default function AdminProfile({ admin }) {
-  const defaultInfo = {
+interface AdminProfileProps {
+  admin: Admin | null;
+}
+
+interface AdminInfo {
+  name: string;
+  email: string;
+  phone: string;
+  role: string;
+  joinDate: string;
+  location: string;
+  lastLogin: string;
+}
+
+export default function AdminProfile({
+  admin,
+}: AdminProfileProps): React.JSX.Element {
+  const defaultInfo: AdminInfo = {
     name: admin?.name || "Admin User",
     email: admin?.email || "No email provided",
     phone: admin?.phone || "Not Provided",
     role: admin?.role || "admin",
     joinDate: admin?.createdAt || new Date().toISOString(),
-    location: admin?.location || "Not specified",
+    location: "Not specified",
     lastLogin: admin?.lastLogin || new Date().toISOString(),
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleEditClick = (): void => {
+    // TODO: Implement edit functionality
+    console.log("Edit profile clicked");
+  };
+
+  const handleSettingsClick = (): void => {
+    // TODO: Implement settings functionality
+    console.log("Settings clicked");
+  };
+
+  const handleQuickActionClick = (action: string): void => {
+    // TODO: Implement quick action navigation
+    console.log(`Quick action clicked: ${action}`);
   };
 
   return (
@@ -61,11 +94,17 @@ export default function AdminProfile({ admin }) {
         </div>
 
         <div className="flex gap-2">
-          <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200">
+          <button
+            onClick={handleEditClick}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+          >
             <FiEdit3 className="w-4 h-4" />
             <span className="hidden sm:inline">Edit</span>
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200">
+          <button
+            onClick={handleSettingsClick}
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
+          >
             <FiSettings className="w-4 h-4" />
             <span className="hidden sm:inline">Settings</span>
           </button>

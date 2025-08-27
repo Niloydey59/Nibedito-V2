@@ -7,6 +7,13 @@ import { adminService } from "@/services/adminService";
 import UserFilters from "@/components/admin/users/UserFilters";
 import UsersTable from "@/components/admin/users/UsersTable";
 import ConfirmDialog from "@/components/admin/users/ConfirmDialog";
+import type {
+  Admin,
+  User,
+  GetAllUsersParams,
+  GetAllUsersResponse,
+  ApiResponse,
+} from "@/types";
 import {
   FiUsers,
   FiUserCheck,
@@ -15,29 +22,56 @@ import {
   FiAlertCircle,
 } from "react-icons/fi";
 
-export default function UsersPage() {
+interface AdminAuthContextType {
+  admin: Admin | null;
+  isLoading: boolean;
+}
+
+interface PaginationState {
+  page: number;
+  limit: number;
+  total: number;
+  pages: number;
+}
+
+interface FiltersState {
+  search: string;
+  filter: "all" | "active" | "banned";
+  sortBy: string;
+  order: "asc" | "desc";
+}
+
+interface DialogConfig {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  actionType: "ban" | "unban" | "delete";
+  onConfirm: (() => Promise<void>) | null;
+}
+
+export default function UsersPage(): React.JSX.Element {
   const router = useRouter();
-  const { admin, isLoading } = useAdminAuth();
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
+  const { admin, isLoading }: AdminAuthContextType = useAdminAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationState>({
     page: 1,
     limit: 10,
     total: 0,
     pages: 0,
   });
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<FiltersState>({
     search: "",
     filter: "all",
     sortBy: "createdAt",
     order: "desc",
   });
-  const [dialogConfig, setDialogConfig] = useState({
+  const [dialogConfig, setDialogConfig] = useState<DialogConfig>({
     isOpen: false,
     title: "",
     message: "",
-    actionType: "",
+    actionType: "ban",
     onConfirm: null,
   });
 
@@ -48,24 +82,33 @@ export default function UsersPage() {
   }, [isLoading, admin, router]);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsers = async (): Promise<void> => {
       try {
         setLoading(true);
         setError(null);
-        const response = await adminService.getAllUsers({
+
+        const params: GetAllUsersParams = {
           page: pagination.page,
           limit: pagination.limit,
           ...filters,
-        });
-        setUsers(response.payload.users);
-        setPagination((prev) => ({
-          ...prev,
-          total: response.payload.pagination.total,
-          pages: response.payload.pagination.pages,
-        }));
-      } catch (error) {
+        };
+
+        const response: ApiResponse<GetAllUsersResponse> =
+          await adminService.getAllUsers(params);
+
+        if (response.success && response.payload) {
+          setUsers(response.payload.users);
+          setPagination((prev) => ({
+            ...prev,
+            total: response.payload!.pagination.total,
+            pages: response.payload!.pagination.pages,
+          }));
+        } else {
+          throw new Error(response.message || "Failed to fetch users");
+        }
+      } catch (error: any) {
         console.error("Error fetching users:", error);
-        setError("Failed to load users. Please try again.");
+        setError(error.message || "Failed to load users. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -76,81 +119,108 @@ export default function UsersPage() {
     }
   }, [admin, pagination.page, pagination.limit, filters]);
 
-  const showConfirmDialog = (config) => {
+  const showConfirmDialog = (config: Omit<DialogConfig, "isOpen">): void => {
     setDialogConfig({ ...config, isOpen: true });
   };
 
-  const closeDialog = () => {
+  const closeDialog = (): void => {
     setDialogConfig((prev) => ({ ...prev, isOpen: false }));
   };
 
-  const handleBanUser = async (userId) => {
-    const user = users.find((u) => u._id === userId);
+  const refreshUsers = async (): Promise<void> => {
+    try {
+      const params: GetAllUsersParams = {
+        page: pagination.page,
+        limit: pagination.limit,
+        ...filters,
+      };
+
+      const response: ApiResponse<GetAllUsersResponse> =
+        await adminService.getAllUsers(params);
+
+      if (response.success && response.payload) {
+        setUsers(response.payload.users);
+      }
+    } catch (error: any) {
+      console.error("Error refreshing users:", error);
+    }
+  };
+
+  const handleBanUser = async (userId: string): Promise<void> => {
+    const user: User | undefined = users.find((u) => u._id === userId);
+    if (!user) return;
+
     showConfirmDialog({
       title: "Ban User",
       message: `Are you sure you want to ban ${user.name}? They will no longer be able to access their account.`,
       actionType: "ban",
-      onConfirm: async () => {
+      onConfirm: async (): Promise<void> => {
         try {
           await adminService.banUser(userId);
-          const response = await adminService.getAllUsers({
-            page: pagination.page,
-            limit: pagination.limit,
-            ...filters,
-          });
-          setUsers(response.payload.users);
+          await refreshUsers();
           closeDialog();
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error banning user:", error);
+          setError(error.message || "Failed to ban user");
         }
       },
     });
   };
 
-  const handleUnbanUser = async (userId) => {
-    const user = users.find((u) => u._id === userId);
+  const handleUnbanUser = async (userId: string): Promise<void> => {
+    const user: User | undefined = users.find((u) => u._id === userId);
+    if (!user) return;
+
     showConfirmDialog({
       title: "Unban User",
       message: `Are you sure you want to unban ${user.name}? They will regain access to their account.`,
       actionType: "unban",
-      onConfirm: async () => {
+      onConfirm: async (): Promise<void> => {
         try {
           await adminService.unbanUser(userId);
-          const response = await adminService.getAllUsers({
-            page: pagination.page,
-            limit: pagination.limit,
-            ...filters,
-          });
-          setUsers(response.payload.users);
+          await refreshUsers();
           closeDialog();
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error unbanning user:", error);
+          setError(error.message || "Failed to unban user");
         }
       },
     });
   };
 
-  const handleDeleteUser = async (userId) => {
-    const user = users.find((u) => u._id === userId);
+  const handleDeleteUser = async (userId: string): Promise<void> => {
+    const user: User | undefined = users.find((u) => u._id === userId);
+    if (!user) return;
+
     showConfirmDialog({
       title: "Delete User",
       message: `Are you sure you want to delete ${user.name}? This action cannot be undone.`,
       actionType: "delete",
-      onConfirm: async () => {
+      onConfirm: async (): Promise<void> => {
         try {
           await adminService.deleteUser(userId);
-          const response = await adminService.getAllUsers({
-            page: pagination.page,
-            limit: pagination.limit,
-            ...filters,
-          });
-          setUsers(response.payload.users);
+          await refreshUsers();
           closeDialog();
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error deleting user:", error);
+          setError(error.message || "Failed to delete user");
         }
       },
     });
+  };
+
+  const handleFiltersChange = (newFilters: Partial<FiltersState>): void => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    // Reset to first page when filters change
+    if (pagination.page !== 1) {
+      setPagination((prev) => ({ ...prev, page: 1 }));
+    }
+  };
+
+  const handlePaginationChange = (
+    newPagination: Partial<PaginationState>
+  ): void => {
+    setPagination((prev) => ({ ...prev, ...newPagination }));
   };
 
   if (isLoading || !admin) {
@@ -166,9 +236,9 @@ export default function UsersPage() {
     );
   }
 
-  const totalUsers = pagination.total;
-  const activeUsers = users.filter((user) => !user.isBanned).length;
-  const bannedUsers = users.filter((user) => user.isBanned).length;
+  const totalUsers: number = pagination.total;
+  const activeUsers: number = users.filter((user) => !user.isBanned).length;
+  const bannedUsers: number = users.filter((user) => user.isBanned).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">

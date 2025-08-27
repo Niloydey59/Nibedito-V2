@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import AdminLoginForm from "@/components/admin/auth/AdminLoginForm";
+import type { Admin } from "@/types";
 
-export default function AdminLoginPage() {
+interface AdminAuthContextType {
+  admin: Admin | null;
+  isLoading: boolean;
+}
+
+export default function AdminLoginPage(): React.JSX.Element {
   const router = useRouter();
-  const { admin, isLoading } = useAdminAuth();
+  const { admin, isLoading }: AdminAuthContextType = useAdminAuth();
 
   useEffect(() => {
     if (!isLoading && admin) {

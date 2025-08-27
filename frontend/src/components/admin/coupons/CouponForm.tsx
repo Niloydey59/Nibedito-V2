@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { createCoupon, updateCoupon } from "@/services/couponService";
+import { couponService } from "@/services/couponService";
 import { toast } from "react-hot-toast";
+import { Coupon, CreateCouponRequest } from "@/types";
 import {
   FiGift,
   FiCalendar,
@@ -12,10 +13,22 @@ import {
 } from "react-icons/fi";
 
 interface CouponFormProps {
-  editingCoupon?: any;
+  editingCoupon?: Coupon;
   onSuccess: () => void;
   onError: (message: string) => void;
   onCancel: () => void;
+}
+
+interface FormData {
+  code: string;
+  productDiscountType: "fixed" | "percentage" | "none";
+  productDiscountValue: number;
+  shippingDiscountType: "free" | "fixed" | "percentage" | "none";
+  shippingDiscountValue: number;
+  expiryDate: string;
+  minOrderAmount: number;
+  maxDiscount: number;
+  usageLimit: number;
 }
 
 export default function CouponForm({
@@ -24,7 +37,7 @@ export default function CouponForm({
   onError,
   onCancel,
 }: CouponFormProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     code: editingCoupon?.code || "",
     productDiscountType:
       editingCoupon?.discountOptions?.productDiscount?.type || "none",
@@ -51,7 +64,13 @@ export default function CouponForm({
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]:
+        name.includes("Value") ||
+        name.includes("Amount") ||
+        name === "usageLimit" ||
+        name === "maxDiscount"
+          ? parseFloat(value) || 0
+          : value,
     }));
   };
 
@@ -61,11 +80,23 @@ export default function CouponForm({
     try {
       setIsSubmitting(true);
 
+      const couponData: CreateCouponRequest = {
+        code: formData.code,
+        productDiscountType: formData.productDiscountType,
+        productDiscountValue: formData.productDiscountValue,
+        shippingDiscountType: formData.shippingDiscountType,
+        shippingDiscountValue: formData.shippingDiscountValue,
+        expiryDate: formData.expiryDate,
+        minOrderAmount: formData.minOrderAmount,
+        maxDiscount: formData.maxDiscount,
+        usageLimit: formData.usageLimit,
+      };
+
       if (editingCoupon) {
-        await updateCoupon(editingCoupon._id, formData);
+        await couponService.updateCoupon(editingCoupon._id, couponData);
         toast.success("Coupon updated successfully");
       } else {
-        await createCoupon(formData);
+        await couponService.createCoupon(couponData);
         toast.success("Coupon created successfully");
       }
 

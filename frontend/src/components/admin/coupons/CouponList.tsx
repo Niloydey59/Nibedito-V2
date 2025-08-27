@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { deleteCoupon, getCouponById } from "@/services/couponService";
+import { couponService } from "@/services/couponService";
 import { toast } from "react-hot-toast";
 import { format } from "date-fns";
 import { FiTag, FiEdit3, FiTrash2, FiClock, FiPlus } from "react-icons/fi";
+import { Coupon } from "@/types";
 import CouponForm from "./CouponForm";
 
 interface CouponListProps {
-  coupons: any[];
+  coupons: Coupon[];
   onCouponsUpdate: () => void;
 }
 
@@ -16,7 +17,7 @@ export default function CouponList({
   coupons,
   onCouponsUpdate,
 }: CouponListProps) {
-  const [editingCoupon, setEditingCoupon] = useState<any>(null);
+  const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDelete = async (couponId: string) => {
@@ -25,7 +26,7 @@ export default function CouponList({
     }
 
     try {
-      await deleteCoupon(couponId);
+      await couponService.deleteCoupon(couponId);
       toast.success("Coupon deleted successfully");
       onCouponsUpdate();
     } catch (error: any) {
@@ -36,8 +37,12 @@ export default function CouponList({
   const handleEdit = async (couponId: string) => {
     try {
       setIsLoading(true);
-      const response = await getCouponById(couponId);
-      const coupon = response.payload;
+      const response = await couponService.getCouponById(couponId);
+      const coupon = response.payload?.coupon;
+
+      if (!coupon) {
+        throw new Error("Coupon not found");
+      }
 
       // Format date string to be compatible with datetime-local input
       const expiryDate = new Date(coupon.expiryDate);
@@ -226,12 +231,14 @@ export default function CouponList({
                             onClick={() => handleEdit(coupon._id)}
                             disabled={isLoading}
                             className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-50"
+                            title="Edit Coupon"
                           >
                             <FiEdit3 className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(coupon._id)}
                             className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                            title="Delete Coupon"
                           >
                             <FiTrash2 className="w-4 h-4" />
                           </button>
