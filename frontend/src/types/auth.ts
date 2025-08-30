@@ -1,4 +1,5 @@
-import { User, Address, ApiResponse } from './api';
+import { ApiResponse } from './api';
+import { Address, User } from './user';
 
 export interface LoginCredentials {
   emailOrPhone: string;
@@ -55,9 +56,9 @@ export interface AuthService {
   logout(): Promise<void>;
   getCurrentUser(): Promise<User | null>;
   forgotPassword(email: string): Promise<ApiResponse>;
-  resetPassword(token: string, newPassword: string): Promise<ApiResponse>;
+  resetPassword(data: ResetPasswordRequest): Promise<ApiResponse>;
   activateAccount(token: string): Promise<ApiResponse>;
-  resendVerificationEmail(email: string): Promise<ApiResponse>;
+  resendVerificationEmail(data: ResendVerificationRequest): Promise<ApiResponse>;
   changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; message: string }>;
   addAddress(userId: string, addressData: Omit<Address, '_id' | 'createdAt' | 'updatedAt'>): Promise<User>;
   updateAddress(userId: string, addressId: string, addressData: Partial<Address>): Promise<User>;

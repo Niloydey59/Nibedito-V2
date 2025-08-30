@@ -1,5 +1,12 @@
-export const validateRegistrationData = (data) => {
-  const errors = {};
+import { RegisterData, LoginCredentials } from '@/types';
+
+interface ValidationResult {
+  isValid: boolean;
+  errors: Record<string, string>;
+}
+
+export const validateRegistrationData = (data: RegisterData): ValidationResult => {
+  const errors: Record<string, string> = {};
 
   // Name validation
   if (!data.name?.trim()) {
@@ -51,8 +58,8 @@ export const validateRegistrationData = (data) => {
   };
 };
 
-export const validateLoginData = (data) => {
-  const errors = {};
+export const validateLoginData = (data: LoginCredentials): ValidationResult => {
+  const errors: Record<string, string> = {};
 
   if (!data.emailOrPhone?.trim()) {
     errors.emailOrPhone = 'Email or phone is required';
@@ -65,5 +72,28 @@ export const validateLoginData = (data) => {
   return {
     isValid: Object.keys(errors).length === 0,
     errors
+  };
+};
+
+export const validateResetPassword = (data: { password: string; confirmPassword: string }): ValidationResult => {
+  const errors: Record<string, string> = {};
+  if (!data.password) {
+    errors.password = "Password is required";
+  } else if (data.password.length < 8) {
+    errors.password = "Password must be at least 8 characters long";
+  } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
+    errors.password =
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number";
+  }
+
+  if (!data.confirmPassword) {
+    errors.confirmPassword = "Please confirm your password";
+  } else if (data.password !== data.confirmPassword) {
+    errors.confirmPassword = "Passwords do not match";
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors,
   };
 };

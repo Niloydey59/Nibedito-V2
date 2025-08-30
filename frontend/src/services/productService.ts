@@ -87,81 +87,66 @@ export const productService: ProductService = {
     },
 
     async getProductsByCategory(categorySlug: string, params: Record<string, any> = {}): Promise<ProductsResponse> {
-        try {
-            // First get the category by slug to get its ID
-            const categoryData = await categoryService.getCategory(categorySlug) as Category;
-            
-            // Then query products with the category ID
-            const response = await axios.get<ApiResponse<ProductsResponse>>(PRODUCT_URL, {
-                params: { 
-                    ...params, 
-                    category: categoryData._id // Pass categoryId instead of slug
-                }
-            });
-            return response.data.payload!;
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || error.message);
-        }
+        // First get the category by slug to get its ID
+        const categoryData = await categoryService.getCategory(categorySlug) as Category;
+        
+        // Then query products with the category ID
+        const response = await axios.get<ApiResponse<ProductsResponse>>(PRODUCT_URL, {
+            params: { 
+                ...params, 
+                category: categoryData._id // Pass categoryId instead of slug
+            }
+        });
+        return response.data.payload!;
     },
 
     async getProductsBySubcategory(subcategorySlug: string, params: Record<string, any> = {}): Promise<ProductsResponse> {
-        try {
-            // First get the subcategory by slug to get its ID
-            const subcategoryData = await subcategoryService.getSubcategory(subcategorySlug) as Subcategory;
-            
-            // Then query products with the subcategory ID
-            const response = await axios.get<ApiResponse<ProductsResponse>>(PRODUCT_URL, {
-                params: { 
-                    ...params, 
-                    subcategory: subcategoryData._id // Pass subcategoryId instead of slug
-                }
-            });
-            return response.data.payload!;
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || error.message);
-        }
+        // First get the subcategory by slug to get its ID
+        const subcategoryData = await subcategoryService.getSubcategory(subcategorySlug) as Subcategory;
+        
+        // Then query products with the subcategory ID
+        const response = await axios.get<ApiResponse<ProductsResponse>>(PRODUCT_URL, {
+            params: { 
+                ...params, 
+                subcategory: subcategoryData._id // Pass subcategoryId instead of slug
+            }
+        });
+        return response.data.payload!;
     },
 
     async updateProduct(slug: string, formData: FormData): Promise<ApiResponse<{ product: Product }>> {
-        try {
-            const response = await fetch(`${PRODUCT_URL}/${slug}`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                credentials: 'include',
-                body: formData
-            });
+        const response = await fetch(`${PRODUCT_URL}/${slug}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            credentials: 'include',
+            body: formData
+        });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to update product');
-            }
-
-            return response.json();
-        } catch (error: any) {
-            throw error;
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update product');
         }
+
+        return response.json();
     },
 
     async deleteProduct(slug: string): Promise<ApiResponse<{ product: Product }>> {
-        try {
-            const response = await fetch(`${PRODUCT_URL}/${slug}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                credentials: 'include'
-            });
+        const response = await fetch(`${PRODUCT_URL}/${slug}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            credentials: 'include'
+        });
 
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to delete product');
-            }
-
-            return response.json();
-        } catch (error: any) {
-            throw error;
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to delete product');
         }
+
+        return response.json();
     }
 };
+  

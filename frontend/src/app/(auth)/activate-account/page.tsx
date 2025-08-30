@@ -6,7 +6,7 @@ import ActivateAccountForm from "@/components/auth/ActivateAccountForm";
 
 export default function ActivateAccountPage() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const token: string | null = searchParams.get("token");
 
   if (!token) {
     return (
@@ -60,7 +60,7 @@ export default function ActivateAccountPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <ActivateAccountForm />
+        <ActivateAccountForm token={token} />
       </div>
     </div>
   );

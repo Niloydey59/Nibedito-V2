@@ -6,11 +6,14 @@ import Link from "next/link";
 import { validateRegistrationData } from "@/utils/validation";
 import { useAuth } from "@/contexts/AuthContext";
 import Error from "@/components/common/Error";
+import type { RegisterData } from "@/types";
 
 export default function RegisterForm() {
   const router = useRouter();
   const { register } = useAuth();
-  const [formData, setFormData] = useState({
+
+  // typed form data using new types
+  const [formData, setFormData] = useState<RegisterData>({
     name: "",
     email: "",
     phone: "",
@@ -20,10 +23,12 @@ export default function RegisterForm() {
     state: "",
     postalCode: "",
   });
-  const [errors, setErrors] = useState({});
+
+  // typed errors
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -37,7 +42,7 @@ export default function RegisterForm() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrors({});
 
@@ -56,7 +61,7 @@ export default function RegisterForm() {
         sessionStorage.setItem("pendingVerification", formData.email);
         router.push("/verify-email");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Registration error:", error);
 
       if (error.message.toLowerCase().includes("email")) {
@@ -78,7 +83,7 @@ export default function RegisterForm() {
     }
   };
 
-  const inputClassName = (fieldName) =>
+  const inputClassName = (fieldName: string) =>
     `w-full px-4 py-3 rounded-lg border transition-all duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent shadow-sm hover:shadow-md ${
       errors[fieldName]
         ? "border-red-500 dark:border-red-400"
@@ -100,7 +105,11 @@ export default function RegisterForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           {errors.general && (
             <div className="mb-6">
-              <Error type="error" message={errors.general} />
+              <Error
+                type="error"
+                message={errors.general}
+                onClose={() => setErrors((prev) => ({ ...prev, general: "" }))}
+              />
             </div>
           )}
 
@@ -109,6 +118,7 @@ export default function RegisterForm() {
               <Error
                 type="warning"
                 message="Please correct the following errors:"
+                onClose={() => setErrors({})}
               />
             </div>
           )}
@@ -188,7 +198,7 @@ export default function RegisterForm() {
                         ? "border-red-500 dark:border-red-400"
                         : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500"
                     }`}
-                    maxLength="10"
+                    maxLength={10}
                     placeholder="1234567890"
                   />
                 </div>

@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { authService } from "@/services/auth";
+import { ResendVerificationRequest } from "@/types/auth";
 import Error from "@/components/common/Error";
 
-export default function VerifyEmailForm({ email }) {
+interface VerifyEmailFormProps {
+  email: string;
+}
+
+export default function VerifyEmailForm({ email }: VerifyEmailFormProps) {
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [timer, setTimer] = useState(60);
@@ -30,12 +35,13 @@ export default function VerifyEmailForm({ email }) {
     setTimer(60);
 
     try {
-      await authService.resendVerificationEmail(email);
+      const resendData: ResendVerificationRequest = { email };
+      await authService.resendVerificationEmail(resendData);
       setStatus({
         type: "success",
         message: "Verification email has been resent. Please check your inbox.",
       });
-    } catch (error) {
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to resend verification email.",

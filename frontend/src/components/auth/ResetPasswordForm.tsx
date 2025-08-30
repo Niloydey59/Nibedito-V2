@@ -4,39 +4,31 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { authService } from "@/services/auth";
+import { validateResetPassword } from "@/utils/validation";
+import { ResetPasswordRequest } from "@/types/auth";
 import Error from "@/components/common/Error";
 
-export default function ResetPasswordForm({ token }) {
+interface ResetPasswordFormProps {
+  token: string;
+}
+
+interface FormData {
+  password: string;
+  confirmPassword: string;
+}
+
+export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     password: "",
     confirmPassword: "",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState({ type: "", message: "" });
   const [isLoading, setIsLoading] = useState(false);
 
   const validatePasswords = () => {
-    const errors = {};
-    if (!formData.password) {
-      errors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      errors.password = "Password must be at least 8 characters long";
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      errors.password =
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number";
-    }
-
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      errors.confirmPassword = "Passwords do not match";
-    }
-
-    return {
-      isValid: Object.keys(errors).length === 0,
-      errors,
-    };
+    return validateResetPassword(formData);
   };
 
   const handleChange = (e) => {
@@ -53,7 +45,7 @@ export default function ResetPasswordForm({ token }) {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus({ type: "", message: "" });
 
@@ -65,7 +57,11 @@ export default function ResetPasswordForm({ token }) {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword(token, formData.password);
+      const resetData: ResetPasswordRequest = {
+        token,
+        newPassword: formData.password,
+      };
+      await authService.resetPassword(resetData);
       setStatus({
         type: "success",
         message:
@@ -74,7 +70,7 @@ export default function ResetPasswordForm({ token }) {
       setTimeout(() => {
         router.push("/login");
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to reset password. Please try again.",

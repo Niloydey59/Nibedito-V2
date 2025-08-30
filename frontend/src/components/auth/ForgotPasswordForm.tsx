@@ -4,28 +4,45 @@ import { useState } from "react";
 import Link from "next/link";
 import { authService } from "@/services/auth";
 import Error from "@/components/common/Error";
+import type { ApiResponse } from "@/types/api";
+
+type Status = { type: "success" | "error" | ""; message: string };
 
 export default function ForgotPasswordForm() {
-  const [email, setEmail] = useState("");
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [status, setStatus] = useState<Status>({ type: "", message: "" });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
     setStatus({ type: "", message: "" });
 
     try {
-      await authService.forgotPassword(email);
-      setStatus({
-        type: "success",
-        message: "Password reset instructions have been sent to your email.",
-      });
-      setEmail("");
+      const response: ApiResponse = await authService.forgotPassword(email);
+      if (response && response.success) {
+        setStatus({
+          type: "success",
+          message:
+            response.message ||
+            "Password reset instructions have been sent to your email.",
+        });
+        setEmail("");
+      } else {
+        setStatus({
+          type: "error",
+          message:
+            response?.message || "Something went wrong. Please try again.",
+        });
+      }
     } catch (error) {
+      const errMessage =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.";
       setStatus({
         type: "error",
-        message: error.message || "Something went wrong. Please try again.",
+        message: errMessage,
       });
     } finally {
       setIsLoading(false);
@@ -66,7 +83,9 @@ export default function ForgotPasswordForm() {
               type="email"
               id="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setEmail(e.target.value)
+              }
               placeholder="Enter your email"
               required
               className="w-full px-4 py-3 rounded-lg border border-slate-300 dark:border-slate-600 transition-all duration-200 bg-white dark:bg-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent hover:border-slate-400 dark:hover:border-slate-500 shadow-sm hover:shadow-md"

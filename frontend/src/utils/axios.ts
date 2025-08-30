@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ApiResponse } from '@/types/api'; // Add this import for type assertion
 
 const instance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -97,6 +98,11 @@ instance.interceptors.response.use(
                     window.location.href = '/login';
                 }
             }
+        }
+        // Cast error.response.data as ApiResponse to access 'message' safely
+        const errorData = error.response?.data as ApiResponse | undefined;
+        if (errorData?.message) {
+            error.message = errorData.message; // Update error message for consistency
         }
         return Promise.reject(error);
     }

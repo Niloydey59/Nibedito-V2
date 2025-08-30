@@ -1,5 +1,16 @@
-import { Admin, User, ApiResponse, PaginationInfo } from './api';
-import { Order } from './order';
+import {  ApiResponse, PaginationInfo } from './api';
+import { User } from './user';
+
+export interface Admin {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: 'admin' | 'superadmin';
+  lastLogin?: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface AdminLoginCredentials {
   email: string;

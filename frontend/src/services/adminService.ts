@@ -12,63 +12,39 @@ import {
 
 export const adminService: AdminService = {
     async login(credentials: AdminLoginCredentials): Promise<Admin> {
-        try {
-            const response = await axios.post<ApiResponse<{ adminInfo: Admin; accessToken?: string }>>('/admin/login', credentials, {
-                withCredentials: true
-            });
-            const { data } = response;
+        const response = await axios.post<ApiResponse<{ adminInfo: Admin; accessToken?: string }>>('/admin/login', credentials, {
+            withCredentials: true
+        });
+        const { data } = response;
+        
+        if (data.success && data.payload?.adminInfo) {
+            // Store admin info in localStorage
+            localStorage.setItem('admin', JSON.stringify(data.payload.adminInfo));
             
-            if (data.success && data.payload?.adminInfo) {
-                // Store admin info in localStorage
-                localStorage.setItem('admin', JSON.stringify(data.payload.adminInfo));
-                
-                // Store token separately if provided
-                if (data.payload.accessToken) {
-                    localStorage.setItem('adminToken', data.payload.accessToken);
-                }
-                
-                // Clear any user data to prevent conflicts
-                localStorage.removeItem('user');
-                
-                return data.payload.adminInfo;
-            }
-            throw new Error(data.message || 'Login failed');
-        } catch (error: any) {
-            // Only log response data if it exists
-            if (error.response?.data) {
-                console.error('Admin login error details:', error.response.data);
-            } else if (error.message) {
-                console.error('Admin login error:', error.message);
+            // Store token separately if provided
+            if (data.payload.accessToken) {
+                localStorage.setItem('adminToken', data.payload.accessToken);
             }
             
-            // Handle API errors with proper message
-            if (error.response?.data?.message) {
-                throw new Error(error.response.data.message);
-            }
+            // Clear any user data to prevent conflicts
+            localStorage.removeItem('user');
             
-            // Pass through other errors with their message
-            if (error.message) {
-                throw new Error(error.message);
-            } else {
-                throw new Error('Login failed');
-            }
+            return data.payload.adminInfo;
         }
+        throw new Error(data.message || 'Login failed');
     },
 
     async logout(): Promise<void> {
-        try {
-            await axios.post('/admin/logout', {}, {
-                withCredentials: true
-            });
-        } finally {
-            // Clear all relevant localStorage items
-            localStorage.removeItem('admin');
-            localStorage.removeItem('adminToken');
-            
-            // Clear cookies manually as well
-            document.cookie = "accessToken=; Max-Age=0; path=/; domain=" + window.location.hostname;
-            document.cookie = "refreshToken=; Max-Age=0; path=/; domain=" + window.location.hostname;
-        }
+        await axios.post('/admin/logout', {}, {
+            withCredentials: true
+        });
+        // Clear all relevant localStorage items
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminToken');
+        
+        // Clear cookies manually as well
+        document.cookie = "accessToken=; Max-Age=0; path=/; domain=" + window.location.hostname;
+        document.cookie = "refreshToken=; Max-Age=0; path=/; domain=" + window.location.hostname;
     },
 
     async getCurrentAdmin(): Promise<Admin | null> {
@@ -78,34 +54,26 @@ export const adminService: AdminService = {
             if (!adminStr) return null;
 
             // Verify session with server
-            try {
-                const { data } = await axios.get<ApiResponse<{ adminInfo?: Admin }>>('/admin/verify-session', {
-                    withCredentials: true
-                });
+            const { data } = await axios.get<ApiResponse<{ adminInfo?: Admin }>>('/admin/verify-session', {
+                withCredentials: true
+            });
 
-                if (data.success) {
-                    // If we have a new admin info in the response, update localStorage
-                    if (data.payload?.adminInfo) {
-                        localStorage.setItem('admin', JSON.stringify(data.payload.adminInfo));
-                        return data.payload.adminInfo;
-                    }
-                    return JSON.parse(adminStr) as Admin;
-                } else {
-                    // If server session is invalid, clear localStorage
-                    localStorage.removeItem('admin');
-                    localStorage.removeItem('adminToken');
-                    return null;
+            if (data.success) {
+                // If we have a new admin info in the response, update localStorage
+                if (data.payload?.adminInfo) {
+                    localStorage.setItem('admin', JSON.stringify(data.payload.adminInfo));
+                    return data.payload.adminInfo;
                 }
-            } catch (error) {
-                // If there's any error, clear localStorage and return null
-                console.error('Error verifying admin session:', error);
+                return JSON.parse(adminStr) as Admin;
+            } else {
+                // If server session is invalid, clear localStorage
                 localStorage.removeItem('admin');
                 localStorage.removeItem('adminToken');
                 return null;
             }
         } catch (error) {
             // If there's any error, clear localStorage and return null
-            console.error('Unexpected error in getCurrentAdmin:', error);
+            console.error('Error verifying admin session:', error);
             localStorage.removeItem('admin');
             localStorage.removeItem('adminToken');
             return null;
@@ -143,27 +111,19 @@ export const adminService: AdminService = {
     },
 
     async banUser(userId: string): Promise<any> {
-        try {
-            const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}/ban`);
-            if (data.success) {
-                return data.payload;
-            }
-            throw new Error(data.message || 'Failed to ban user');
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to ban user');
+        const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}/ban`);
+        if (data.success) {
+            return data.payload;
         }
+        throw new Error(data.message || 'Failed to ban user');
     },
 
     async unbanUser(userId: string): Promise<any> {
-        try {
-            const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}/unban`);
-            if (data.success) {
-                return data.payload;
-            }
-            throw new Error(data.message || 'Failed to unban user');
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to unban user');
+        const { data } = await axios.put<ApiResponse>(`/admin/users/${userId}/unban`);
+        if (data.success) {
+            return data.payload;
         }
+        throw new Error(data.message || 'Failed to unban user');
     },
 
     async deleteUser(userId: string): Promise<ApiResponse> {

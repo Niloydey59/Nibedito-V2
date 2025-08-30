@@ -9,59 +9,39 @@ import {
 
 export const shippingService: ShippingService = {
     async getShippingRates(): Promise<ShippingRate[]> {
-        try {
-            const { data } = await axios.get<ApiResponse<ShippingRate[]>>('/shipping/rates');
-            return data.payload || [];
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to fetch shipping rates');
-        }
+        const { data } = await axios.get<ApiResponse<ShippingRate[]>>('/shipping/rates');
+        return data.payload || [];
     },
 
     async createShippingRate(rateData: CreateShippingRateRequest): Promise<ApiResponse<{ newRate: ShippingRate }>> {
-        try {
-            const { data } = await axios.post<ApiResponse<ShippingRate>>('/shipping/rates', rateData);
-            return {
-                ...data,
-                payload: { newRate: data.payload! }
-            };
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to create shipping rate');
-        }
+        const { data } = await axios.post<ApiResponse<ShippingRate>>('/shipping/rates', rateData);
+        return {
+            ...data,
+            payload: { newRate: data.payload! }
+        };
     },
 
     async initializeDefaultRates(): Promise<ApiResponse<{ rates: ShippingRate[] }>> {
-        try {
-            const { data } = await axios.post<ApiResponse<ShippingRate[]>>('/shipping/rates/initialize');
-            return {
-                ...data,
-                payload: { rates: data.payload || [] }
-            };
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to initialize default rates');
-        }
+        const { data } = await axios.post<ApiResponse<ShippingRate[]>>('/shipping/rates/initialize');
+        return {
+            ...data,
+            payload: { rates: data.payload || [] }
+        };
     },
 
     async updateShippingRate(rateId: string, updateData: UpdateShippingRateRequest): Promise<ApiResponse<{ updatedRate: ShippingRate }>> {
-        try {
-            const { data } = await axios.put<ApiResponse<ShippingRate>>(`/shipping/rates/${rateId}`, updateData);
-            return {
-                ...data,
-                payload: { updatedRate: data.payload! }
-            };
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to update shipping rate');
-        }
+        const { data } = await axios.put<ApiResponse<ShippingRate>>(`/shipping/rates/${rateId}`, updateData);
+        return {
+            ...data,
+            payload: { updatedRate: data.payload! }
+        };
     },
 
     async deleteShippingRate(rateId: string): Promise<ApiResponse<{ deletedRate: ShippingRate }>> {
-        try {
-            const { data } = await axios.delete<ApiResponse<ShippingRate>>(`/shipping/rates/${rateId}`);
-            return {
-                ...data,
-                payload: { deletedRate: data.payload! }
-            };
-        } catch (error: any) {
-            throw new Error(error.response?.data?.message || 'Failed to delete shipping rate');
-        }
+        const { data } = await axios.delete<ApiResponse<ShippingRate>>(`/shipping/rates/${rateId}`);
+        return {
+            ...data,
+            payload: { deletedRate: data.payload! }
+        };
     }
 };

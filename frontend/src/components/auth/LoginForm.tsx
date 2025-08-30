@@ -5,15 +5,21 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import Error from "@/components/common/Error";
+import { validateLoginData } from "@/utils/validation";
+import type { LoginCredentials } from "@/types";
 
 export default function LoginForm() {
   const router = useRouter();
   const { login } = useAuth();
-  const [formData, setFormData] = useState({
+
+  // typed form data using new types
+  const [formData, setFormData] = useState<LoginCredentials>({
     emailOrPhone: "",
     password: "",
   });
-  const [errors, setErrors] = useState({});
+
+  // typed errors
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showError, setShowError] = useState(false);
 
@@ -30,7 +36,7 @@ export default function LoginForm() {
     };
   }, [showError]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -45,18 +51,12 @@ export default function LoginForm() {
     setShowError(false);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const validationErrors = {};
-    if (!formData.emailOrPhone.trim()) {
-      validationErrors.emailOrPhone = "Email or phone is required";
-    }
-    if (!formData.password) {
-      validationErrors.password = "Password is required";
-    }
-
-    if (Object.keys(validationErrors).length > 0) {
+    // Use typed validation helper
+    const { isValid, errors: validationErrors } = validateLoginData(formData);
+    if (!isValid) {
       setErrors(validationErrors);
       return;
     }
@@ -68,7 +68,7 @@ export default function LoginForm() {
     try {
       const response = await login(formData);
       router.push("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage =
         error?.message || "Failed to login. Please try again.";
 
@@ -207,7 +207,7 @@ export default function LoginForm() {
 
           <div className="text-center pt-4">
             <p className="text-slate-600 dark:text-slate-400">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/register"
                 className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 font-medium transition-colors duration-200"

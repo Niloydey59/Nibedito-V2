@@ -1,41 +1,74 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { authService } from "@/services/auth";
 import Error from "@/components/common/Error";
+import type { ApiResponse } from "@/types/api";
 
-export default function ActivateAccountForm() {
+type Props = {
+  token: string;
+};
+
+export default function ActivateAccountForm({ token }: Props) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [isLoading, setIsLoading] = useState(true);
+  const [status, setStatus] = useState<{
+    type: "success" | "error" | "";
+    message: string;
+  }>({
+    type: "",
+    message: "",
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (token) {
-      activateAccount();
-    }
-  }, [token]);
+    let isMounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-  const activateAccount = async () => {
-    try {
-      await authService.activateAccount(token);
-      setStatus({
-        type: "success",
-        message: "Account activated successfully! Redirecting to login...",
-      });
-      setTimeout(() => router.push("/login"), 2000);
-    } catch (error) {
-      setStatus({
-        type: "error",
-        message:
-          error.message || "Failed to activate account. Please try again.",
-      });
-    } finally {
+    const activate = async () => {
+      try {
+        const data: ApiResponse = await authService.activateAccount(token);
+        if (!isMounted) return;
+
+        if (data && data.success) {
+          setStatus({
+            type: "success",
+            message:
+              data.message ||
+              "Account activated successfully! Redirecting to login...",
+          });
+          timeoutId = setTimeout(() => router.push("/login"), 2000);
+        } else {
+          setStatus({
+            type: "error",
+            message:
+              data?.message || "Failed to activate account. Please try again.",
+          });
+        }
+      } catch (error) {
+        if (!isMounted) return;
+        const errMsg =
+          error instanceof Error
+            ? error.message
+            : (error as any)?.response?.data?.message ||
+              "Failed to activate account. Please try again.";
+        setStatus({ type: "error", message: errMsg });
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    if (token) {
+      activate();
+    } else {
       setIsLoading(false);
     }
-  };
+
+    return () => {
+      isMounted = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [token, router]);
 
   return (
     <div className="w-full max-w-md mx-auto">

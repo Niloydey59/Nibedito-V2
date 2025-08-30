@@ -6,7 +6,7 @@ import VerifyEmailForm from "@/components/auth/VerifyEmailForm";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string>(""); // Add type for clarity
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

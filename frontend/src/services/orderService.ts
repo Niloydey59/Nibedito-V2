@@ -10,48 +10,27 @@ import {
 
 export const orderService: OrderService = {
     async createOrder(orderData: CreateOrderRequest): Promise<{ success: boolean; data?: Order; error?: string }> {
-        try {
-            const { data } = await axios.post<ApiResponse<Order>>('/orders', orderData);
-            return {
-                success: true,
-                data: data.payload
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.response?.data?.message || 'Failed to create order'
-            };
-        }
+        const { data } = await axios.post<ApiResponse<Order>>('/orders', orderData);
+        return {
+            success: true,
+            data: data.payload
+        };
     },
 
     async getUserOrders(): Promise<{ success: boolean; data?: Order[]; error?: string }> {
-        try {
-            const { data } = await axios.get<ApiResponse<Order[]>>('/orders/user-orders');
-            return {
-                success: true,
-                data: data.payload
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.response?.data?.message || 'Failed to fetch orders'
-            };
-        }
+        const { data } = await axios.get<ApiResponse<Order[]>>('/orders/user-orders');
+        return {
+            success: true,
+            data: data.payload
+        };
     },
 
     async getOrderById(orderId: string): Promise<{ success: boolean; data?: Order; error?: string }> {
-        try {
-            const { data } = await axios.get<ApiResponse<Order>>(`/orders/${orderId}`);
-            return {
-                success: true,
-                data: data.payload
-            };
-        } catch (error: any) {
-            return {
-                success: false,
-                error: error.response?.data?.message || 'Failed to fetch order details'
-            };
-        }
+        const { data } = await axios.get<ApiResponse<Order>>(`/orders/${orderId}`);
+        return {
+            success: true,
+            data: data.payload
+        };
     },
 
     async getAllOrders(params: GetAllOrdersParams = {}): Promise<ApiResponse<OrdersResponse>> {
@@ -85,3 +64,4 @@ export const orderService: OrderService = {
         return data;
     }
 };
+  
