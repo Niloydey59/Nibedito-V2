@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
+import type { Order } from "@/types";
 import {
   FiShoppingBag,
   FiArrowRight,
@@ -17,10 +18,17 @@ import {
   FiXCircle,
 } from "react-icons/fi";
 
-const OrderSummary = () => {
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
+interface OrderStats {
+  total: number;
+  processing: number;
+  delivered: number;
+  cancelled: number;
+}
+
+const OrderSummary: React.FC = () => {
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [stats, setStats] = useState<OrderStats>({
     total: 0,
     processing: 0,
     delivered: 0,
@@ -31,26 +39,29 @@ const OrderSummary = () => {
     fetchOrders();
   }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (): Promise<void> => {
     try {
       const result = await orderService.getUserOrders();
-      if (result.success) {
-        const recentOrders = result.data
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      if (result.success && result.data) {
+        const recentOrders: Order[] = result.data
+          .sort(
+            (a: Order, b: Order) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          )
           .slice(0, 3); // Get only the 3 most recent orders
 
         setOrders(recentOrders);
 
         // Calculate order statistics
-        const allOrders = result.data;
+        const allOrders: Order[] = result.data;
         const processingOrders = allOrders.filter(
-          (order) => (order.status || "").toLowerCase() === "processing"
+          (order: Order) => (order.status || "").toLowerCase() === "processing"
         );
         const deliveredOrders = allOrders.filter(
-          (order) => (order.status || "").toLowerCase() === "delivered"
+          (order: Order) => (order.status || "").toLowerCase() === "delivered"
         );
         const cancelledOrders = allOrders.filter(
-          (order) => (order.status || "").toLowerCase() === "cancelled"
+          (order: Order) => (order.status || "").toLowerCase() === "cancelled"
         );
 
         setStats({
@@ -60,19 +71,19 @@ const OrderSummary = () => {
           cancelled: cancelledOrders.length,
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch orders error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const formatPrice = (price) => {
+  const formatPrice = (price: number): string => {
     if (typeof price !== "number") return "0.00";
     return price.toFixed(2);
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
@@ -80,7 +91,9 @@ const OrderSummary = () => {
     });
   };
 
-  const getStatusBadgeVariant = (status) => {
+  const getStatusBadgeVariant = (
+    status: string
+  ): "default" | "secondary" | "destructive" => {
     switch ((status || "").toLowerCase()) {
       case "delivered":
         return "default";
@@ -93,7 +106,7 @@ const OrderSummary = () => {
     }
   };
 
-  const getStatusIcon = (status) => {
+  const getStatusIcon = (status: string): React.ReactNode => {
     switch ((status || "").toLowerCase()) {
       case "delivered":
         return <FiCheckCircle className="w-3 h-3" />;
@@ -237,7 +250,7 @@ const OrderSummary = () => {
                 <FiShoppingBag className="w-10 h-10 text-slate-400 dark:text-slate-500" />
               </div>
               <p className="text-slate-600 dark:text-slate-400 mb-6 text-lg font-medium">
-                You haven't placed any orders yet.
+                You haven&apos;t placed any orders yet.
               </p>
               <Link
                 href="/products"

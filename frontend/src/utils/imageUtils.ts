@@ -1,12 +1,35 @@
 import axios from '@/utils/axios';
+import { ApiResponse, User } from '@/types';
 
-export const getImageUrl = (url, transform = {}) => {
+interface ImageTransformOptions {
+  width?: number;
+  height?: number;
+  crop?: 'fill' | 'fit' | 'scale' | 'crop' | 'pad';
+  quality?: number;
+}
+
+interface ImagePreset {
+  width: number;
+  height: number;
+  crop: 'fill' | 'fit' | 'scale' | 'crop' | 'pad';
+  quality: number;
+}
+
+interface ImageLoaderProps {
+  src: string;
+  width: number;
+  quality?: number;
+}
+
+type PresetName = 'thumbnail' | 'product' | 'banner';
+
+export const getImageUrl = (url: string | undefined | null, transform: ImageTransformOptions = {}): string => {
     if (!url) return '/images/default-avatar.png';
 
     if (!url.includes('cloudinary')) return url;
 
     const [baseUrl, imagePath] = url.split('/upload/');
-    const transformations = [];
+    const transformations: string[] = [];
 
     if (transform.width) transformations.push(`w_${transform.width}`);
     if (transform.height) transformations.push(`h_${transform.height}`);
@@ -20,8 +43,8 @@ export const getImageUrl = (url, transform = {}) => {
     return `${baseUrl}/upload/${transformString}${imagePath}`;
 };
 
-export const getOptimizedImageUrl = (url, preset = 'thumbnail') => {
-    const presets = {
+export const getOptimizedImageUrl = (url: string | undefined | null, preset: PresetName = 'thumbnail'): string => {
+    const presets: Record<PresetName, ImagePreset> = {
         thumbnail: { width: 300, height: 300, crop: 'fill', quality: 80 },
         product: { width: 800, height: 800, crop: 'fill', quality: 90 },
         banner: { width: 1200, height: 400, crop: 'fill', quality: 90 }
@@ -30,11 +53,11 @@ export const getOptimizedImageUrl = (url, preset = 'thumbnail') => {
     return getImageUrl(url, presets[preset]);
 };
 
-export const imageLoader = ({ src, width, quality }) => {
+export const imageLoader = ({ src, width, quality }: ImageLoaderProps): string => {
     return getImageUrl(src, { width, quality });
 };
 
-export const uploadImage = async (file, userId) => {
+export const uploadImage = async (file: File, userId: string): Promise<User> => {
     try {
         if (!userId) {
             throw new Error('User ID is required');
@@ -43,7 +66,7 @@ export const uploadImage = async (file, userId) => {
         const formData = new FormData();
         formData.append('profilePicture', file);
 
-        const { data } = await axios.put(
+        const { data } = await axios.put<ApiResponse<{ user: User }>>(
             `/users/profile/${userId}`,
             formData,
             {
@@ -58,7 +81,7 @@ export const uploadImage = async (file, userId) => {
             return data.payload.user;
         }
         throw new Error(data.message || 'Failed to upload image');
-    } catch (error) {
+    } catch (error: any) {
         throw new Error(error.response?.data?.message || 'Failed to upload image');
     }
 };

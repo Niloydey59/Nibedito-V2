@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { orderService } from "@/services/orderService";
+import { Order } from "@/types/order";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { OrdersHeader } from "@/components/orders/OrdersHeader";
 import { OrdersFilter } from "@/components/orders/OrdersFilter";
@@ -13,8 +14,8 @@ import { OrdersPagination } from "@/components/orders/OrdersPagination";
 import { OrdersEmptyState } from "@/components/orders/OrdersEmptyState";
 
 export default function MyOrdersPage() {
-  const [orders, setOrders] = useState([]);
-  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function MyOrdersPage() {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(10);
-  const [paginatedOrders, setPaginatedOrders] = useState([]);
+  const [paginatedOrders, setPaginatedOrders] = useState<Order[]>([]);
 
   // Get unique statuses from orders
   const getUniqueStatuses = () => {
@@ -44,31 +45,15 @@ export default function MyOrdersPage() {
       return;
     }
     fetchOrders();
-  }, [user]);
-
-  // Apply filters whenever filter states change
-  useEffect(() => {
-    applyFilters();
-  }, [
-    statusFilter,
-    paymentFilter,
-    giftFilter,
-    sortByDate,
-    sortByPrice,
-    orders,
-  ]);
-
-  // Apply pagination whenever filtered orders or pagination settings change
-  useEffect(() => {
-    applyPagination();
-  }, [filteredOrders, currentPage, ordersPerPage]);
+  }, [router, user]);
 
   const fetchOrders = async () => {
     try {
       const result = await orderService.getUserOrders();
-      if (result.success) {
+      if (result.success && result.data) {
         const sortedOrders = result.data.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          (a, b) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         );
         setOrders(sortedOrders);
         setFilteredOrders(sortedOrders);
@@ -83,7 +68,15 @@ export default function MyOrdersPage() {
     }
   };
 
-  const applyFilters = () => {
+  const applyPagination = useCallback(() => {
+    const indexOfLastOrder = currentPage * ordersPerPage;
+    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
+    setPaginatedOrders(
+      filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder)
+    );
+  }, [filteredOrders, currentPage, ordersPerPage]);
+
+  const applyFilters = useCallback(() => {
     let result = [...orders];
 
     // Apply status filter
@@ -117,9 +110,15 @@ export default function MyOrdersPage() {
 
     // Apply date sorting
     if (sortByDate === "latest") {
-      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      result.sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     } else if (sortByDate === "oldest") {
-      result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+      result.sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      );
     }
 
     // Apply price sorting
@@ -131,15 +130,24 @@ export default function MyOrdersPage() {
 
     setFilteredOrders(result);
     setCurrentPage(1); // Reset to first page when filters change
-  };
+  }, [
+    orders,
+    statusFilter,
+    paymentFilter,
+    giftFilter,
+    sortByDate,
+    sortByPrice,
+  ]);
 
-  const applyPagination = () => {
-    const indexOfLastOrder = currentPage * ordersPerPage;
-    const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-    setPaginatedOrders(
-      filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder)
-    );
-  };
+  // Apply filters whenever filter states change
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
+
+  // Apply pagination whenever filtered orders or pagination settings change
+  useEffect(() => {
+    applyPagination();
+  }, [applyPagination]);
 
   const resetFilters = () => {
     setStatusFilter("all");
@@ -150,7 +158,7 @@ export default function MyOrdersPage() {
     setCurrentPage(1);
   };
 
-  const handlePageChange = (pageNumber) => {
+  const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber);
   };
 

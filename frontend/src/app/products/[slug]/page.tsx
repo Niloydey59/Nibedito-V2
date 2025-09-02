@@ -10,34 +10,15 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ImageMagnifier from "@/components/products/ImageMagnifier";
 import { toast } from "react-hot-toast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
-import type { Product, Variant } from "@/types/product";
-
-interface CartItem {
-  product: {
-    _id: string;
-  };
-  variant: {
-    _id: string;
-  };
-  quantity: number;
-}
-
-interface Cart {
-  items: CartItem[];
-}
+import type { Product, ProductVariant } from "@/types";
 
 export default function ProductDetailsPage() {
   const { slug } = useParams() as { slug: string };
-  const { addToCart, cart } = useCart() as {
-    addToCart: (
-      productId: string,
-      quantity: number,
-      variantId: string
-    ) => Promise<boolean>;
-    cart: Cart | null;
-  };
+  const { addToCart, cart } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
-  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    null
+  );
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
@@ -63,7 +44,7 @@ export default function ProductDetailsPage() {
     fetchProduct();
   }, [slug]);
 
-  const handleVariantSelect = (variant: Variant): void => {
+  const handleVariantSelect = (variant: ProductVariant): void => {
     setSelectedVariant(variant);
     if (variant.images?.length > 0) {
       setSelectedImage(variant.images[0]);
@@ -72,8 +53,7 @@ export default function ProductDetailsPage() {
     // Check if this variant is in cart and update quantity
     const existingCartItem = cart?.items?.find(
       (item) =>
-        item.product._id === product?._id &&
-        item.variant._id === (variant as any)._id
+        item.product._id === product?._id && item.variant._id === variant._id
     );
 
     // Set initial quantity to 1 or existing cart quantity
@@ -93,13 +73,13 @@ export default function ProductDetailsPage() {
       const existingCartItem = cart?.items?.find(
         (item) =>
           item.product._id === product._id &&
-          item.variant._id === (selectedVariant as any)._id
+          item.variant._id === selectedVariant._id
       );
 
       const success = await addToCart(
         product._id!,
         quantity,
-        (selectedVariant as any)._id
+        selectedVariant._id
       );
       if (success) {
         toast.success(
@@ -140,7 +120,7 @@ export default function ProductDetailsPage() {
               {/* Main Image */}
               <div className="relative aspect-square w-full bg-background border border-border rounded-xl overflow-hidden">
                 <ImageMagnifier
-                  src={selectedImage || product.thumbnailImage}
+                  src={selectedImage || product.thumbnailImage!}
                   alt={product.name}
                   width={600}
                   height={600}
@@ -156,10 +136,10 @@ export default function ProductDetailsPage() {
                       ? "border-primary ring-2 ring-primary/20"
                       : "border-border hover:border-primary/50"
                   }`}
-                  onClick={() => setSelectedImage(product.thumbnailImage)}
+                  onClick={() => setSelectedImage(product.thumbnailImage!)}
                 >
                   <Image
-                    src={product.thumbnailImage}
+                    src={product.thumbnailImage!}
                     alt="Main product"
                     width={96}
                     height={96}
@@ -216,7 +196,7 @@ export default function ProductDetailsPage() {
                       />
                       <div className="w-12 h-12 border border-border rounded-lg overflow-hidden flex-shrink-0">
                         <Image
-                          src={variant.images[0] || product.thumbnailImage}
+                          src={variant.images?.[0] || product.thumbnailImage!}
                           alt={variant.color}
                           width={48}
                           height={48}
@@ -253,16 +233,10 @@ export default function ProductDetailsPage() {
               <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                   <span className="text-2xl sm:text-3xl font-bold text-primary">
-                    ৳ {selectedVariant?.price || product.price}
+                    ৳ {product.price}
                   </span>
-                  <div className="flex items-center gap-2 text-amber-500">
-                    <FiStar className="w-5 h-5 fill-current" />
-                    <span className="font-medium text-foreground">
-                      {product.averageRating || 0}
-                    </span>
-                  </div>
                 </div>
-                {product.category && (
+                {typeof product.category === "object" && product.category && (
                   <div className="inline-flex items-center px-3 py-1 bg-primary/10 border border-primary/20 rounded-full">
                     <span className="text-sm font-medium text-primary">
                       {product.category.name}

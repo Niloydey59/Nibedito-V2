@@ -30,8 +30,8 @@ export function OrdersEmptyState({
                 No Orders Found
               </h2>
               <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-                You haven't placed any orders yet. Start shopping to see your
-                orders here!
+                You haven&apos;t placed any orders yet. Start shopping to see
+                your orders here!
               </p>
               <Link
                 href="/products"

@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Order } from "@/types/order";
 import { FiFilter, FiX, FiRotateCcw } from "react-icons/fi";
 
 interface OrdersFilterProps {

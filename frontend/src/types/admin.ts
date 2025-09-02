@@ -41,6 +41,19 @@ export interface UserStats {
   };
 }
 
+export interface DashboardStats {
+  totalUsers: number;
+  totalOrders: number;
+  totalRevenue: number;
+  totalProducts: number;
+  growthStats?: {
+    usersGrowth: number;
+    ordersGrowth: number;
+    revenueGrowth: number;
+    productsGrowth: number;
+  };
+}
+
 export interface GetAllUsersParams {
   page?: number;
   limit?: number;
@@ -78,7 +91,7 @@ export interface AdminService {
   getCurrentAdmin(): Promise<Admin | null>;
   getUserStats(): Promise<UserStats>;
   getRecentOrders(): Promise<any>;
-  getDashboardStats(): Promise<any>;
+  getDashboardStats(): Promise<DashboardStats>;
   getAllUsers(params: GetAllUsersParams): Promise<ApiResponse<GetAllUsersResponse>>;
   banUser(userId: string): Promise<any>;
   unbanUser(userId: string): Promise<any>;

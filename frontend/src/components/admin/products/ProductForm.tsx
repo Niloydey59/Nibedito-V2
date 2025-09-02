@@ -50,13 +50,13 @@ export default function ProductForm({
     description: product?.description || "",
     price: product?.price?.toString() || "",
     category:
-      typeof product?.category === "object"
-        ? product.category._id || ""
-        : product?.category || "",
+      typeof product?.category === "object" && product.category
+        ? product.category._id
+        : (product?.category as string) || "",
     subcategory:
-      typeof product?.subcategory === "object"
-        ? product.subcategory._id || ""
-        : product?.subcategory || "",
+      typeof product?.subcategory === "object" && product.subcategory
+        ? product.subcategory._id
+        : (product?.subcategory as string) || "",
     shipping: product?.shipping || false,
     variants: product?.variants || [],
   });
@@ -104,15 +104,19 @@ export default function ProductForm({
     // If product has a subcategory, prefetch the subcategories for that category
     if (
       typeof product?.category === "object" &&
-      product.category._id &&
+      product.category?._id &&
       typeof product?.subcategory === "object" &&
-      product.subcategory._id
+      product.subcategory?._id
     ) {
       const fetchInitialSubcategories = async (): Promise<void> => {
         try {
           setIsLoadingSubcategories(true);
+          const categoryId =
+            typeof product.category === "object"
+              ? product.category._id
+              : product.category;
           const subcats = await subcategoryService.getSubcategoriesByCategory(
-            product.category._id!
+            categoryId
           );
           setSubcategories(subcats || []);
         } catch (error) {
@@ -152,7 +156,7 @@ export default function ProductForm({
         setFormData((prev) => ({ ...prev, subcategory: "" }));
       }
     }
-  }, [formData.category]);
+  }, [formData.category, formData.subcategory]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -243,7 +247,13 @@ export default function ProductForm({
       ...prev,
       variants: [
         ...prev.variants,
-        { _id: `temp-${Date.now()}`, color: "", size: "", quantity: 0 },
+        {
+          _id: `temp-${Date.now()}`,
+          color: "",
+          size: "",
+          quantity: 0,
+          images: [],
+        },
       ],
     }));
   };
@@ -263,7 +273,7 @@ export default function ProductForm({
 
     try {
       if (!thumbnailImage && !product) {
-        throw new Error("Thumbnail image is required");
+        throw new globalThis.Error("Thumbnail image is required");
       }
 
       const formDataToSend = new FormData();

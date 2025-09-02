@@ -6,13 +6,12 @@ import CartItems from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import EmptyCart from "@/components/cart/EmptyCart";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { Card, CardContent } from "@/components/ui/card";
 import { FiShoppingCart } from "react-icons/fi";
 
 export default function CartPage() {
   const router = useRouter();
   const { cart, loading } = useCart();
-  const [mounted, setMounted] = useState(false);
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);

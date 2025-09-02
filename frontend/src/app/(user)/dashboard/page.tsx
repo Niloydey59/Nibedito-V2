@@ -9,13 +9,14 @@ import SecuritySettings from "@/components/dashboard/SecuritySettings";
 import OrderSummary from "@/components/dashboard/OrderSummary";
 import { Button } from "@/components/ui/button";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import type { AuthContextType } from "@/contexts/AuthContext";
 import { FiLogOut, FiGrid } from "react-icons/fi";
 
-export default function DashboardPage() {
+export default function DashboardPage(): React.JSX.Element {
   const router = useRouter();
-  const { user, isLoading, logout } = useAuth();
-  const [mounted, setMounted] = useState(false);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const { user, isLoading, logout }: AuthContextType = useAuth();
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
@@ -38,11 +39,11 @@ export default function DashboardPage() {
     return <LoadingSpinner fullPage={true} />;
   }
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
       await logout();
       router.push("/login");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Logout failed:", error);
     }
   };

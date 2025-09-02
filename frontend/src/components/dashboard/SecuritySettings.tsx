@@ -10,22 +10,39 @@ import { Spinner } from "@/components/ui/spinner";
 import Error from "@/components/common/Error";
 import { FiLock, FiKey, FiEye, FiEyeOff } from "react-icons/fi";
 
-export default function SecuritySettings() {
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [showPasswords, setShowPasswords] = useState({
+interface PasswordFormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface PasswordVisibilityState {
+  current: boolean;
+  new: boolean;
+  confirm: boolean;
+}
+
+interface StatusState {
+  type: "success" | "error" | "";
+  message: string;
+}
+
+export default function SecuritySettings(): React.JSX.Element {
+  const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
+  const [showPasswords, setShowPasswords] = useState<PasswordVisibilityState>({
     current: false,
     new: false,
     confirm: false,
   });
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<PasswordFormData>({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [isLoading, setIsLoading] = useState(false);
+  const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -33,14 +50,18 @@ export default function SecuritySettings() {
     }));
   };
 
-  const togglePasswordVisibility = (field) => {
+  const togglePasswordVisibility = (
+    field: keyof PasswordVisibilityState
+  ): void => {
     setShowPasswords((prev) => ({
       ...prev,
       [field]: !prev[field],
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     e.preventDefault();
     if (formData.newPassword !== formData.confirmPassword) {
       setStatus({
@@ -76,7 +97,7 @@ export default function SecuritySettings() {
         newPassword: "",
         confirmPassword: "",
       });
-    } catch (error) {
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to change password",
@@ -86,7 +107,7 @@ export default function SecuritySettings() {
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = (): void => {
     setIsChangingPassword(false);
     setFormData({
       currentPassword: "",

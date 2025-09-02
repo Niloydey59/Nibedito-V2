@@ -7,21 +7,26 @@ import {
   useEffect,
   useCallback,
   useRef,
+  ReactNode,
 } from "react";
 import { useAuth } from "./AuthContext";
+import { Cart, CartContextType } from "@/types";
+import cartService from "@/services/cartService";
 
-const CartContext = createContext();
+const CartContext = createContext<CartContextType | null>(null);
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+interface CartProviderProps {
+  children: ReactNode;
+}
 
-export function CartProvider({ children }) {
+export function CartProvider({ children }: CartProviderProps) {
   const { user } = useAuth();
-  const [cart, setCart] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const fetchingRef = useRef(false);
-  const initialFetchDone = useRef(false);
+  const [cart, setCart] = useState<Cart | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const fetchingRef = useRef<boolean>(false);
+  const initialFetchDone = useRef<boolean>(false);
 
-  const fetchCart = useCallback(async () => {
+  const fetchCart = useCallback(async (): Promise<void> => {
     if (!user) {
       setCart(null);
       setLoading(false);
@@ -37,27 +42,11 @@ export function CartProvider({ children }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/cart`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setCart(null);
-          return;
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setCart(data.payload.cart);
+      const response = await cartService.getCart();
+      if (response.success) {
+        setCart(response.payload?.cart || null);
       } else {
-        throw new Error(data.message || "Failed to fetch cart");
+        throw new Error(response.message || "Failed to fetch cart");
       }
     } catch (error) {
       console.error("Failed to fetch cart:", error);
@@ -77,29 +66,24 @@ export function CartProvider({ children }) {
   }, [fetchCart]);
 
   const addToCart = useCallback(
-    async (productId, quantity = 1, variantId = null) => {
+    async (
+      productId: string,
+      quantity: number = 1,
+      variantId: string
+    ): Promise<boolean> => {
       if (!variantId) {
         console.error("Variant ID is required");
         return false;
       }
 
       try {
-        const response = await fetch(`${API_URL}/cart/add-item`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify({ productId, variantId, quantity }),
+        const response = await cartService.addToCart({
+          productId,
+          variantId,
+          quantity,
         });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        if (data.success) {
-          setCart(data.payload.cart);
+        if (response.success) {
+          setCart(response.payload?.cart || null);
           return true;
         }
         return false;
@@ -111,76 +95,44 @@ export function CartProvider({ children }) {
     []
   );
 
-  const updateCartItem = useCallback(async (itemId, quantity) => {
+  const updateCartItem = useCallback(
+    async (itemId: string, quantity: number): Promise<boolean> => {
+      try {
+        const response = await cartService.updateCartItem({ itemId, quantity });
+        if (response.success) {
+          setCart(response.payload?.cart || null);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Failed to update cart:", error);
+        return false;
+      }
+    },
+    []
+  );
+
+  const removeFromCart = useCallback(
+    async (itemId: string): Promise<boolean> => {
+      try {
+        const response = await cartService.removeFromCart({ itemId });
+        if (response.success) {
+          setCart(response.payload?.cart || null);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error("Failed to remove from cart:", error);
+        return false;
+      }
+    },
+    []
+  );
+
+  const clearCart = useCallback(async (): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_URL}/cart/update`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ itemId, quantity }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setCart(data.payload.cart);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Failed to update cart:", error);
-      return false;
-    }
-  }, []);
-
-  const removeFromCart = useCallback(async (itemId) => {
-    try {
-      const response = await fetch(`${API_URL}/cart/remove`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ itemId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setCart(data.payload.cart);
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error("Failed to remove from cart:", error);
-      return false;
-    }
-  }, []);
-
-  const clearCart = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/cart/clear`, {
-        method: "DELETE",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success) {
+      const response = await cartService.clearCart();
+      if (response.success) {
         setCart(null);
         return true;
       }
@@ -191,13 +143,13 @@ export function CartProvider({ children }) {
     }
   }, []);
 
-  const refetchCart = useCallback(async () => {
+  const refetchCart = useCallback(async (): Promise<void> => {
     // Reset the flag to allow manual refetch
     initialFetchDone.current = false;
     await fetchCart();
   }, [fetchCart]);
 
-  const value = {
+  const value: CartContextType = {
     cart,
     loading,
     addToCart,
@@ -210,7 +162,7 @@ export function CartProvider({ children }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
-export const useCart = () => {
+export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (!context) {
     throw new Error("useCart must be used within a CartProvider");

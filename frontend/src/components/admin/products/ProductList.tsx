@@ -165,7 +165,10 @@ export default function ProductList({
                       {product.name}
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
-                      {product.category?.name || "Uncategorized"}
+                      {typeof product.category === "object" &&
+                      product.category?.name
+                        ? product.category.name
+                        : "Uncategorized"}
                     </p>
                   </div>
 
@@ -220,7 +223,10 @@ export default function ProductList({
                         {product.name}
                       </h3>
                       <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
-                        {product.category?.name || "Uncategorized"}
+                        {typeof product.category === "object" &&
+                        product.category?.name
+                          ? product.category.name
+                          : "Uncategorized"}
                       </p>
                     </div>
                     <div className="flex items-center space-x-4 ml-4">
@@ -243,24 +249,24 @@ export default function ProductList({
       </div>
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {pagination.pages > 1 && (
         <div className="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div className="text-sm text-slate-500 dark:text-slate-400">
-              Page {pagination.currentPage} of {pagination.totalPages}
+              Page {pagination.page} of {pagination.pages}
             </div>
             <div className="flex items-center space-x-2">
               <button
-                onClick={() => onPageChange(pagination.currentPage - 1)}
-                disabled={!pagination.hasPrevPage}
+                onClick={() => onPageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
                 className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <FiChevronLeft className="w-4 h-4" />
                 <span>Previous</span>
               </button>
               <button
-                onClick={() => onPageChange(pagination.currentPage + 1)}
-                disabled={!pagination.hasNextPage}
+                onClick={() => onPageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.pages}
                 className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span>Next</span>

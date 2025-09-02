@@ -7,6 +7,7 @@ export interface ProductVariant {
   color: string;
   size: string;
   quantity: number;
+  images: string[];
 }
 
 export interface Product {
@@ -19,9 +20,11 @@ export interface Product {
   subcategory?: string | Subcategory;
   shipping: boolean;
   variants: ProductVariant[];
-  images: string[];
-  thumbnailImage?: string;
+  thumbnailImage: string;
+  ratings?: number;
+  reviewCount?: number;
   totalSold?: number;
+  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import Error from "@/components/common/Error";
+import type { User } from "@/types";
 import {
   FiMail,
   FiPhone,
@@ -15,21 +16,32 @@ import {
   FiShield,
 } from "react-icons/fi";
 
-export default function VerificationStatus({ user }) {
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [isLoading, setIsLoading] = useState(false);
+interface VerificationStatusProps {
+  user: User;
+}
 
-  const handleResendVerification = async () => {
+interface StatusState {
+  type: "success" | "error" | "";
+  message: string;
+}
+
+export default function VerificationStatus({
+  user,
+}: VerificationStatusProps): React.JSX.Element {
+  const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  const handleResendVerification = async (): Promise<void> => {
     setIsLoading(true);
     setStatus({ type: "", message: "" });
 
     try {
-      await authService.resendVerificationEmail(user.email);
+      await authService.resendVerificationEmail({ email: user.email });
       setStatus({
         type: "success",
         message: "Verification email has been sent. Please check your inbox.",
       });
-    } catch (error) {
+    } catch (error: any) {
       setStatus({
         type: "error",
         message: error.message || "Failed to send verification email.",

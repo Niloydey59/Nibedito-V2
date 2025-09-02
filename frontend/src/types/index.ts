@@ -8,5 +8,6 @@ export * from './coupon';
 export * from './faq';
 export * from './order';
 export * from './shipping';
+export * from './cart';
 // Export admin types last to avoid any conflicts
 export * from './admin';

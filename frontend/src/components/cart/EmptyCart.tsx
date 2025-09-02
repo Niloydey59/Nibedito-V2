@@ -1,12 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FiShoppingBag, FiArrowRight } from "react-icons/fi";
 
-export default function EmptyCart() {
-  const [mounted, setMounted] = useState(false);
+export default function EmptyCart(): React.JSX.Element {
+  const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
@@ -42,7 +42,7 @@ export default function EmptyCart() {
                   Your Cart is Empty
                 </h1>
                 <p className="text-lg text-slate-600 dark:text-slate-300 mb-2">
-                  Looks like you haven't added anything to your cart yet.
+                  Looks like you haven&apos;t added anything to your cart yet.
                 </p>
                 <p className="text-slate-500 dark:text-slate-400">
                   Browse our products and find something you like!

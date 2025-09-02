@@ -9,7 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
-import type { Product } from "@/types/product";
+import type { Product } from "@/types";
 
 interface ProductCardProps {
   product: Product;
@@ -24,16 +24,8 @@ export default function ProductCard({
   const { user } = useAuth();
   const router = useRouter();
 
-  const {
-    _id,
-    slug,
-    name,
-    description,
-    price,
-    thumbnailImage,
-    ratings,
-    variants,
-  } = product;
+  const { _id, slug, name, description, price, thumbnailImage, variants } =
+    product;
 
   const isMobile = useRef<boolean>(
     typeof window !== "undefined" && window.innerWidth <= 768
@@ -76,9 +68,9 @@ export default function ProductCard({
       if (existingCartItem) {
         // If item exists, increase quantity by 1
         const success = await addToCart(
-          _id!,
+          _id,
           existingCartItem.quantity + 1,
-          defaultVariant._id!
+          defaultVariant._id
         );
         if (success) {
           toast.success("Updated quantity in cart");
@@ -87,7 +79,7 @@ export default function ProductCard({
         }
       } else {
         // If item doesn't exist, add new item with quantity 1
-        const success = await addToCart(_id!, 1, defaultVariant._id!);
+        const success = await addToCart(_id, 1, defaultVariant._id);
         if (success) {
           toast.success("Added to cart successfully!");
         } else {
@@ -107,7 +99,7 @@ export default function ProductCard({
         <Link href={`/products/${slug}`} className="product-link-list">
           <div className="product-image-list">
             <Image
-              src={thumbnailImage}
+              src={thumbnailImage || "/images/placeholder.jpg"}
               alt={name}
               width={120}
               height={120}
@@ -130,7 +122,7 @@ export default function ProductCard({
             </div>
             <div className="product-meta-list">
               <span className="product-rating-list">
-                <FiStar /> {(ratings || 0).toFixed(1)}
+                <FiStar /> 0.0
               </span>
               <p className="product-price-list">৳ {price.toFixed(2)}</p>
               <button
@@ -153,7 +145,7 @@ export default function ProductCard({
       <Link href={`/products/${slug}`} className="product-link">
         <div className="product-image">
           <Image
-            src={thumbnailImage}
+            src={thumbnailImage || "/images/placeholder.jpg"}
             alt={name}
             width={300}
             height={300}
@@ -178,7 +170,7 @@ export default function ProductCard({
           <div className="product-footer">
             <p className="product-price">৳ {price.toFixed(2)}</p>
             <span className="product-rating">
-              <FiStar /> {(ratings || 0).toFixed(1)}
+              <FiStar /> 0.0
             </span>
           </div>
         </div>

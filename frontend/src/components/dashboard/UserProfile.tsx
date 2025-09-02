@@ -11,33 +11,57 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
-import Error from "@/components/common/Error";
+import ErrorMessage from "@/components/common/Error";
 import userService from "@/services/userService";
-import { uploadImage, getImageUrl } from "@/utils/imageUtils";
+import { getImageUrl } from "@/utils/imageUtils";
 import axios from "@/utils/axios";
+import type {
+  User,
+  Address,
+  UpdateUserInfoRequest,
+  AddAddressRequest,
+  UpdateAddressRequest,
+  ApiResponse,
+} from "@/types";
 
-export default function UserProfile({ user: initialUser }) {
-  const [user, setUser] = useState(initialUser);
-  const [isEditing, setIsEditing] = useState(false);
-  const [selectedAddressId, setSelectedAddressId] = useState(
+interface UserProfileProps {
+  user: User;
+}
+
+interface ProfileFormData {
+  name: string;
+  phone: string;
+}
+
+interface StatusState {
+  type: "success" | "error" | "";
+  message: string;
+}
+
+export default function UserProfile({
+  user: initialUser,
+}: UserProfileProps): React.JSX.Element {
+  const [user, setUser] = useState<User>(initialUser);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string>(
     user?.addresses?.[0]?._id || ""
   );
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [formData, setFormData] = useState({
+  const [showAddressForm, setShowAddressForm] = useState<boolean>(false);
+  const [formData, setFormData] = useState<ProfileFormData>({
     name: initialUser?.name || "",
     phone: initialUser?.phone || "",
   });
-  const [addressFormData, setAddressFormData] = useState({
+  const [addressFormData, setAddressFormData] = useState<AddAddressRequest>({
     street: "",
     city: "",
     state: "",
     postalCode: "",
     isDefault: false,
   });
-  const [status, setStatus] = useState({ type: "", message: "" });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = useRef(null);
+  const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -48,20 +72,24 @@ export default function UserProfile({ user: initialUser }) {
         phone: user.phone || "",
       });
       // Set the selected address to the default address if it exists
-      const defaultAddress = user.addresses?.find((addr) => addr.isDefault);
+      const defaultAddress = user.addresses?.find(
+        (addr: Address) => addr.isDefault
+      );
       if (defaultAddress) {
-        setSelectedAddressId(defaultAddress._id);
+        setSelectedAddressId(defaultAddress._id || "");
       } else if (user.addresses?.[0]) {
-        setSelectedAddressId(user.addresses[0]._id);
+        setSelectedAddressId(user.addresses[0]._id || "");
       }
     }
   }, [user]);
 
-  const handleImageClick = () => {
+  const handleImageClick = (): void => {
     fileInputRef.current?.click();
   };
 
-  const handleImageChange = async (e) => {
+  const handleImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): Promise<void> => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -91,7 +119,7 @@ export default function UserProfile({ user: initialUser }) {
       const formData = new FormData();
       formData.append("profilePicture", file);
 
-      const response = await axios.put(
+      const response = await axios.put<ApiResponse<{ user: User }>>(
         `${API_URL}/users/profile/${user._id}`,
         formData,
         {
@@ -106,14 +134,19 @@ export default function UserProfile({ user: initialUser }) {
       }
 
       // Update local user state and localStorage
-      setUser(response.data.payload.user);
-      localStorage.setItem("user", JSON.stringify(response.data.payload.user));
+      if (response.data.payload?.user) {
+        setUser(response.data.payload.user);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(response.data.payload.user)
+        );
+      }
 
       setStatus({
         type: "success",
         message: "Profile picture updated successfully",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Profile picture upload error:", err);
       setStatus({
         type: "error",
@@ -127,7 +160,7 @@ export default function UserProfile({ user: initialUser }) {
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
@@ -135,19 +168,23 @@ export default function UserProfile({ user: initialUser }) {
     }));
   };
 
-  const handleAddressChange = (e) => {
-    const { name, value } = e.target;
+  const handleAddressChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ): void => {
+    const { name, value, type, checked } = e.target;
     setAddressFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
-  const handleAddressSelect = (e) => {
+  const handleAddressSelect = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
     setSelectedAddressId(e.target.value);
   };
 
-  const handleEditAddress = () => {
+  const handleEditAddress = (): void => {
     const selectedAddress = user.addresses.find(
       (addr) => addr._id === selectedAddressId
     );
@@ -156,14 +193,14 @@ export default function UserProfile({ user: initialUser }) {
         street: selectedAddress.street,
         city: selectedAddress.city,
         state: selectedAddress.state,
-        postalCode: selectedAddress.postalCode,
+        postalCode: selectedAddress.postalCode || "",
         isDefault: selectedAddress.isDefault,
       });
       setShowAddressForm(true);
     }
   };
 
-  const handleAddNewAddress = () => {
+  const handleAddNewAddress = (): void => {
     setAddressFormData({
       street: "",
       city: "",
@@ -175,30 +212,52 @@ export default function UserProfile({ user: initialUser }) {
     setShowAddressForm(true);
   };
 
-  const handleAddressSubmit = async (e) => {
-    e.preventDefault();
+  const handleAddressSubmit = async (): Promise<void> => {
     setIsLoading(true);
     setStatus({ type: "", message: "" });
 
     try {
-      let updatedUser;
+      let updatedUserResponse: ApiResponse<{ user: User }>;
+
       if (showAddressForm) {
         if (selectedAddressId) {
-          // Update existing address
-          updatedUser = await userService.updateAddress(
+          // Update existing address - use UpdateAddressRequest type
+          const updateData: UpdateAddressRequest = {
+            street: addressFormData.street,
+            city: addressFormData.city,
+            state: addressFormData.state,
+            postalCode: addressFormData.postalCode,
+            isDefault: addressFormData.isDefault,
+          };
+
+          updatedUserResponse = await userService.updateAddress(
             user._id,
             selectedAddressId,
-            addressFormData
+            updateData
           );
         } else {
-          // Add new address
-          updatedUser = await userService.addAddress(user._id, addressFormData);
+          // Add new address - use AddAddressRequest type
+          const newAddressData: AddAddressRequest = {
+            street: addressFormData.street,
+            city: addressFormData.city,
+            state: addressFormData.state,
+            postalCode: addressFormData.postalCode || "",
+            isDefault: addressFormData.isDefault,
+          };
+
+          updatedUserResponse = await userService.addAddress(
+            user._id,
+            newAddressData
+          );
 
           // If this is the first address or isDefault is true, update UI accordingly
           if (!user.addresses?.length || addressFormData.isDefault) {
-            const newAddress =
-              updatedUser.addresses[updatedUser.addresses.length - 1];
-            setSelectedAddressId(newAddress._id);
+            const newUser = updatedUserResponse.payload?.user;
+            if (newUser?.addresses) {
+              const newAddress =
+                newUser.addresses[newUser.addresses.length - 1];
+              setSelectedAddressId(newAddress._id || "");
+            }
           }
         }
         setShowAddressForm(false);
@@ -208,35 +267,49 @@ export default function UserProfile({ user: initialUser }) {
           (addr) => addr._id === selectedAddressId
         );
         if (selectedAddress) {
-          updatedUser = await userService.updateAddress(
+          const updateData: UpdateAddressRequest = {
+            ...selectedAddress,
+            isDefault: true,
+          };
+
+          updatedUserResponse = await userService.updateAddress(
             user._id,
             selectedAddressId,
-            {
-              ...selectedAddress,
-              isDefault: true,
-            }
+            updateData
           );
+        } else {
+          throw new Error("Selected address not found");
         }
+      } else {
+        throw new Error("No address selected for update");
       }
 
-      if (updatedUser) {
+      if (updatedUserResponse.success && updatedUserResponse.payload?.user) {
         setStatus({
           type: "success",
           message: selectedAddressId
             ? "Address updated successfully"
             : "New address added successfully",
         });
-        setUser(updatedUser);
-        localStorage.setItem("user", JSON.stringify(updatedUser));
+        setUser(updatedUserResponse.payload.user);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(updatedUserResponse.payload.user)
+        );
 
         // If no address was previously selected, select the newly added one
-        if (!selectedAddressId && updatedUser.addresses?.length > 0) {
+        if (
+          !selectedAddressId &&
+          updatedUserResponse.payload.user.addresses?.length > 0
+        ) {
           const newAddress =
-            updatedUser.addresses[updatedUser.addresses.length - 1];
-          setSelectedAddressId(newAddress._id);
+            updatedUserResponse.payload.user.addresses[
+              updatedUserResponse.payload.user.addresses.length - 1
+            ];
+          setSelectedAddressId(newAddress._id || "");
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Address update error:", error);
       setStatus({
         type: "error",
@@ -247,8 +320,7 @@ export default function UserProfile({ user: initialUser }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (): Promise<void> => {
     if (!isEditing) {
       setIsEditing(true);
       return;
@@ -258,19 +330,30 @@ export default function UserProfile({ user: initialUser }) {
     setStatus({ type: "", message: "" });
 
     try {
-      const updatedUser = await userService.updateProfile(user._id, {
+      // Use UpdateUserInfoRequest type for type safety
+      const updateData: UpdateUserInfoRequest = {
         name: formData.name,
         phone: formData.phone,
-      });
+      };
 
-      setStatus({
-        type: "success",
-        message: "Profile updated successfully",
-      });
-      setIsEditing(false);
-      setUser(updatedUser);
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-    } catch (error) {
+      const updatedUserResponse = await userService.updateProfile(
+        user._id,
+        updateData
+      );
+
+      if (updatedUserResponse.success && updatedUserResponse.payload?.user) {
+        setStatus({
+          type: "success",
+          message: "Profile updated successfully",
+        });
+        setIsEditing(false);
+        setUser(updatedUserResponse.payload.user);
+        localStorage.setItem(
+          "user",
+          JSON.stringify(updatedUserResponse.payload.user)
+        );
+      }
+    } catch (error: any) {
       console.error("Profile update error:", error);
       setStatus({
         type: "error",
@@ -281,7 +364,7 @@ export default function UserProfile({ user: initialUser }) {
     }
   };
 
-  const formatAddress = (address) => {
+  const formatAddress = (address: Address): string => {
     const fullAddress = `${address.street}, ${address.city}, ${address.state} ${address.postalCode}`;
     return address.isDefault ? `${fullAddress} (Default)` : fullAddress;
   };
@@ -318,7 +401,11 @@ export default function UserProfile({ user: initialUser }) {
       </CardHeader>
       <CardContent className="space-y-6 p-6 lg:p-8">
         {status.message && (
-          <Error type={status.type} message={status.message} className="mb-4" />
+          <ErrorMessage
+            type={status.type}
+            message={status.message}
+            className="mb-4"
+          />
         )}
 
         {/* Enhanced Profile Header */}
@@ -378,8 +465,8 @@ export default function UserProfile({ user: initialUser }) {
 
         <Separator className="bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent" />
 
-        {/* Enhanced Profile Form */}
-        <form className="space-y-6">
+        {/* Enhanced Profile Form - Remove form wrapper */}
+        <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3">
               <Label
@@ -474,7 +561,7 @@ export default function UserProfile({ user: initialUser }) {
             </div>
           </div>
 
-          {/* Enhanced Address Form */}
+          {/* Enhanced Address Form - Separate div instead of nested form */}
           {showAddressForm && (
             <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/20">
               <CardHeader className="pb-4">
@@ -483,129 +570,122 @@ export default function UserProfile({ user: initialUser }) {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="street"
-                    className="text-slate-700 dark:text-slate-300 font-medium"
-                  >
-                    Street Address
-                  </Label>
-                  <Input
-                    id="street"
-                    name="street"
-                    value={addressFormData.street}
-                    onChange={handleAddressChange}
-                    placeholder="Enter your street address"
-                    required
-                    className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-3">
                     <Label
-                      htmlFor="city"
+                      htmlFor="street"
                       className="text-slate-700 dark:text-slate-300 font-medium"
                     >
-                      City
+                      Street Address
                     </Label>
                     <Input
-                      id="city"
-                      name="city"
-                      value={addressFormData.city}
+                      id="street"
+                      name="street"
+                      value={addressFormData.street}
                       onChange={handleAddressChange}
-                      placeholder="City"
-                      required
+                      placeholder="Enter your street address"
                       className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                     />
                   </div>
-                  <div className="space-y-3">
-                    <Label
-                      htmlFor="state"
-                      className="text-slate-700 dark:text-slate-300 font-medium"
-                    >
-                      State
-                    </Label>
-                    <Input
-                      id="state"
-                      name="state"
-                      value={addressFormData.state}
-                      onChange={handleAddressChange}
-                      placeholder="State"
-                      required
-                      className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                    />
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="city"
+                        className="text-slate-700 dark:text-slate-300 font-medium"
+                      >
+                        City
+                      </Label>
+                      <Input
+                        id="city"
+                        name="city"
+                        value={addressFormData.city}
+                        onChange={handleAddressChange}
+                        placeholder="City"
+                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="state"
+                        className="text-slate-700 dark:text-slate-300 font-medium"
+                      >
+                        State
+                      </Label>
+                      <Input
+                        id="state"
+                        name="state"
+                        value={addressFormData.state}
+                        onChange={handleAddressChange}
+                        placeholder="State"
+                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      />
+                    </div>
+                    <div className="space-y-3">
+                      <Label
+                        htmlFor="postalCode"
+                        className="text-slate-700 dark:text-slate-300 font-medium"
+                      >
+                        Postal Code
+                      </Label>
+                      <Input
+                        id="postalCode"
+                        name="postalCode"
+                        value={addressFormData.postalCode}
+                        onChange={handleAddressChange}
+                        placeholder="Postal Code"
+                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      />
+                    </div>
                   </div>
-                  <div className="space-y-3">
-                    <Label
-                      htmlFor="postalCode"
-                      className="text-slate-700 dark:text-slate-300 font-medium"
-                    >
-                      Postal Code
-                    </Label>
-                    <Input
-                      id="postalCode"
-                      name="postalCode"
-                      value={addressFormData.postalCode}
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="checkbox"
+                      id="isDefault"
+                      name="isDefault"
+                      checked={addressFormData.isDefault}
                       onChange={handleAddressChange}
-                      placeholder="Postal Code"
-                      required
-                      className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      className="w-4 h-4 text-blue-600 border-2 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500/20"
                     />
+                    <Label
+                      htmlFor="isDefault"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                    >
+                      Set as default address
+                    </Label>
                   </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="isDefault"
-                    name="isDefault"
-                    checked={addressFormData.isDefault}
-                    onChange={(e) =>
-                      setAddressFormData((prev) => ({
-                        ...prev,
-                        isDefault: e.target.checked,
-                      }))
-                    }
-                    className="w-4 h-4 text-blue-600 border-2 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500/20"
-                  />
-                  <Label
-                    htmlFor="isDefault"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                  >
-                    Set as default address
-                  </Label>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="button"
-                    onClick={handleAddressSubmit}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <Spinner size="sm" className="mr-2" />
-                        {selectedAddressId ? "Updating..." : "Adding..."}
-                      </>
-                    ) : selectedAddressId ? (
-                      "Update Address"
-                    ) : (
-                      "Add Address"
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowAddressForm(false)}
-                    className="flex-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                  >
-                    Cancel
-                  </Button>
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      type="button"
+                      onClick={handleAddressSubmit}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <Spinner size="sm" className="mr-2" />
+                          {selectedAddressId ? "Updating..." : "Adding..."}
+                        </>
+                      ) : selectedAddressId ? (
+                        "Update Address"
+                      ) : (
+                        "Add Address"
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowAddressForm(false)}
+                      className="flex-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Enhanced Action Buttons */}
+          {/* Enhanced Action Buttons - Remove nested form */}
           <div className="flex gap-3 pt-6">
             <Button
               type="button"
@@ -641,7 +721,7 @@ export default function UserProfile({ user: initialUser }) {
               </Button>
             )}
           </div>
-        </form>
+        </div>
       </CardContent>
     </Card>
   );

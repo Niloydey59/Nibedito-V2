@@ -5,14 +5,19 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { FiCreditCard, FiShoppingBag, FiArrowRight } from "react-icons/fi";
+import { Cart } from "@/types";
 
-export default function CartSummary({ cart }) {
+interface CartSummaryProps {
+  cart: Cart;
+}
+
+export default function CartSummary({ cart }: CartSummaryProps) {
   const router = useRouter();
 
-  const subtotal = cart.totalPrice || 0;
-  const shipping = 0; // Free shipping
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + shipping + tax;
+  const subtotal: number = cart.totalPrice || 0;
+  const shipping: number = 0; // Free shipping
+  const tax: number = subtotal * 0.1; // 10% tax
+  const total: number = subtotal + shipping + tax;
 
   return (
     <div className="lg:sticky lg:top-6">

@@ -9,16 +9,21 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { Separator } from "@/components/ui/separator";
 import { FiMinus, FiPlus, FiTrash2, FiShoppingBag } from "react-icons/fi";
+import { CartItem as CartItemType } from "@/types";
+
+interface CartItemRowProps {
+  item: CartItemType;
+}
 
 // Single cart item component
-function CartItemRow({ item }) {
+function CartItemRow({ item }: CartItemRowProps) {
   const { updateCartItem, removeFromCart } = useCart();
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  const [isRemoving, setIsRemoving] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<boolean>(false);
 
   const handleQuantityChange = useCallback(
-    async (newQuantity) => {
+    async (newQuantity: number): Promise<void> => {
       if (newQuantity < 1 || isUpdating) return;
       setIsUpdating(true);
       try {
@@ -37,7 +42,7 @@ function CartItemRow({ item }) {
     [item._id, updateCartItem, isUpdating]
   );
 
-  const handleRemove = useCallback(async () => {
+  const handleRemove = useCallback(async (): Promise<void> => {
     setIsRemoving(true);
     try {
       const success = await removeFromCart(item._id);
@@ -235,8 +240,12 @@ function CartItemRow({ item }) {
   );
 }
 
+interface CartItemsProps {
+  items: CartItemType[];
+}
+
 // Cart items list component
-export default function CartItems({ items }) {
+export default function CartItems({ items }: CartItemsProps) {
   if (!items || !Array.isArray(items)) {
     return (
       <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-lg">

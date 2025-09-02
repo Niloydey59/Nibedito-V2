@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import ProductCard from "./ProductCard";
 import LoadingSpinner from "../common/LoadingSpinner";
 import {
@@ -14,7 +14,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "react-hot-toast";
-import type { Product, Pagination } from "@/types/product";
+import type { Product, Pagination } from "@/types";
 
 interface ProductGridProps {
   products: Product[];
@@ -49,11 +49,11 @@ export default function ProductGrid({
       return;
     }
 
-    const productId = product._id!;
+    const productId = product._id;
     setAddingToCart((prev) => ({ ...prev, [productId]: true }));
 
     try {
-      const success = await addToCart(productId, 1, product.variants[0]._id!);
+      const success = await addToCart(productId, 1, product.variants[0]._id);
       if (success) {
         toast.success("Added to cart successfully!");
       } else {
@@ -205,13 +205,6 @@ export default function ProductGrid({
                       </span>
                     </div>
                   )}
-
-                {/* Discount Badge */}
-                {product.discount && (
-                  <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">
-                    -{product.discount}%
-                  </div>
-                )}
               </div>
 
               {/* Product Info */}
@@ -248,30 +241,6 @@ export default function ProductGrid({
                   >
                     {product.description || "No description available."}
                   </p>
-
-                  {/* Rating */}
-                  {product.averageRating && (
-                    <div
-                      className="flex items-center gap-1 mb-2"
-                      style={{ minHeight: "1rem" }}
-                    >
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <FiStar
-                            key={i}
-                            className={`w-3 h-3 ${
-                              i < Math.floor(product.averageRating)
-                                ? "text-yellow-400 fill-current"
-                                : "text-gray-300 dark:text-gray-600"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs text-text-secondary ml-1">
-                        ({product.averageRating.toFixed(1)})
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Bottom Section - Price and Action Button */}
@@ -289,12 +258,6 @@ export default function ProductGrid({
                       >
                         ৳{product.price}
                       </span>
-                      {product.originalPrice &&
-                        product.originalPrice > product.price && (
-                          <span className="text-xs text-text-secondary line-through">
-                            ৳{product.originalPrice}
-                          </span>
-                        )}
                     </div>
                   </div>
 
@@ -353,18 +316,18 @@ export default function ProductGrid({
       </div>
 
       {/* Modern Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && pagination.pages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-border">
           <div className="text-sm text-text-secondary">
-            Showing {(pagination.currentPage - 1) * 12 + 1} to{" "}
-            {Math.min(pagination.currentPage * 12, pagination.totalProducts)} of{" "}
-            {pagination.totalProducts} products
+            Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+            {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
+            {pagination.total} products
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => onPageChange(pagination.currentPage - 1)}
-              disabled={!pagination.hasPrevPage}
+              onClick={() => onPageChange?.(pagination.page - 1)}
+              disabled={pagination.page <= 1}
               className="btn btn-secondary btn-sm disabled:opacity-50"
             >
               <FiChevronLeft size={16} className="mr-1" />
@@ -372,43 +335,37 @@ export default function ProductGrid({
             </button>
 
             <div className="flex items-center gap-1">
-              {Array.from(
-                { length: Math.min(pagination.totalPages, 5) },
-                (_, i) => {
-                  let page;
-                  if (pagination.totalPages <= 5) {
-                    page = i + 1;
-                  } else if (pagination.currentPage <= 3) {
-                    page = i + 1;
-                  } else if (
-                    pagination.currentPage >=
-                    pagination.totalPages - 2
-                  ) {
-                    page = pagination.totalPages - 4 + i;
-                  } else {
-                    page = pagination.currentPage - 2 + i;
-                  }
-
-                  return (
-                    <button
-                      key={page}
-                      onClick={() => onPageChange(page)}
-                      className={`w-10 h-10 flex items-center justify-center text-sm rounded-lg transition-colors ${
-                        page === pagination.currentPage
-                          ? "bg-primary text-white shadow-md"
-                          : "hover:bg-surface-elevated text-foreground"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  );
+              {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => {
+                let page;
+                if (pagination.pages <= 5) {
+                  page = i + 1;
+                } else if (pagination.page <= 3) {
+                  page = i + 1;
+                } else if (pagination.page >= pagination.pages - 2) {
+                  page = pagination.pages - 4 + i;
+                } else {
+                  page = pagination.page - 2 + i;
                 }
-              )}
+
+                return (
+                  <button
+                    key={page}
+                    onClick={() => onPageChange?.(page)}
+                    className={`w-10 h-10 flex items-center justify-center text-sm rounded-lg transition-colors ${
+                      page === pagination.page
+                        ? "bg-primary text-white shadow-md"
+                        : "hover:bg-surface-elevated text-foreground"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
             </div>
 
             <button
-              onClick={() => onPageChange(pagination.currentPage + 1)}
-              disabled={!pagination.hasNextPage}
+              onClick={() => onPageChange?.(pagination.page + 1)}
+              disabled={pagination.page >= pagination.pages}
               className="btn btn-secondary btn-sm disabled:opacity-50"
             >
               Next

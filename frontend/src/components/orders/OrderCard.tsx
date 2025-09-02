@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Order } from "@/types/order";
 import {
   FiPackage,
   FiCheckCircle,
@@ -15,37 +17,6 @@ import {
   FiMail,
   FiTruck,
 } from "react-icons/fi";
-
-interface OrderItem {
-  _id: string;
-  product?: {
-    name?: string;
-    thumbnailImage?: string;
-  };
-  quantity?: number;
-  cost: number;
-}
-
-interface Order {
-  _id: string;
-  status?: string;
-  isPaid: boolean;
-  isGift?: boolean;
-  finalPrice: number;
-  totalPrice: number;
-  shippingCost: number;
-  discountAmount?: number;
-  createdAt: string;
-  dateOrdered?: string;
-  items?: OrderItem[];
-  street: string;
-  city: string;
-  state: string;
-  addressDetails?: string;
-  phone: string;
-  email: string;
-  giftNote?: string;
-}
 
 interface OrderCardProps {
   order: Order;
@@ -177,42 +148,52 @@ export function OrderCard({ order }: OrderCardProps) {
             Order Items ({order.items?.length || 0})
           </h4>
           <div className="space-y-3">
-            {order.items?.map((item) => (
-              <div
-                key={item._id}
-                className="flex items-center gap-4 p-3 bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-200/50 dark:border-slate-700/50"
-              >
-                <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700 flex-shrink-0">
-                  {item.product?.thumbnailImage ? (
-                    <img
-                      src={item.product.thumbnailImage}
-                      alt={item.product?.name || "Product"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold">
-                      {item.product?.name?.charAt(0) || "P"}
+            {order.items?.map((item) => {
+              const product =
+                typeof item.product === "object" ? item.product : null;
+              const productName = product?.name || "Product";
+              const thumbnailImage = product?.thumbnailImage;
+
+              return (
+                <div
+                  key={item._id || `${item.product}-${item.variant}`}
+                  className="flex items-center gap-4 p-3 bg-slate-50/50 dark:bg-slate-900/30 rounded-lg border border-slate-200/50 dark:border-slate-700/50"
+                >
+                  <div className="w-12 h-12 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-700 flex-shrink-0 relative">
+                    {thumbnailImage ? (
+                      <Image
+                        src={thumbnailImage}
+                        alt={productName}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold">
+                        {productName.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h5 className="font-medium text-slate-900 dark:text-white truncate">
+                      {productName}
+                    </h5>
+                    <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
+                      <span>Qty: {item.quantity || 0}</span>
+                      <span>
+                        Per item: ৳
+                        {formatPrice(item.cost / (item.quantity || 1))}
+                      </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h5 className="font-medium text-slate-900 dark:text-white truncate">
-                    {item.product?.name || "Product"}
-                  </h5>
-                  <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-                    <span>Qty: {item.quantity || 0}</span>
-                    <span>
-                      Per item: ৳{formatPrice(item.cost / (item.quantity || 1))}
-                    </span>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-semibold text-slate-900 dark:text-white">
+                      ৳{formatPrice(item.cost)}
+                    </p>
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="font-semibold text-slate-900 dark:text-white">
-                    ৳{formatPrice(item.cost)}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -262,7 +243,7 @@ export function OrderCard({ order }: OrderCardProps) {
                       Gift Message:
                     </p>
                     <p className="text-purple-800 dark:text-purple-200 text-sm italic">
-                      "{order.giftNote}"
+                      &ldquo;{order.giftNote}&rdquo;
                     </p>
                   </div>
                 ) : (

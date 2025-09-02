@@ -32,13 +32,9 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
   const [pagination, setPagination] = useState<Pagination>({
-    currentPage: 1,
-    totalPages: 1,
-    hasPrevPage: false,
-    hasNextPage: false,
     total: 0,
-    page: 1,
     pages: 1,
+    page: 1,
     limit: 12,
   });
   const [totalStats, setTotalStats] = useState<TotalStats>({
@@ -54,7 +50,9 @@ export default function ProductsPage() {
       const response = await productService.getAllProducts({ page, limit: 12 });
 
       if (!response.success) {
-        throw new Error(response.message || "Failed to fetch products");
+        throw new globalThis.Error(
+          response.message || "Failed to fetch products"
+        );
       }
 
       setProducts(response.payload!.products || []);
@@ -83,13 +81,9 @@ export default function ProductsPage() {
       // Handle pagination properties - map from API response to component expected format
       const apiPagination = response.payload!.pagination;
       setPagination({
-        currentPage: apiPagination.page,
-        totalPages: apiPagination.pages,
-        hasPrevPage: apiPagination.page > 1,
-        hasNextPage: apiPagination.page < apiPagination.pages,
         total: apiPagination.total,
-        page: apiPagination.page,
         pages: apiPagination.pages,
+        page: apiPagination.page,
         limit: apiPagination.limit,
       });
 

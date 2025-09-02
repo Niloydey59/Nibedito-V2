@@ -143,7 +143,7 @@ export default function ProductDetailsPage() {
         setFormData((prev) => ({ ...prev, subcategory: "" }));
       }
     }
-  }, [formData.category]);
+  }, [formData.category, formData.subcategory]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -181,7 +181,13 @@ export default function ProductDetailsPage() {
       ...prev,
       variants: [
         ...prev.variants,
-        { _id: `temp-${Date.now()}`, color: "", size: "", quantity: 0 },
+        {
+          _id: `temp-${Date.now()}`,
+          color: "",
+          size: "",
+          quantity: 0,
+          images: [],
+        },
       ],
     }));
   };
@@ -193,8 +199,8 @@ export default function ProductDetailsPage() {
     }));
   };
 
-  const handleThumbnailChange = async (file: File): Promise<void> => {
-    if (!product) return;
+  const handleThumbnailChange = async (files: File[]): Promise<void> => {
+    if (!product || !files[0]) return;
 
     try {
       const formDataToSend = new FormData();
@@ -212,7 +218,7 @@ export default function ProductDetailsPage() {
       formDataToSend.append("variants", JSON.stringify(formData.variants));
 
       // Add the new thumbnail
-      formDataToSend.append("thumbnail", file);
+      formDataToSend.append("thumbnail", files[0]);
 
       const response = await productService.updateProduct(
         product.slug,
@@ -220,11 +226,6 @@ export default function ProductDetailsPage() {
       );
       if (response.payload) {
         setProduct(response.payload.product);
-        // Don't redirect, just update the state
-        setFormData((prev) => ({
-          ...prev,
-          thumbnailImage: response.payload.product.thumbnailImage,
-        }));
       }
     } catch (err: any) {
       setError(err.message);
@@ -280,7 +281,7 @@ export default function ProductDetailsPage() {
         setProduct(response.payload.product);
         setFormData((prev) => ({
           ...prev,
-          variants: response.payload.product.variants || [],
+          variants: response.payload!.product.variants || [],
         }));
       }
     } catch (err: any) {
@@ -743,10 +744,13 @@ export default function ProductDetailsPage() {
           isOpen={showDeleteDialog}
           title="Delete Product"
           message={`Are you sure you want to delete "${product.name}"? This action cannot be undone.`}
-          confirmText="Delete"
-          cancelText="Cancel"
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
           onConfirm={handleDelete}
           onCancel={() => setShowDeleteDialog(false)}
+          confirmButtonProps={{
+            className: "btn btn-danger",
+          }}
         />
       </div>
     </div>

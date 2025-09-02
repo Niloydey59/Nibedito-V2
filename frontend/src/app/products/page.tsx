@@ -14,7 +14,7 @@ import ProductGrid from "@/components/products/ProductGrid";
 import ProductFilters from "@/components/products/ProductFilter";
 import { productService } from "@/services/productService";
 import { categoryService } from "@/services/categoryService";
-import type { Product, Pagination, Category } from "@/types";
+import type { Product, Category, Pagination } from "@/types";
 
 interface FilterState {
   minPrice: string;
@@ -44,11 +44,10 @@ export default function ProductsPage() {
     sort: "newest",
   });
   const [pagination, setPagination] = useState<Pagination>({
-    currentPage: 1,
-    totalPages: 1,
-    totalProducts: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
+    total: 0,
+    pages: 1,
+    page: 1,
+    limit: 12,
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -103,13 +102,8 @@ export default function ProductsPage() {
       });
 
       setProducts(response.payload!.products);
-      setPagination({
-        currentPage: response.payload!.pagination.page,
-        totalPages: response.payload!.pagination.pages,
-        totalProducts: response.payload!.pagination.total,
-        hasNextPage: response.payload!.pagination.page < response.payload!.pagination.pages,
-        hasPrevPage: response.payload!.pagination.page > 1,
-      });
+      // Update pagination structure to match new type
+      setPagination(response.payload!.pagination);
     } catch (err: any) {
       setError(err.message || "Failed to fetch products");
     } finally {
@@ -274,7 +268,7 @@ export default function ProductsPage() {
                       </span>
                     </h1>
                     <p className="text-rose-50 dark:text-text-secondary font-medium drop-shadow-sm">
-                      Find exactly what you're looking for
+                      Find exactly what you&apos;re looking for
                     </p>
                   </div>
                 </div>
@@ -285,7 +279,7 @@ export default function ProductsPage() {
                     <div className="flex items-center gap-2 bg-white/20 dark:bg-primary/10 border border-rose-200/60 dark:border-primary/20 rounded-lg px-3 py-2 backdrop-blur-sm">
                       <FiSearch className="w-4 h-4 text-white dark:text-primary" />
                       <span className="text-sm text-white dark:text-primary font-medium">
-                        "{searchParams.get("search")}"
+                        &ldquo;{searchParams.get("search")}&rdquo;
                       </span>
                       <button
                         onClick={clearSearch}
@@ -298,12 +292,12 @@ export default function ProductsPage() {
                 )}
 
                 {/* Results Count */}
-                {pagination.totalProducts > 0 && (
+                {pagination.total > 0 && (
                   <div className="inline-flex items-center gap-2 bg-white/30 dark:bg-surface-elevated border border-rose-200/50 dark:border-border rounded-lg px-4 py-2 backdrop-blur-sm shadow-sm">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                     <span className="text-sm font-medium text-white dark:text-foreground drop-shadow-sm">
-                      {pagination.totalProducts} product
-                      {pagination.totalProducts !== 1 ? "s" : ""} found
+                      {pagination.total} product
+                      {pagination.total !== 1 ? "s" : ""} found
                     </span>
                   </div>
                 )}
@@ -384,16 +378,6 @@ export default function ProductsPage() {
               products={products}
               isLoading={isLoading}
               error={error}
-              pagination={pagination}
-              onPageChange={handlePageChange}
-              viewMode={viewMode}
-            />
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
               pagination={pagination}
               onPageChange={handlePageChange}
               viewMode={viewMode}

@@ -144,7 +144,11 @@ export default function ProductFilters({
       const category = categories.find(
         (cat) => cat._id === localFilters.category
       );
-      const subcategory = (category as any)?.subcategories?.find(
+      // Type assertion to access subcategories property safely
+      const categoryWithSubs = category as Category & {
+        subcategories?: Subcategory[];
+      };
+      const subcategory = categoryWithSubs?.subcategories?.find(
         (sub: Subcategory) => sub._id === localFilters.subcategory
       );
       selected.push({
@@ -406,24 +410,27 @@ export default function ProductFilters({
             </select>
 
             {/* Subcategory */}
-            {selectedCategory && selectedCategory.subcategories?.length > 0 && (
-              <select
-                value={localFilters.subcategory || ""}
-                onChange={(e) => {
-                  const subcategoryValue = e.target.value;
-                  console.log("Subcategory selected:", subcategoryValue); // Debug log
-                  handleFilterChange("subcategory", subcategoryValue);
-                }}
-                className="select w-full"
-              >
-                <option value="">All Subcategories</option>
-                {selectedCategory.subcategories.map((subcategory) => (
-                  <option key={subcategory._id} value={subcategory._id}>
-                    {subcategory.name}
-                  </option>
-                ))}
-              </select>
-            )}
+            {selectedCategory &&
+              (selectedCategory as any)?.subcategories?.length > 0 && (
+                <select
+                  value={localFilters.subcategory || ""}
+                  onChange={(e) => {
+                    const subcategoryValue = e.target.value;
+                    console.log("Subcategory selected:", subcategoryValue); // Debug log
+                    handleFilterChange("subcategory", subcategoryValue);
+                  }}
+                  className="select w-full"
+                >
+                  <option value="">All Subcategories</option>
+                  {(selectedCategory as any).subcategories.map(
+                    (subcategory: Subcategory) => (
+                      <option key={subcategory._id} value={subcategory._id}>
+                        {subcategory.name}
+                      </option>
+                    )
+                  )}
+                </select>
+              )}
           </div>
         </FilterSection>
 

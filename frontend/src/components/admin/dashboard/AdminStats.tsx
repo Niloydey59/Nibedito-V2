@@ -13,20 +13,13 @@ import {
 } from "react-icons/fi";
 import type { IconType } from "react-icons";
 import { adminService } from "@/services/adminService";
+import type { DashboardStats } from "@/types";
 
 interface GrowthStats {
   usersGrowth: number;
   ordersGrowth: number;
   revenueGrowth: number;
   productsGrowth: number;
-}
-
-interface DashboardStats {
-  totalUsers: number;
-  totalOrders: number;
-  totalRevenue: number;
-  totalProducts: number;
-  growthStats?: GrowthStats;
 }
 
 interface StatsState extends DashboardStats {

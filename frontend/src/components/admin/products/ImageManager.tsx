@@ -4,6 +4,16 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { FiUpload, FiX, FiPlus, FiImage } from "react-icons/fi";
 
+interface ImageManagerProps {
+  currentImage?: string | string[];
+  onImageChange: (files: File[], removedIndices?: number[]) => void;
+  onImageRemove?: () => void;
+  multiple?: boolean;
+  maxImages?: number;
+  title?: string;
+  variantIndex?: number;
+}
+
 export default function ImageManager({
   currentImage,
   onImageChange,
@@ -12,22 +22,30 @@ export default function ImageManager({
   maxImages = 5,
   title = "Image",
   variantIndex,
-}) {
-  const [previewUrls, setPreviewUrls] = useState(
-    multiple ? currentImage || [] : currentImage ? [currentImage] : []
+}: ImageManagerProps) {
+  const [previewUrls, setPreviewUrls] = useState<string[]>(
+    multiple
+      ? (currentImage as string[]) || []
+      : currentImage
+      ? [currentImage as string]
+      : []
   );
-  const [removedIndices, setRemovedIndices] = useState([]);
+  const [removedIndices, setRemovedIndices] = useState<number[]>([]);
 
   // Update previewUrls when currentImage changes
   useEffect(() => {
     setPreviewUrls(
-      multiple ? currentImage || [] : currentImage ? [currentImage] : []
+      multiple
+        ? (currentImage as string[]) || []
+        : currentImage
+        ? [currentImage as string]
+        : []
     );
     setRemovedIndices([]); // Reset removed indices when currentImage updates
   }, [currentImage, multiple]);
 
-  const handleImageChange = (e) => {
-    const files = Array.from(e.target.files);
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const files = Array.from(e.target.files || []);
 
     if (multiple) {
       const currentCount = previewUrls.length - removedIndices.length;
@@ -39,12 +57,12 @@ export default function ImageManager({
     } else {
       const file = files[0];
       if (file) {
-        onImageChange(file);
+        onImageChange([file]);
       }
     }
   };
 
-  const removeImage = (index) => {
+  const removeImage = (index: number): void => {
     setRemovedIndices((prev) => [...prev, index]);
     onImageChange([], [...removedIndices, index]); // Pass empty files array and updated removedIndices
   };
