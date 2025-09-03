@@ -51,10 +51,15 @@ export default function ProductsPage() {
   });
   const [categories, setCategories] = useState<Category[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isFiltersInitialized, setIsFiltersInitialized] =
+    useState<boolean>(false);
 
   const fetchProducts = async (page: number = 1): Promise<void> => {
     try {
       setIsLoading(true);
+      setError(null);
+
+      console.log("Fetching products with filters:", filters); // Debug log
 
       // Map sort value to sortField and sortOrder
       let sortField = "createdAt";
@@ -101,19 +106,46 @@ export default function ProductsPage() {
         sortOrder,
       });
 
+      console.log("Products fetched:", response.payload?.products?.length || 0); // Debug log
+
       setProducts(response.payload!.products);
-      // Update pagination structure to match new type
       setPagination(response.payload!.pagination);
     } catch (err: any) {
+      console.error("Error fetching products:", err);
       setError(err.message || "Failed to fetch products");
     } finally {
       setIsLoading(false);
     }
   };
 
+  // Initialize filters from URL parameters first
   useEffect(() => {
+    const initialFilters: FilterState = {
+      minPrice: searchParams.get("minPrice") || "",
+      maxPrice: searchParams.get("maxPrice") || "",
+      category: searchParams.get("category") || "",
+      subcategory: searchParams.get("subcategory") || "",
+      inStock: searchParams.get("inStock")
+        ? searchParams.get("inStock") === "true"
+        : undefined,
+      sort: searchParams.get("sort") || "newest",
+    };
+
+    console.log("Initializing filters from URL:", initialFilters);
+    setFilters(initialFilters);
+    setIsFiltersInitialized(true);
+  }, [searchParams]);
+
+  // Fetch products when filters are initialized or changed
+  useEffect(() => {
+    if (!isFiltersInitialized) {
+      console.log("Filters not yet initialized, skipping fetch");
+      return;
+    }
+
+    console.log("Filters changed, fetching products:", filters);
     fetchProducts(1);
-  }, [searchParams, filters, viewMode]);
+  }, [filters, viewMode, isFiltersInitialized]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -166,6 +198,25 @@ export default function ProductsPage() {
     };
   }, [searchParams, viewMode]);
 
+  // Update URL when filters change (but not during initial load)
+  const isInitialLoad = useRef(true);
+  const lastFiltersRef = useRef<string>("");
+
+  useEffect(() => {
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      lastFiltersRef.current = JSON.stringify(filters);
+      return;
+    }
+
+    const currentFiltersString = JSON.stringify(filters);
+    if (currentFiltersString !== lastFiltersRef.current) {
+      lastFiltersRef.current = currentFiltersString;
+      // Update URL parameters when filters change
+      updateURLParams(filters);
+    }
+  }, [filters]);
+
   const handleFilterChange = (newFilters: FilterState): void => {
     console.log("Filter change received:", newFilters); // Debug log
 
@@ -176,15 +227,77 @@ export default function ProductsPage() {
       maxPrice: newFilters.maxPrice === "" ? "" : newFilters.maxPrice,
     };
 
-    setFilters((prev) => {
-      const updatedFilters = { ...prev, ...processedFilters };
-      console.log("Updated filters:", updatedFilters); // Debug log
-      return updatedFilters;
-    });
+    // Only update if filters actually changed
+    const currentFiltersString = JSON.stringify(filters);
+    const newFiltersString = JSON.stringify(processedFilters);
+
+    if (currentFiltersString !== newFiltersString) {
+      console.log("Updating filters:", processedFilters); // Debug log
+      setFilters(processedFilters);
+    }
+  };
+
+  // Function to update URL parameters based on filters
+  const updateURLParams = (filterState: FilterState): void => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    // Handle search parameter separately (don't remove it)
+    const currentSearch = searchParams.get("search");
+    if (currentSearch) {
+      params.set("search", currentSearch);
+    }
+
+    // Handle view parameter separately
+    const currentView = searchParams.get("view");
+    if (currentView) {
+      params.set("view", currentView);
+    }
+
+    // Update filter parameters
+    if (filterState.category) {
+      params.set("category", filterState.category);
+    } else {
+      params.delete("category");
+    }
+
+    if (filterState.subcategory) {
+      params.set("subcategory", filterState.subcategory);
+    } else {
+      params.delete("subcategory");
+    }
+
+    if (filterState.minPrice) {
+      params.set("minPrice", filterState.minPrice);
+    } else {
+      params.delete("minPrice");
+    }
+
+    if (filterState.maxPrice) {
+      params.set("maxPrice", filterState.maxPrice);
+    } else {
+      params.delete("maxPrice");
+    }
+
+    if (filterState.inStock !== undefined) {
+      params.set("inStock", filterState.inStock.toString());
+    } else {
+      params.delete("inStock");
+    }
+
+    if (filterState.sort && filterState.sort !== "newest") {
+      params.set("sort", filterState.sort);
+    } else {
+      params.delete("sort");
+    }
+
+    // Update URL without triggering a page reload
+    const newURL = params.toString()
+      ? `/products?${params.toString()}`
+      : "/products";
+    window.history.replaceState({}, "", newURL);
   };
 
   const handlePageChange = (newPage: number): void => {
-    setIsLoading(true);
     fetchProducts(newPage);
   };
 
@@ -193,7 +306,11 @@ export default function ProductsPage() {
     // Clear the URL parameter
     const params = new URLSearchParams(searchParams);
     params.delete("search");
-    router.push(`/products${params.toString() ? `?${params.toString()}` : ""}`);
+
+    const newURL = params.toString()
+      ? `/products?${params.toString()}`
+      : "/products";
+    router.push(newURL);
 
     // Dispatch a custom event to clear the navbar search input
     if (typeof window !== "undefined") {
@@ -204,14 +321,33 @@ export default function ProductsPage() {
 
   // Reset all filters to default values
   const resetFilters = (): void => {
-    setFilters({
+    const defaultFilters: FilterState = {
       minPrice: "",
       maxPrice: "",
       category: "",
       subcategory: "",
       inStock: undefined,
       sort: "newest",
-    });
+    };
+
+    setFilters(defaultFilters);
+
+    // Keep only search and view parameters - use router.push for immediate navigation
+    const params = new URLSearchParams();
+    const currentSearch = searchParams.get("search");
+    const currentView = searchParams.get("view");
+
+    if (currentSearch) {
+      params.set("search", currentSearch);
+    }
+    if (currentView) {
+      params.set("view", currentView);
+    }
+
+    const newURL = params.toString()
+      ? `/products?${params.toString()}`
+      : "/products";
+    router.push(newURL);
   };
 
   // Handle view mode change
@@ -223,10 +359,18 @@ export default function ProductsPage() {
 
     setViewMode(mode);
 
-    // Update URL to persist view mode
+    // Update URL to persist view mode - use router.push for immediate navigation
     const params = new URLSearchParams(searchParams.toString());
-    params.set("view", mode);
-    router.push(`/products?${params.toString()}`);
+    if (mode !== "grid") {
+      params.set("view", mode);
+    } else {
+      params.delete("view");
+    }
+
+    const newURL = params.toString()
+      ? `/products?${params.toString()}`
+      : "/products";
+    router.push(newURL);
   };
 
   return (

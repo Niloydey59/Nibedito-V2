@@ -47,20 +47,27 @@ export const productService: ProductService = {
             sortOrder = 'desc'
         } = params;
 
-        const queryParams = new URLSearchParams({
-            page: page.toString(),
-            limit: limit.toString(),
-            ...(search && { search }),
-            ...(category && { category }),
-            ...(subcategory && { subcategory }),
-            ...(minPrice !== '' && { minPrice }),
-            ...(maxPrice !== '' && { maxPrice }),
-            ...(inStock !== undefined && { inStock: inStock.toString() }),
-            ...(sortField && { sortField }),
-            ...(sortOrder && { sortOrder })
-        });
+        console.log("Product service called with params:", params); // Debug log
 
-        const response = await fetch(`${PRODUCT_URL}?${queryParams}`, {
+        const queryParams = new URLSearchParams();
+        
+        // Only add non-empty parameters
+        queryParams.append('page', page.toString());
+        queryParams.append('limit', limit.toString());
+        
+        if (search.trim()) queryParams.append('search', search.trim());
+        if (category.trim()) queryParams.append('category', category.trim());
+        if (subcategory.trim()) queryParams.append('subcategory', subcategory.trim());
+        if (minPrice.trim()) queryParams.append('minPrice', minPrice.trim());
+        if (maxPrice.trim()) queryParams.append('maxPrice', maxPrice.trim());
+        if (inStock !== undefined) queryParams.append('inStock', inStock.toString());
+        if (sortField) queryParams.append('sortField', sortField);
+        if (sortOrder) queryParams.append('sortOrder', sortOrder);
+
+        const url = `${PRODUCT_URL}?${queryParams.toString()}`;
+        console.log("Fetching products from URL:", url); // Debug log
+
+        const response = await fetch(url, {
             credentials: 'include'
         });
 
@@ -69,7 +76,10 @@ export const productService: ProductService = {
             throw new Error(error.message || 'Failed to fetch products');
         }
 
-        return response.json();
+        const data = await response.json();
+        console.log("Products API response:", data); // Debug log
+        
+        return data;
     },
 
     async getProduct(slug: string): Promise<Product> {
@@ -149,4 +159,3 @@ export const productService: ProductService = {
         return response.json();
     }
 };
-  

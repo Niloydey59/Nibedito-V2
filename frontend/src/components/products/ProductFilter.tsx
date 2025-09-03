@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FiChevronDown, FiX, FiFilter, FiCheck } from "react-icons/fi";
+import { subcategoryService } from "@/services/subcategoryService";
 import type { Category } from "@/types/category";
 import type { Subcategory } from "@/types/subcategory";
 
@@ -46,11 +47,92 @@ export default function ProductFilters({
   });
 
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [isLoadingSubcategories, setIsLoadingSubcategories] =
+    useState<boolean>(false);
+
+  // Only update local filters when filters prop changes from parent
+  // Use JSON.stringify to do deep comparison and avoid infinite loops
+  const [lastFiltersString, setLastFiltersString] = useState<string>("");
 
   useEffect(() => {
-    console.log("Filters prop changed:", filters); // Debug log
-    setLocalFilters(filters);
-  }, [filters]);
+    const filtersString = JSON.stringify(filters);
+    if (filtersString !== lastFiltersString) {
+      console.log("Filters prop changed:", filters); // Debug log
+      setLocalFilters(filters);
+      setLastFiltersString(filtersString);
+    }
+  }, [filters, lastFiltersString]);
+
+  // Fetch subcategories when category changes
+  useEffect(() => {
+    if (localFilters.category) {
+      const fetchSubcategories = async (): Promise<void> => {
+        try {
+          setIsLoadingSubcategories(true);
+
+          // Check if we need to fetch by category ID or convert from slug
+          let categoryId = localFilters.category;
+          let shouldUpdateFilter = false;
+
+          // If it's a slug (not an ObjectId), find the category ID
+          if (!categoryId.match(/^[0-9a-fA-F]{24}$/)) {
+            const category = categories.find((cat) => cat.slug === categoryId);
+            if (category) {
+              categoryId = category._id;
+              shouldUpdateFilter = true;
+            }
+          }
+
+          const subcats = await subcategoryService.getSubcategoriesByCategory(
+            categoryId
+          );
+          setSubcategories(subcats || []);
+
+          // If we need to update filters due to slug conversion
+          if (shouldUpdateFilter) {
+            const updatedFilters = { ...localFilters, category: categoryId };
+            setLocalFilters(updatedFilters);
+            onFilterChange(updatedFilters);
+            return; // Exit early to avoid duplicate calls
+          }
+
+          // If subcategory is provided as slug, convert to ID
+          if (
+            localFilters.subcategory &&
+            !localFilters.subcategory.match(/^[0-9a-fA-F]{24}$/)
+          ) {
+            const subcategory = subcats.find(
+              (sub) => sub.slug === localFilters.subcategory
+            );
+            if (subcategory) {
+              const updatedFilters = {
+                ...localFilters,
+                subcategory: subcategory._id,
+              };
+              setLocalFilters(updatedFilters);
+              onFilterChange(updatedFilters);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to fetch subcategories:", error);
+          setSubcategories([]);
+        } finally {
+          setIsLoadingSubcategories(false);
+        }
+      };
+
+      fetchSubcategories();
+    } else {
+      setSubcategories([]);
+      // Reset subcategory if category is cleared
+      if (localFilters.subcategory) {
+        const updatedFilters = { ...localFilters, subcategory: "" };
+        setLocalFilters(updatedFilters);
+        onFilterChange(updatedFilters);
+      }
+    }
+  }, [localFilters.category, categories]); // Remove onFilterChange from dependencies
 
   const toggleSection = (section: string): void => {
     setOpenSections((prev) => ({
@@ -68,16 +150,8 @@ export default function ProductFilters({
     const newFilters = { ...localFilters, [key]: value };
     setLocalFilters(newFilters);
 
-    // Call onFilterChange immediately for price changes to ensure proper filtering
-    if (key === "minPrice" || key === "maxPrice") {
-      onFilterChange(newFilters);
-    } else {
-      // Use delay for other filters to prevent rapid updates
-      setTimeout(() => {
-        console.log("Sending filter update:", newFilters); // Debug log
-        onFilterChange(newFilters);
-      }, 100);
-    }
+    // Call onFilterChange immediately for all changes
+    onFilterChange(newFilters);
   };
 
   const handleQuickPriceSelect = (minPrice: string, maxPrice: string): void => {
@@ -119,6 +193,21 @@ export default function ProductFilters({
     return count;
   };
 
+  // Get display names for filters
+  const getCategoryDisplayName = (categoryId: string): string => {
+    const category = categories.find(
+      (cat) => cat._id === categoryId || cat.slug === categoryId
+    );
+    return category?.name || "Unknown";
+  };
+
+  const getSubcategoryDisplayName = (subcategoryId: string): string => {
+    const subcategory = subcategories.find(
+      (sub) => sub._id === subcategoryId || sub.slug === subcategoryId
+    );
+    return subcategory?.name || "Unknown";
+  };
+
   const getSelectedFiltersDisplay = (): SelectedFilter[] => {
     const selected: SelectedFilter[] = [];
 
@@ -130,30 +219,17 @@ export default function ProductFilters({
     }
 
     if (localFilters.category) {
-      const category = categories.find(
-        (cat) => cat._id === localFilters.category
-      );
       selected.push({
         type: "Category",
-        value: category?.name || "Unknown",
+        value: getCategoryDisplayName(localFilters.category),
         key: "category",
       });
     }
 
     if (localFilters.subcategory) {
-      const category = categories.find(
-        (cat) => cat._id === localFilters.category
-      );
-      // Type assertion to access subcategories property safely
-      const categoryWithSubs = category as Category & {
-        subcategories?: Subcategory[];
-      };
-      const subcategory = categoryWithSubs?.subcategories?.find(
-        (sub: Subcategory) => sub._id === localFilters.subcategory
-      );
       selected.push({
         type: "Subcategory",
-        value: subcategory?.name || "Unknown",
+        value: getSubcategoryDisplayName(localFilters.subcategory),
         key: "subcategory",
       });
     }
@@ -170,22 +246,27 @@ export default function ProductFilters({
   };
 
   const removeFilter = (key: string): void => {
+    let updatedFilters: FilterState;
+
     switch (key) {
       case "price":
-        handleFilterChange("minPrice", "");
-        handleFilterChange("maxPrice", "");
+        updatedFilters = { ...localFilters, minPrice: "", maxPrice: "" };
         break;
       case "category":
-        handleFilterChange("category", "");
-        handleFilterChange("subcategory", "");
+        updatedFilters = { ...localFilters, category: "", subcategory: "" };
         break;
       case "subcategory":
-        handleFilterChange("subcategory", "");
+        updatedFilters = { ...localFilters, subcategory: "" };
         break;
       case "availability":
-        handleFilterChange("inStock", undefined);
+        updatedFilters = { ...localFilters, inStock: undefined };
         break;
+      default:
+        return;
     }
+
+    setLocalFilters(updatedFilters);
+    onFilterChange(updatedFilters);
   };
 
   interface FilterSectionProps {
@@ -388,49 +469,71 @@ export default function ProductFilters({
           isOpen={openSections.category}
           onToggle={() => toggleSection("category")}
         >
-          <div className="space-y-2">
-            <select
-              value={localFilters.category || ""}
-              onChange={(e) => {
-                const categoryValue = e.target.value;
-                console.log("Category selected:", categoryValue); // Debug log
-                handleFilterChange("category", categoryValue);
-                if (categoryValue === "") {
-                  handleFilterChange("subcategory", "");
-                }
-              }}
-              className="select w-full"
-            >
-              <option value="">All Categories</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category._id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs text-text-secondary mb-1">
+                Category
+              </label>
+              <select
+                value={localFilters.category || ""}
+                onChange={(e) => {
+                  const categoryValue = e.target.value;
+                  console.log("Category selected:", categoryValue); // Debug log
+                  handleFilterChange("category", categoryValue);
+                  if (categoryValue === "") {
+                    handleFilterChange("subcategory", "");
+                  }
+                }}
+                className="select w-full"
+              >
+                <option value="">All Categories</option>
+                {categories.map((category) => (
+                  <option key={category._id} value={category._id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-            {/* Subcategory */}
-            {selectedCategory &&
-              (selectedCategory as any)?.subcategories?.length > 0 && (
-                <select
-                  value={localFilters.subcategory || ""}
-                  onChange={(e) => {
-                    const subcategoryValue = e.target.value;
-                    console.log("Subcategory selected:", subcategoryValue); // Debug log
-                    handleFilterChange("subcategory", subcategoryValue);
-                  }}
-                  className="select w-full"
-                >
-                  <option value="">All Subcategories</option>
-                  {(selectedCategory as any).subcategories.map(
-                    (subcategory: Subcategory) => (
+            {/* Subcategory - Only show if category is selected and has subcategories */}
+            {localFilters.category && (
+              <div>
+                <label className="block text-xs text-text-secondary mb-1">
+                  Subcategory
+                </label>
+                <div className="relative">
+                  <select
+                    value={localFilters.subcategory || ""}
+                    onChange={(e) => {
+                      const subcategoryValue = e.target.value;
+                      console.log("Subcategory selected:", subcategoryValue); // Debug log
+                      handleFilterChange("subcategory", subcategoryValue);
+                    }}
+                    disabled={
+                      isLoadingSubcategories || subcategories.length === 0
+                    }
+                    className="select w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">All Subcategories</option>
+                    {subcategories.map((subcategory) => (
                       <option key={subcategory._id} value={subcategory._id}>
                         {subcategory.name}
                       </option>
-                    )
+                    ))}
+                  </select>
+                  {isLoadingSubcategories && (
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                    </div>
                   )}
-                </select>
-              )}
+                </div>
+                {subcategories.length === 0 && !isLoadingSubcategories && (
+                  <p className="text-xs text-text-secondary mt-1">
+                    No subcategories available for this category
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </FilterSection>
 

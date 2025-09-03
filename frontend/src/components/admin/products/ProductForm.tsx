@@ -156,7 +156,7 @@ export default function ProductForm({
         setFormData((prev) => ({ ...prev, subcategory: "" }));
       }
     }
-  }, [formData.category, formData.subcategory]);
+  }, [formData.category]); // Remove formData.subcategory from dependencies
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

@@ -71,6 +71,17 @@ const config: Config = {
         },
         input: "var(--surface-color)",
         ring: "var(--primary-color)",
+        // WhatsApp-specific colors
+        whatsapp: {
+          DEFAULT: "#25D366",
+          light: "#4FCF70", 
+          dark: "#25D366",     // Same as default for consistency
+          darker: "#1EA855",   // Slightly darker but still vibrant
+          bg: "#DCF8C6",
+          "bg-dark": "#0F2419", // Very dark green background for dark theme
+          hover: "#22C55E",
+          "hover-dark": "#34D675", // Lighter hover for dark theme
+        },
       },
       borderRadius: {
         sm: "var(--border-radius-sm)",
@@ -102,6 +113,8 @@ const config: Config = {
         modal: 'var(--z-modal)',
         popover: 'var(--z-popover)',
         tooltip: 'var(--z-tooltip)',
+        'whatsapp-bot': '1050',
+        'whatsapp-overlay': '1051',
       },
     },
   },

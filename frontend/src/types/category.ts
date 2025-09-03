@@ -7,10 +7,10 @@ export interface Category {
   description?: string;
   image?: string;
   productCount: number;
+  subcategories: import('./subcategory').Subcategory[];
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-  subcategories?: import('./subcategory').Subcategory[];
 }
 
 export interface CreateCategoryRequest {

@@ -132,6 +132,8 @@ const createProduct = async (req, res, next) => {
 
 const getProducts = async (req, res, next) => {
   try {
+    console.log("Products API called with query:", req.query); // Debug log
+
     // Pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -168,10 +170,12 @@ const getProducts = async (req, res, next) => {
 
     // Category and subcategory filtering
     if (categoryId) {
+      console.log("Filtering by category:", categoryId); // Debug log
       filter.category = categoryId;
     }
 
     if (subcategoryId) {
+      console.log("Filtering by subcategory:", subcategoryId); // Debug log
       filter.subcategory = subcategoryId;
     }
 
@@ -184,15 +188,21 @@ const getProducts = async (req, res, next) => {
 
     // Stock filtering
     if (inStock !== undefined) {
-      // Assuming product model has quantity or stock field
-      // Adjust this based on your actual model schema
-      filter.quantity = inStock === "true" ? { $gt: 0 } : { $lte: 0 };
+      // For stock filtering, we need to check if any variant has stock
+      if (inStock === "true") {
+        filter["variants.quantity"] = { $gt: 0 };
+      } else {
+        filter["variants.quantity"] = { $lte: 0 };
+      }
     }
+
+    console.log("Final filter object:", JSON.stringify(filter, null, 2)); // Debug log
+    console.log("Sort options:", sortOptions); // Debug log
 
     // Execute query with pagination
     const products = await Product.find(filter)
-      .populate("category")
-      .populate("subcategory")
+      .populate("category", "name slug")
+      .populate("subcategory", "name slug")
       .sort(sortOptions)
       .skip(skip)
       .limit(limit)
@@ -202,8 +212,9 @@ const getProducts = async (req, res, next) => {
     const totalProducts = await Product.countDocuments(filter);
     const totalPages = Math.ceil(totalProducts / limit);
 
-    // Skip throwing 404 when no products found, just return empty array
-    // with proper pagination information
+    console.log(
+      `Found ${products.length} products out of ${totalProducts} total`
+    ); // Debug log
 
     return successResponse(res, {
       statusCode: 200,
@@ -214,7 +225,7 @@ const getProducts = async (req, res, next) => {
       payload: {
         products,
         pagination: {
-          totalProducts,
+          total: totalProducts,
           totalPages,
           currentPage: page,
           limit,
@@ -240,6 +251,7 @@ const getProducts = async (req, res, next) => {
       },
     });
   } catch (error) {
+    console.error("Error in getProducts:", error); // Debug log
     next(error);
   }
 };

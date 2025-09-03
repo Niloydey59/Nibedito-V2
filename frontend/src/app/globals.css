@@ -1344,3 +1344,94 @@
     -webkit-backdrop-filter: blur(8px);
   }
 }
+
+/* Enhanced Categories Hero Gradients - Updated for better contrast */
+.categories-hero-gradient {
+  background: linear-gradient(135deg, 
+    #e11d48 0%,     /* rose-600 - Deep Red (matching products page) */
+    #f43f5e 25%,    /* rose-500 */
+    #fb7185 50%,    /* rose-400 */
+    #fda4af 75%,    /* rose-300 */
+    #fecdd3 100%    /* rose-200 - Light Red (right) */
+  );
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(225, 29, 72, 0.15), 0 4px 16px rgba(244, 63, 94, 0.1);
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+
+.categories-hero-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(225, 29, 72, 0.7) 0%,      /* rose-600 with opacity */
+    rgba(244, 63, 94, 0.75) 25%,    /* rose-500 with opacity */
+    rgba(251, 113, 133, 0.8) 50%,   /* rose-400 with opacity */
+    rgba(253, 164, 175, 0.85) 75%,  /* rose-300 with opacity */
+    rgba(254, 205, 211, 0.9) 100%   /* rose-200 with opacity */
+  );
+  z-index: 1;
+}
+
+.categories-hero-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.3) 0%, transparent 50%),
+              radial-gradient(circle at 70% 80%, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+  z-index: 2;
+}
+
+/* Dark theme styling for categories hero - keep existing */
+.dark .categories-hero-gradient,
+[data-theme="dark"] .categories-hero-gradient {
+  background: linear-gradient(135deg, 
+    #0f172a 0%,     /* slate-900 */
+    #1e293b 50%,    /* slate-800 */
+    #334155 100%    /* slate-700 */
+  );
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.3);
+}
+
+.dark .categories-hero-gradient::before,
+[data-theme="dark"] .categories-hero-gradient::before {
+  background: linear-gradient(135deg, 
+    rgba(244, 63, 94, 0.05) 0%,      /* rose-500 with low opacity */
+    rgba(168, 85, 247, 0.03) 25%,    /* purple-500 with low opacity */
+    rgba(59, 130, 246, 0.05) 50%,    /* blue-500 with low opacity */
+    rgba(34, 197, 94, 0.03) 75%,     /* green-500 with low opacity */
+    rgba(249, 115, 22, 0.05) 100%    /* orange-500 with low opacity */
+  );
+}
+
+/* Category card enhancements */
+.category-card {
+  position: relative;
+  height: 100%;
+}
+
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(244, 63, 94, 0.1), transparent);
+  transition: left 0.5s ease;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 1rem;
+}
+
+.category-card:hover::before {
+  left: 100%;
+}
+
+/* Ensure card content is above the shine effect */
+.category-card > div {
+  position: relative;
+  z-index: 2;
+}

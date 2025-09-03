@@ -57,3 +57,10 @@ export const faqService: FAQService = {
         };
     }
 };
+
+// Legacy export for backward compatibility
+export const getAllFaqs = faqService.getAllFaqs;
+export const getFaqById = faqService.getFaqById;
+export const createFaq = faqService.createFaq;
+export const updateFaq = faqService.updateFaq;
+export const deleteFaq = faqService.deleteFaq;

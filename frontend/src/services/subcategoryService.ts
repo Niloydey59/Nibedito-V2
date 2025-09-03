@@ -10,6 +10,7 @@ export const subcategoryService: SubcategoryService = {
         const { data } = await axios.post<ApiResponse<{ subcategory: Subcategory }>>('/subcategories', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
         });
         return data;
@@ -26,7 +27,7 @@ export const subcategoryService: SubcategoryService = {
     },
 
     async getAllSubcategories(categoryId?: string | null): Promise<ApiResponse<{ subcategories: Subcategory[] }>> {
-        const params = categoryId ? { category: categoryId } : {};
+        const params = categoryId ? { categoryId: categoryId } : {};
         const { data } = await axios.get<ApiResponse<{ subcategories: Subcategory[] }>>('/subcategories', { params });
         return data;
     },
@@ -51,12 +52,16 @@ export const subcategoryService: SubcategoryService = {
     },
 
     async getSubcategoriesByCategory(categoryId: string): Promise<Subcategory[]> {
-        const response = await this.getAllSubcategories(categoryId);
-        return response.payload?.subcategories || [];
+        const { data } = await axios.get<ApiResponse<{ subcategories: Subcategory[] }>>(`/subcategories/category/${categoryId}`);
+        return data.payload?.subcategories || [];
     },
 
     async recalculateProductCounts(): Promise<ApiResponse> {
-        const { data } = await axios.post<ApiResponse>('/subcategories/recalculate-counts');
+        const { data } = await axios.post<ApiResponse>('/subcategories/recalculate-counts', {}, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+        });
         return data;
     }
 };
