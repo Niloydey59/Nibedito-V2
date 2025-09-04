@@ -4,6 +4,7 @@ const Product = require("../models/productModel");
 const cloudinary = require("../config/cloudinary");
 const { publicIDfromURL } = require("../helper/cloudinaryHelper");
 const Review = require("../models/reviewModel");
+const mongoose = require("mongoose");
 
 const createReview = async (req, res, next) => {
   try {
@@ -68,11 +69,90 @@ const createReview = async (req, res, next) => {
       throw createError(500, "Failed to create review");
     }
 
+    // Return the created review with populated fields
+    const populatedReview = await Review.findById(newReview._id)
+      .populate("user", "name email")
+      .populate("product", "name slug");
+
     // Return success response
     return successResponse(res, {
-      statusCode: 200,
+      statusCode: 201,
       message: `Review created successfully`,
-      payload: { Review: review },
+      payload: { review: populatedReview },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getReviews = async (req, res, next) => {
+  try {
+    // Pagination and search query parameters
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+    const searchQuery = req.query.search || "";
+
+    // Build filter object
+    const filter = {};
+    if (searchQuery) {
+      filter.comment = { $regex: searchQuery, $options: "i" }; // Case-insensitive search in comment field
+    }
+
+    // Get reviews from database
+    const reviews = await Review.find(filter)
+
+      .populate("user", "name email") // user population
+      .populate("product", "name slug") // product population
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // Get total count of products
+    const count = await Review.countDocuments(filter);
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Reviews were returned successfully!",
+      payload: {
+        reviews: reviews,
+        pagination: {
+          totalReviews: count,
+          totalPages: Math.ceil(count / limit),
+          currentPage: page,
+          previousPage: page > 1 ? page - 1 : null,
+          nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
+        },
+        filters: {
+          searchQuery,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getReview = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      throw createError(400, "Invalid review ID");
+    }
+
+    // Find review from database
+    const review = await Review.findById(id)
+      .populate("user", "name email") // user population
+      .populate("product", "name slug"); // product population
+
+    // Check if review exists
+    if (!review) {
+      throw createError(404, "Review not found!");
+    }
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Review was returned successfully!",
+      payload: { review: review },
     });
   } catch (error) {
     next(error);
@@ -81,23 +161,40 @@ const createReview = async (req, res, next) => {
 
 const getProductReviews = async (req, res, next) => {
   try {
-    const { productId } = req.body;
-    // Pagination and search query parameters
+    const { productId } = req.params;
+    if (!productId) {
+      throw createError(400, "Product ID is required");
+    }
+    // Pagination  parameters
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
 
+    // Filtering parameters
+    const rating = req.query.rating; // Filter by specific rating
+    const sortBy = req.query.sortBy || "createdAt"; // Sort by: createdAt, rating, helpful
+    const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
+
+    // Build filter object
     const filter = { product: productId };
-    const options = {
-      page,
-      limit,
-      sort: { createdAt: -1 }, // Sort by creation date, newest first
-    };
+    if (rating) {
+      filter.rating = Number(rating);
+    }
+
+    // Build sort object
+    const sortObj = {};
+    sortObj[sortBy] = sortOrder;
 
     // Get reviews from database
-    const reviews = await Review.find(filter, null, options);
+    const reviews = await Review.find(filter)
+      .populate("user", "name email") // user population
+      .populate("product", "name slug") // product population
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     // Get total count of products
-    const count = await Review.find(filter).countDocuments();
+    const count = await Review.countDocuments(filter);
 
     return successResponse(res, {
       statusCode: 200,
@@ -106,10 +203,15 @@ const getProductReviews = async (req, res, next) => {
         reviews: reviews,
         pagination: {
           totalReviews: count,
-          totalpages: Math.ceil(count / limit),
+          totalPages: Math.ceil(count / limit),
           currentPage: page,
           previousPage: page > 1 ? page - 1 : null,
-          nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+          nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
+        },
+        filters: {
+          rating,
+          sortBy,
+          sortOrder: sortOrder === 1 ? "asc" : "desc",
         },
       },
     });
@@ -121,21 +223,23 @@ const getProductReviews = async (req, res, next) => {
 const getUserReviews = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    console.log("User ID:", userId);
+    //console.log("User ID:", userId);
+
     // Pagination and search query parameters
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
     const filter = { user: userId };
-    const options = {
-      page,
-      limit,
-      sort: { createdAt: -1 }, // Sort by creation date, newest first
-    };
-    // Get reviews from database
-    const reviews = await Review.find(filter, null, options);
+
+    const reviews = await Review.find(filter)
+      .populate("product", "name slug thumbnailImage") // ADD product population
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     // Get total count of reviews
-    const count = await Review.find(filter).countDocuments();
+    const count = await Review.countDocuments(filter);
 
     return successResponse(res, {
       statusCode: 200,
@@ -144,10 +248,10 @@ const getUserReviews = async (req, res, next) => {
         reviews: reviews,
         pagination: {
           totalReviews: count,
-          totalpages: Math.ceil(count / limit),
+          totalPages: Math.ceil(count / limit),
           currentPage: page,
           previousPage: page > 1 ? page - 1 : null,
-          nextPage: page + 1 <= Math.ceil(count / limit) ? page + 1 : null,
+          nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
         },
       },
     });
@@ -160,6 +264,7 @@ const deleteReview = async (req, res, next) => {
   try {
     // Get product by slug
     const { id } = req.params;
+    const userId = req.user._id;
 
     // Find review from database
     const reviewExist = await Review.findById(id);
@@ -167,6 +272,30 @@ const deleteReview = async (req, res, next) => {
     // Check if review exists
     if (!reviewExist) {
       throw createError(404, "Review not found!");
+    }
+
+    // Check if the user is the owner of the review
+    if (reviewExist.user.toString() !== userId.toString()) {
+      throw createError(403, "You are not authorized to delete this review");
+    }
+
+    //Update product ratings before deleting review
+    const productExist = await Product.findById(reviewExist.product);
+    if (productExist) {
+      const currentTotalRating =
+        (productExist.ratings || 0) * (productExist.reviewCount || 0);
+      const newTotalRating = currentTotalRating - Number(reviewExist.rating);
+      const newReviewCount = Math.max(0, (productExist.reviewCount || 0) - 1);
+
+      if (newReviewCount === 0) {
+        productExist.ratings = 0;
+      } else {
+        productExist.ratings = Number(
+          (newTotalRating / newReviewCount).toFixed(1)
+        );
+      }
+      productExist.reviewCount = newReviewCount;
+      await productExist.save();
     }
 
     // Delete review images from Cloudinary
@@ -314,10 +443,97 @@ const updateReview = async (req, res, next) => {
   }
 };
 
+const markReviewHelpful = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user._id;
+
+    const review = await Review.findById(id);
+    if (!review) {
+      throw createError(404, "Review not found!");
+    }
+
+    // Check if user already marked as helpful
+    const alreadyMarked = review.helpfulUsers.includes(userId);
+
+    if (alreadyMarked) {
+      // Remove from helpful
+      review.helpfulUsers.pull(userId);
+      review.helpful = Math.max(0, review.helpful - 1);
+    } else {
+      // Add to helpful
+      review.helpfulUsers.push(userId);
+      review.helpful += 1;
+    }
+
+    await review.save();
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: alreadyMarked ? "Removed from helpful" : "Marked as helpful",
+      payload: {
+        helpful: review.helpful,
+        isHelpful: !alreadyMarked,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getReviewStats = async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    const stats = await Review.aggregate([
+      { $match: { product: mongoose.Types.ObjectId(productId) } },
+      {
+        $group: {
+          _id: "$rating",
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: -1 } },
+    ]);
+
+    const totalReviews = await Review.countDocuments({ product: productId });
+
+    // Calculate average rating and percentages
+    let totalRatingSum = 0;
+    const statsWithPercentage = stats.map((stat) => {
+      totalRatingSum += stat._id * stat.count;
+      return {
+        rating: stat._id,
+        count: stat.count,
+        percentage: Math.round((stat.count / totalReviews) * 100),
+      };
+    });
+
+    const averageRating =
+      totalReviews > 0 ? (totalRatingSum / totalReviews).toFixed(1) : 0;
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Review statistics retrieved successfully",
+      payload: {
+        stats: statsWithPercentage,
+        totalReviews,
+        averageRating: parseFloat(averageRating),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createReview,
+  getReviews,
+  getReview,
   getProductReviews,
   getUserReviews,
   deleteReview,
   updateReview,
+  markReviewHelpful,
+  getReviewStats,
 };
