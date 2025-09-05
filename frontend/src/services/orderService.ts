@@ -5,7 +5,11 @@ import {
     Order, 
     GetAllOrdersParams,
     OrdersResponse,
-    ApiResponse 
+    ApiResponse,
+    OrderStats,
+    RegionStats,
+    GetOrderStatsParams,
+    GetOrdersByRegionParams
 } from '@/types';
 
 export const orderService: OrderService = {
@@ -62,6 +66,27 @@ export const orderService: OrderService = {
     async deleteOrder(orderId: string): Promise<ApiResponse> {
         const { data } = await axios.delete<ApiResponse>(`/orders/${orderId}`);
         return data;
+    },
+
+    async getOrderStats(params: GetOrderStatsParams = {}): Promise<ApiResponse<OrderStats>> {
+        const { startDate, endDate } = params;
+        const query = new URLSearchParams({
+            ...(startDate && { startDate }),
+            ...(endDate && { endDate })
+        });
+
+        const { data } = await axios.get<ApiResponse<OrderStats>>(`/orders/analytics/stats?${query}`);
+        return data;
+    },
+
+    async getOrdersByRegion(params: GetOrdersByRegionParams = {}): Promise<ApiResponse<RegionStats>> {
+        const { startDate, endDate } = params;
+        const query = new URLSearchParams({
+            ...(startDate && { startDate }),
+            ...(endDate && { endDate })
+        });
+
+        const { data } = await axios.get<ApiResponse<RegionStats>>(`/orders/analytics/regions?${query}`);
+        return data;
     }
 };
-  

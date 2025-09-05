@@ -162,10 +162,15 @@ const getProducts = async (req, res, next) => {
 
     // Text search
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { description: { $regex: search, $options: "i" } },
-      ];
+      // Use MongoDB text search instead of regex
+      filter.$text = { $search: search };
+      // Add text score for relevance sorting
+      if (!sortField || sortField === "relevance") {
+        sortOptions = { score: { $meta: "textScore" } };
+      } else {
+        // Normal sorting when not searching
+        sortOptions[sortField] = sortOrder;
+      }
     }
 
     // Category and subcategory filtering
@@ -481,25 +486,17 @@ const updateProduct = async (req, res, next) => {
 const addToWishlist = async (req, res, next) => {
   try {
     // Get product by slug
-
     const { slug } = req.params;
 
     // Find product from database
-
     const productExist = await Product.findOne({ slug: slug });
 
     // Check if product exists
-
     if (!productExist) {
       throw createError(404, "Product not found!");
     }
-
     // Add to wishlist logic here
-
-    //console.log(req.user);
-
-    const userId = req.user._id; // Assuming user ID is available in req.user
-
+    const userId = req.user._id;
     const user = await User.findById(userId);
 
     if (!user) {
@@ -507,14 +504,11 @@ const addToWishlist = async (req, res, next) => {
     }
 
     // Check if product is already in wishlist
-
     if (user.wishlist.includes(productExist._id)) {
       throw createError(409, "Product is already in your wishlist!");
     } else {
       // Add product to wishlist
-
       user.wishlist.push(productExist._id);
-
       await user.save();
     }
 

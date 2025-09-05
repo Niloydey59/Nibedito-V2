@@ -6,14 +6,12 @@ const categorySchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Category name is required"],
-      unique: true,
       trim: true,
       minlength: [3, "Category name must be at least 3 characters"],
       maxlength: [100, "Category name cannot exceed 100 characters"],
     },
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
     },
     description: {
@@ -53,6 +51,34 @@ categorySchema.statics.recalculateProductCounts = async function () {
     await this.findByIdAndUpdate(category._id, { productCount: count });
   }
 };
+
+// Slug index (MOST CRITICAL - used for getCategory)
+categorySchema.index({ slug: 1 }, { unique: true });
+
+// Name index (for uniqueness and search)
+categorySchema.index({ name: 1 }, { unique: true });
+
+// Active status index (for filtering active categories)
+categorySchema.index({ isActive: 1 });
+
+// Product count index (for sorting by popularity)
+categorySchema.index({ productCount: -1 });
+
+// Text search index for category search
+categorySchema.index(
+  {
+    name: "text",
+    description: "text",
+  },
+  {
+    weights: { name: 10, description: 1 },
+    name: "category_text_index",
+  }
+);
+
+// Compound indexes for common queries
+categorySchema.index({ isActive: 1, productCount: -1 }); // Active categories sorted by product count
+categorySchema.index({ isActive: 1, createdAt: -1 }); // Active categories sorted by newest
 
 const Category = mongoose.model("Category", categorySchema);
 module.exports = Category;

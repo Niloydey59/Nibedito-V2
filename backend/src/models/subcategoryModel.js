@@ -12,7 +12,6 @@ const subcategorySchema = new mongoose.Schema(
     },
     slug: {
       type: String,
-      unique: true,
       lowercase: true,
     },
     description: {
@@ -73,6 +72,36 @@ subcategorySchema.pre("findOneAndDelete", async function () {
     });
   }
 });
+
+// Unique within each category only
+subcategorySchema.index({ name: 1, category: 1 }, { unique: true });
+subcategorySchema.index({ slug: 1, category: 1 }, { unique: true });
+
+// Category index (VERY IMPORTANT - for filtering subcategories by category)
+subcategorySchema.index({ category: 1 });
+
+// Active status index (for filtering active subcategories)
+subcategorySchema.index({ isActive: 1 });
+
+// Product count index (for sorting by popularity)
+subcategorySchema.index({ productCount: -1 });
+
+// Text search index for subcategory search
+subcategorySchema.index(
+  {
+    name: "text",
+    description: "text",
+  },
+  {
+    weights: { name: 10, description: 1 },
+    name: "subcategory_text_index",
+  }
+);
+
+// Compound indexes for common queries
+subcategorySchema.index({ category: 1, isActive: 1 }); // Active subcategories in a category
+subcategorySchema.index({ category: 1, productCount: -1 }); // Subcategories by popularity in category
+subcategorySchema.index({ isActive: 1, createdAt: -1 }); // Active subcategories by newest
 
 const Subcategory = mongoose.model("Subcategory", subcategorySchema);
 module.exports = Subcategory;

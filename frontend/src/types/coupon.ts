@@ -62,6 +62,45 @@ export interface CouponPreviewResponse {
   applied?: boolean;
 }
 
+export interface GetCouponStatsParams {
+  // No specific params needed based on backend
+}
+
+export interface GetCouponUsageAnalyticsParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface CouponStats {
+  overview: {
+    totalCoupons: number;
+    activeCoupons: number;
+    expiredCoupons: number;
+    productDiscountCoupons: number;
+    shippingDiscountCoupons: number;
+    totalUsage: number;
+  };
+  mostUsedCoupons: Array<{
+    _id: string;
+    code: string;
+    totalUsage: number;
+    usageLimit: number;
+    expiryDate: string;
+    discountOptions: DiscountOptions;
+  }>;
+}
+
+export interface CouponUsageAnalytics {
+  couponUsage: Array<{
+    _id: string;
+    couponCode: string;
+    usageCount: number;
+    totalDiscountGiven: number;
+    averageDiscount: number;
+    totalOrderValue: number;
+  }>;
+}
+
 export interface CouponService {
   getAllCoupons(): Promise<ApiResponse<{ coupons: Coupon[] }>>;
   getCouponById(couponId: string): Promise<ApiResponse<{ coupon: Coupon }>>;
@@ -70,4 +109,6 @@ export interface CouponService {
   deleteCoupon(couponId: string): Promise<ApiResponse<{ coupon: Coupon }>>;
   previewCoupon(couponData: PreviewCouponRequest): Promise<ApiResponse<CouponPreviewResponse>>;
   applyCoupon(couponData: PreviewCouponRequest): Promise<ApiResponse<CouponPreviewResponse>>;
+  getCouponStats?(params?: GetCouponStatsParams): Promise<ApiResponse<CouponStats>>;
+  getCouponUsageAnalytics?(params?: GetCouponUsageAnalyticsParams): Promise<ApiResponse<CouponUsageAnalytics>>;
 }

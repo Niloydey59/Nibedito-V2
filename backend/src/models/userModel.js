@@ -45,7 +45,6 @@ const userSchema = new Schema(
       type: String,
       required: [true, "Email address is required"],
       trim: true,
-      unique: true,
       lowercase: true,
       validate: {
         validator: function (v) {
@@ -131,6 +130,44 @@ userSchema.pre("save", async function (next) {
     next(error);
   }
 });
+
+// Email index (used for login and uniqueness)
+userSchema.index({ email: 1 }, { unique: true });
+
+// Phone number index (for phone-based login and verification)
+userSchema.index({ phone: 1 }, { unique: true });
+
+// Verification status indexes (for admin filtering)
+userSchema.index({ "verificationStatus.email": 1 });
+userSchema.index({ "verificationStatus.phone": 1 });
+
+// Ban status index (for filtering active/banned users)
+userSchema.index({ isBanned: 1 });
+
+// Wishlist optimization (for product recommendations)
+userSchema.index({ wishlist: 1 });
+
+// Address default lookup optimization
+userSchema.index({ "addresses.isDefault": 1 });
+
+// Compound indexes for admin queries
+userSchema.index({ isBanned: 1, createdAt: -1 }); // Admin: filter by ban status + sort by date
+userSchema.index({ "verificationStatus.email": 1, createdAt: -1 }); // Admin: unverified users by date
+
+// Text search for admin user search
+userSchema.index(
+  {
+    name: "text",
+    email: "text",
+  },
+  {
+    weights: { email: 10, name: 5 }, // Email matches are more relevant
+    name: "user_search_index",
+  }
+);
+
+// Login optimization (email OR phone login)
+userSchema.index({ email: 1, phone: 1 }); // Compound for dual login support
 
 const User = model("User", userSchema);
 module.exports = User;

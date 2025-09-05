@@ -36,7 +36,6 @@ const productSchema = new mongoose.Schema(
     slug: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
     },
     description: {
@@ -202,6 +201,43 @@ productSchema.pre("findOneAndDelete", async function () {
     }
   }
 });
+
+// Unique index for slug (most important for getProduct)
+productSchema.index({ slug: 1 }, { unique: true });
+
+// Category filtering (important for browsing products)
+productSchema.index({ category: 1 });
+
+// Subcategory filtering (important for more specific browsing)
+productSchema.index({ subcategory: 1 });
+
+// Price range filtering (min/max price queries)
+productSchema.index({ price: 1 });
+
+// Stock filtering (inStock queries)
+productSchema.index({ "variants.quantity": 1 });
+
+// Active products (isActive filtering)
+productSchema.index({ isActive: 1 });
+
+// Text search on name and description
+productSchema.index(
+  {
+    name: "text",
+    description: "text",
+  },
+  {
+    weights: { name: 10, description: 1 }, // Name is more important than description
+    name: "product_text_index",
+  }
+);
+
+// Compound indexes for common query combinations
+productSchema.index({ category: 1, isActive: 1, createdAt: -1 }); // Category browsing with sorting
+productSchema.index({ category: 1, subcategory: 1, price: 1 }); // Category + subcategory + price filtering
+productSchema.index({ isActive: 1, createdAt: -1 }); // Active products sorted by newest
+productSchema.index({ ratings: -1, reviewCount: -1 }); // Best rated products
+productSchema.index({ totalSold: -1 }); // Best selling products
 
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;

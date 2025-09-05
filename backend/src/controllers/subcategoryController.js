@@ -8,23 +8,45 @@ const { uploadImage, deleteImage } = require("../helper/cloudinaryHelper");
 
 const createSubcategory = async (req, res, next) => {
   try {
-    const { name, description, category } = req.body;
-    const image = req.file;
+    const { name, description, categoryId } = req.body;
 
-    // Check if subcategory name already exists
-    const subcategoryExists = await Subcategory.findOne({ name });
-    if (subcategoryExists) {
-      throw createError(409, "Subcategory already exists");
+    // generate slug from name
+    const slug = slugify(name, { lower: true });
+    // Check uniqueness within the specific category only
+    const existingSubcategory = await Subcategory.findOne({
+      $or: [
+        {
+          name: { $regex: new RegExp("^" + name + "$", "i") },
+          category: categoryId,
+        },
+        { slug: slug, category: categoryId },
+      ],
+    });
+
+    if (existingSubcategory) {
+      if (existingSubcategory.name.toLowerCase() === name.toLowerCase()) {
+        throw createError(
+          409,
+          `Subcategory '${name}' already exists in this category`
+        );
+      }
+      if (existingSubcategory.slug === slug) {
+        throw createError(
+          409,
+          `Subcategory with slug '${slug}' already exists in this category`
+        );
+      }
     }
 
-    // Verify that category exists
-    const categoryExists = await Category.findById(category);
-    if (!categoryExists) {
-      throw createError(404, "Parent category not found");
+    // Verify category exists
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      throw createError(404, "Category not found");
     }
 
+    // Handle image upload
     let imageUrl = "";
-    if (image) {
+    if (req.file) {
       const timestamp = Date.now();
       imageUrl = await uploadImage(
         image,
@@ -33,12 +55,13 @@ const createSubcategory = async (req, res, next) => {
       );
     }
 
+    // Create subcategory
     const subcategory = await Subcategory.create({
       name,
-      slug: slugify(name),
+      slug,
       description,
       image: imageUrl,
-      category,
+      category: categoryId,
       productCount: 0,
     });
 
@@ -46,6 +69,8 @@ const createSubcategory = async (req, res, next) => {
     await Category.findByIdAndUpdate(category, {
       $push: { subcategories: subcategory._id },
     });
+
+    await subcategory.populate("category", "name slug");
 
     return successResponse(res, {
       statusCode: 201,

@@ -9,5 +9,7 @@ export * from './faq';
 export * from './order';
 export * from './shipping';
 export * from './cart';
+export * from './payment';
+export * from './review';
 // Export admin types last to avoid any conflicts
 export * from './admin';

@@ -4,6 +4,10 @@ import {
     CreateCouponRequest, 
     UpdateCouponRequest, 
     PreviewCouponRequest,
+    GetCouponStatsParams,
+    GetCouponUsageAnalyticsParams,
+    CouponStats,
+    CouponUsageAnalytics,
     ApiResponse,
     Coupon,
     CouponPreviewResponse
@@ -63,6 +67,22 @@ export const couponService: CouponService = {
             couponCode: couponData.couponCode,
             shippingRegion: couponData.shippingRegion
         });
+        return data;
+    },
+
+    async getCouponStats(params: GetCouponStatsParams = {}): Promise<ApiResponse<CouponStats>> {
+        const { data } = await axios.get<ApiResponse<CouponStats>>('/coupon/analytics/stats');
+        return data;
+    },
+
+    async getCouponUsageAnalytics(params: GetCouponUsageAnalyticsParams = {}): Promise<ApiResponse<CouponUsageAnalytics>> {
+        const { startDate, endDate } = params;
+        const query = new URLSearchParams({
+            ...(startDate && { startDate }),
+            ...(endDate && { endDate })
+        });
+
+        const { data } = await axios.get<ApiResponse<CouponUsageAnalytics>>(`/coupon/analytics/usage?${query}`);
         return data;
     }
 };

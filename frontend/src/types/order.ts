@@ -120,6 +120,50 @@ export interface UpdateOrderPaymentStatusRequest {
   isPaid: boolean;
 }
 
+export interface OrderStats {
+  overview: {
+    totalOrders: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+    paidOrders: number;
+    giftOrders: number;
+    ordersByStatus: {
+      processing: number;
+      shipped: number;
+      delivered: number;
+      cancelled: number;
+    };
+  };
+  topProducts: Array<{
+    _id: string;
+    productName: string;
+    productSlug: string;
+    totalOrdered: number;
+    totalRevenue: number;
+    orderCount: number;
+  }>;
+}
+
+export interface RegionStats {
+  regionStats: Array<{
+    _id: string;
+    orderCount: number;
+    totalRevenue: number;
+    averageOrderValue: number;
+    totalShippingCost: number;
+  }>;
+}
+
+export interface GetOrderStatsParams {
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface GetOrdersByRegionParams {
+  startDate?: string;
+  endDate?: string;
+}
+
 export interface OrderService {
   createOrder(orderData: CreateOrderRequest): Promise<{ success: boolean; data?: Order; error?: string }>;
   getUserOrders(): Promise<{ success: boolean; data?: Order[]; error?: string }>;
@@ -128,4 +172,6 @@ export interface OrderService {
   updateOrderStatus?(orderId: string, status: string): Promise<ApiResponse<{ order: Order }>>;
   updateOrderPaymentStatus?(orderId: string, isPaid: boolean): Promise<ApiResponse<{ order: Order }>>;
   deleteOrder?(orderId: string): Promise<ApiResponse>;
+  getOrderStats?(params?: GetOrderStatsParams): Promise<ApiResponse<OrderStats>>;
+  getOrdersByRegion?(params?: GetOrdersByRegionParams): Promise<ApiResponse<RegionStats>>;
 }

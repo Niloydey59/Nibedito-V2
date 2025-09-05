@@ -1,13 +1,15 @@
 const express = require("express");
 
 const {
-    createOrder,
-    getAllOrders,
-    getOrderById,
-    updateOrderStatus,
-    deleteOrder,
-    getUserOrders,
-    updateOrderPaymentStatus,
+  createOrder,
+  getAllOrders,
+  getOrderById,
+  updateOrderStatus,
+  deleteOrder,
+  getUserOrders,
+  updateOrderPaymentStatus,
+  getOrderStats,
+  getOrdersByRegion,
 } = require("../controllers/orderController");
 
 const { isLoggedIn, isAdmin } = require("../middlewares/authMiddleware");
@@ -30,9 +32,18 @@ orderRouter.get("/:id", isLoggedIn, getOrderById);
 orderRouter.put("/:id", isLoggedIn, isAdmin, updateOrderStatus);
 
 // Update order paid status (admin only)
-orderRouter.put("/:id/payment-status", isLoggedIn, isAdmin, updateOrderPaymentStatus);
+orderRouter.put(
+  "/:id/payment-status",
+  isLoggedIn,
+  isAdmin,
+  updateOrderPaymentStatus
+);
 
 // Delete an order (admin only)
 orderRouter.delete("/:id", isLoggedIn, isAdmin, deleteOrder);
+
+// Analytics
+orderRouter.get("/analytics/stats", isLoggedIn, isAdmin, getOrderStats);
+orderRouter.get("/analytics/regions", isLoggedIn, isAdmin, getOrdersByRegion);
 
 module.exports = orderRouter;

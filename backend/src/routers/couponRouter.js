@@ -1,12 +1,14 @@
 const express = require("express");
 const {
-    addCoupon,
-    removeCoupon,
-    applyCoupon,
-    getAllCoupons,
-    getCouponById,
-    previewCoupon,
-    updateCoupon,
+  addCoupon,
+  removeCoupon,
+  applyCoupon,
+  getAllCoupons,
+  getCouponById,
+  previewCoupon,
+  updateCoupon,
+  getCouponStats,
+  getCouponUsageAnalytics,
 } = require("../controllers/couponController");
 
 const { isLoggedIn, isAdmin } = require("../middlewares/authMiddleware");
@@ -33,5 +35,14 @@ couponRouter.post("/preview", isLoggedIn, previewCoupon);
 
 // Apply a coupon (affects usage count)
 couponRouter.post("/apply", isLoggedIn, applyCoupon);
+
+// Analytics routes (admin only)
+couponRouter.get("/analytics/stats", isLoggedIn, isAdmin, getCouponStats);
+couponRouter.get(
+  "/analytics/usage",
+  isLoggedIn,
+  isAdmin,
+  getCouponUsageAnalytics
+);
 
 module.exports = couponRouter;
