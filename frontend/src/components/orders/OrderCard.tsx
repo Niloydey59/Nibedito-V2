@@ -1,10 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Order } from "@/types/order";
+import { PendingReviewProduct } from "@/types/review";
+import CreateReviewModal from "@/components/reviews/CreateReviewModal";
 import {
   FiPackage,
   FiCheckCircle,
@@ -16,6 +20,8 @@ import {
   FiPhone,
   FiMail,
   FiTruck,
+  FiStar,
+  FiEdit3,
 } from "react-icons/fi";
 
 interface OrderCardProps {
@@ -23,6 +29,9 @@ interface OrderCardProps {
 }
 
 export function OrderCard({ order }: OrderCardProps) {
+  const [reviewModalProduct, setReviewModalProduct] =
+    useState<PendingReviewProduct | null>(null);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -72,6 +81,31 @@ export function OrderCard({ order }: OrderCardProps) {
       default:
         return "bg-gradient-to-r from-gray-500 to-slate-600 text-white";
     }
+  };
+
+  const handleWriteReview = (item: any) => {
+    const product = typeof item.product === "object" ? item.product : null;
+    if (!product) return;
+
+    const pendingReviewProduct: PendingReviewProduct = {
+      productId: product._id,
+      orderId: order._id,
+      product: {
+        _id: product._id,
+        name: product.name,
+        slug: product.slug || "",
+        thumbnailImage: product.thumbnailImage,
+      },
+      orderDate: order.dateOrdered || order.createdAt,
+    };
+
+    setReviewModalProduct(pendingReviewProduct);
+  };
+
+  const handleReviewSuccess = (productId: string) => {
+    setReviewModalProduct(null);
+    // You could add a callback here to refresh the orders if needed
+    // or update the local state to reflect the review was submitted
   };
 
   return (
@@ -190,6 +224,24 @@ export function OrderCard({ order }: OrderCardProps) {
                     <p className="font-semibold text-slate-900 dark:text-white">
                       ৳{formatPrice(item.cost)}
                     </p>
+                    {/* Review Button */}
+                    {item.canReview && !item.isReviewed && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleWriteReview(item)}
+                        className="mt-2 text-xs px-2 py-1 h-7 gap-1 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900/40 dark:hover:to-indigo-900/40"
+                      >
+                        <FiEdit3 className="w-3 h-3" />
+                        Write Review
+                      </Button>
+                    )}
+                    {item.isReviewed && (
+                      <div className="mt-2 flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                        <FiStar className="w-3 h-3 fill-current" />
+                        <span>Reviewed</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -299,6 +351,15 @@ export function OrderCard({ order }: OrderCardProps) {
           </div>
         </div>
       </CardContent>
+
+      {/* Review Modal */}
+      {reviewModalProduct && (
+        <CreateReviewModal
+          product={reviewModalProduct}
+          onClose={() => setReviewModalProduct(null)}
+          onSuccess={handleReviewSuccess}
+        />
+      )}
     </Card>
   );
 }

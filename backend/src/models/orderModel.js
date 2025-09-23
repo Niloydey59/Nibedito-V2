@@ -204,6 +204,7 @@ orderSchema.index({ coupon: 1 });
 // Compound indexes for common admin queries
 orderSchema.index({ user: 1, createdAt: -1 }); // User orders by date
 orderSchema.index({ status: 1, createdAt: -1 }); // Orders by status and date
+orderSchema.index({ user: 1, status: 1, createdAt: -1 }); // Get user orders by status and date
 orderSchema.index({ isPaid: 1, status: 1 }); // Payment status + order status
 orderSchema.index({ user: 1, status: 1 }); // User's orders by status
 orderSchema.index({ isGift: 1, createdAt: -1 }); // Gift orders by date

@@ -6,8 +6,10 @@ import {
     GetReviewsParams,
     GetProductReviewsParams,
     GetUserReviewsParams,
+    GetUserPendingReviewsParams,
     Review,
     ReviewsResponse,
+    PendingReviewsResponse,
     ReviewStats,
     MarkHelpfulResponse,
     ApiResponse 
@@ -25,7 +27,7 @@ export const reviewService: ReviewService = {
 
         if (reviewData.images && reviewData.images.length > 0) {
             reviewData.images.forEach((image) => {
-                formData.append('images', image);
+                formData.append('reviewImages', image);
             });
         }
 
@@ -79,6 +81,17 @@ export const reviewService: ReviewService = {
         return data;
     },
 
+    async getUserPendingReviews(params: GetUserPendingReviewsParams = {}): Promise<ApiResponse<PendingReviewsResponse>> {
+        const { page, limit } = params;
+        const query = new URLSearchParams({
+            ...(page && { page: page.toString() }),
+            ...(limit && { limit: limit.toString() })
+        });
+
+        const { data } = await axios.get<ApiResponse<PendingReviewsResponse>>(`/reviews/user/pending?${query}`);
+        return data;
+    },
+
     async updateReview(reviewId: string, reviewData: UpdateReviewRequest): Promise<ApiResponse<{ review: Review }>> {
         const formData = new FormData();
         
@@ -92,7 +105,7 @@ export const reviewService: ReviewService = {
 
         if (reviewData.images && reviewData.images.length > 0) {
             reviewData.images.forEach((image) => {
-                formData.append('images', image);
+                formData.append('reviewImages', image);
             });
         }
 

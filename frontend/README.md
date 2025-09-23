@@ -28,12 +28,14 @@ Create a `.env.local` file in the root directory with the following variables:
 - Real-time user feedback
 - Advanced product image zoom functionality
 - Grid/List view toggle for products
+- Login popup for unauthenticated users
 
 ### Authentication
 - User login/register system
 - Email verification flow
 - Password reset functionality
 - Persistent sessions with localStorage
+- Login popup component for cart actions
 
 ### User Dashboard
 - Profile information management
@@ -50,6 +52,7 @@ Create a `.env.local` file in the root directory with the following variables:
 - Detailed product views with variants
 - Price range filtering
 - Multiple product images support
+- Cart functionality with login protection
 
 ### Admin Portal
 - Secure admin login

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import ProductCard from "./ProductCard";
 import LoadingSpinner from "../common/LoadingSpinner";
+import LoginPopup from "../common/LoginPopup";
 import {
   FiChevronLeft,
   FiChevronRight,
@@ -13,6 +14,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import type { Product, Pagination } from "@/types";
 
@@ -34,8 +36,10 @@ export default function ProductGrid({
   viewMode = "grid",
 }: ProductGridProps) {
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [addingToCart, setAddingToCart] = useState<Record<string, boolean>>({});
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const handleAddToCart = async (
     product: Product,
@@ -43,6 +47,12 @@ export default function ProductGrid({
   ): Promise<void> => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Check if user is logged in
+    if (!user) {
+      setShowLoginPopup(true);
+      return;
+    }
 
     if (!product.variants || product.variants.length === 0) {
       toast.error("No variants available for this product");
@@ -374,6 +384,14 @@ export default function ProductGrid({
           </div>
         </div>
       )}
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={showLoginPopup}
+        onClose={() => setShowLoginPopup(false)}
+        title="Login Required"
+        message="Please login to add items to your cart and enjoy a personalized shopping experience."
+      />
     </div>
   );
 }

@@ -6,8 +6,10 @@ import Image from "next/image";
 import { FiMinus, FiPlus, FiShoppingCart, FiStar } from "react-icons/fi";
 import { productService } from "@/services/productService";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ImageMagnifier from "@/components/products/ImageMagnifier";
+import LoginPopup from "@/components/common/LoginPopup";
 import { toast } from "react-hot-toast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import type { Product, ProductVariant } from "@/types";
@@ -15,6 +17,7 @@ import type { Product, ProductVariant } from "@/types";
 export default function ProductDetailsPage() {
   const { slug } = useParams() as { slug: string };
   const { addToCart, cart } = useCart();
+  const { user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     null
@@ -23,6 +26,7 @@ export default function ProductDetailsPage() {
   const [quantity, setQuantity] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async (): Promise<void> => {
@@ -62,6 +66,12 @@ export default function ProductDetailsPage() {
 
   const handleAddToCart = async (): Promise<void> => {
     if (!product || !selectedVariant) return;
+
+    // Check if user is logged in
+    if (!user) {
+      setShowLoginPopup(true);
+      return;
+    }
 
     try {
       if (!selectedVariant) {
@@ -312,6 +322,14 @@ export default function ProductDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={showLoginPopup}
+        onClose={() => setShowLoginPopup(false)}
+        title="Login Required"
+        message="Please login to add items to your cart and continue with your purchase."
+      />
     </main>
   );
 }

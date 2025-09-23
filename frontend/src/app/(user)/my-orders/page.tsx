@@ -8,7 +8,7 @@ import { orderService } from "@/services/orderService";
 import { Order } from "@/types/order";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { OrdersHeader } from "@/components/orders/OrdersHeader";
-import { OrdersFilter } from "@/components/orders/OrdersFilter";
+import { OrdersFilterHorizontal } from "@/components/orders/OrdersFilterHorizontal";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { OrdersPagination } from "@/components/orders/OrdersPagination";
 import { OrdersEmptyState } from "@/components/orders/OrdersEmptyState";
@@ -26,7 +26,6 @@ export default function MyOrdersPage() {
   const [giftFilter, setGiftFilter] = useState("all");
   const [sortByDate, setSortByDate] = useState("latest");
   const [sortByPrice, setSortByPrice] = useState("none");
-  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -178,57 +177,45 @@ export default function MyOrdersPage() {
 
       <div className="relative z-10 animate-fade-in">
         <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-7xl">
-          <OrdersHeader
-            isFilterVisible={isFilterVisible}
-            setIsFilterVisible={setIsFilterVisible}
+          <OrdersHeader />
+
+          <OrdersFilterHorizontal
+            statusFilter={statusFilter}
+            setStatusFilter={setStatusFilter}
+            paymentFilter={paymentFilter}
+            setPaymentFilter={setPaymentFilter}
+            giftFilter={giftFilter}
+            setGiftFilter={setGiftFilter}
+            sortByDate={sortByDate}
+            setSortByDate={setSortByDate}
+            sortByPrice={sortByPrice}
+            setSortByPrice={setSortByPrice}
+            uniqueStatuses={getUniqueStatuses()}
+            totalOrders={orders.length}
+            filteredOrdersLength={filteredOrders.length}
+            resetFilters={resetFilters}
           />
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8">
-            <OrdersFilter
-              isFilterVisible={isFilterVisible}
-              setIsFilterVisible={setIsFilterVisible}
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              paymentFilter={paymentFilter}
-              setPaymentFilter={setPaymentFilter}
-              giftFilter={giftFilter}
-              setGiftFilter={setGiftFilter}
-              sortByDate={sortByDate}
-              setSortByDate={setSortByDate}
-              sortByPrice={sortByPrice}
-              setSortByPrice={setSortByPrice}
-              uniqueStatuses={getUniqueStatuses()}
-              paginatedOrdersLength={paginatedOrders.length}
-              filteredOrdersLength={filteredOrders.length}
-              ordersPerPage={ordersPerPage}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              resetFilters={resetFilters}
+          {filteredOrders.length === 0 ? (
+            <OrdersEmptyState
+              type="no-filtered-orders"
+              onResetFilters={resetFilters}
             />
+          ) : (
+            <>
+              <div className="space-y-6">
+                {paginatedOrders.map((order) => (
+                  <OrderCard key={order._id} order={order} />
+                ))}
+              </div>
 
-            <div className="lg:col-span-3">
-              {filteredOrders.length === 0 ? (
-                <OrdersEmptyState
-                  type="no-filtered-orders"
-                  onResetFilters={resetFilters}
-                />
-              ) : (
-                <>
-                  <div className="space-y-6">
-                    {paginatedOrders.map((order) => (
-                      <OrderCard key={order._id} order={order} />
-                    ))}
-                  </div>
-
-                  <OrdersPagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </>
-              )}
-            </div>
-          </div>
+              <OrdersPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

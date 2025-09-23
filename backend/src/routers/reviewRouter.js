@@ -10,6 +10,7 @@ const {
   markReviewHelpful,
   getReviews,
   getReview,
+  getUserPendingReviews,
 } = require("../controllers/reviewController");
 const { uploadReview } = require("../config/cloudinary");
 const { isLoggedIn, isAdmin } = require("../middlewares/authMiddleware");
@@ -32,8 +33,17 @@ reviewRouter.post(
   validateRequest,
   createReview
 ); //create a review
+
+// Review collections and filtering
+reviewRouter.get("/", isAdmin, getReviews); // Get all reviews (with filters)
+reviewRouter.get("/product/:productId", getProductReviews); //get reviews for a product
+reviewRouter.get("/user", isLoggedIn, getUserReviews); //get reviews by user
+reviewRouter.get("/user/pending", isLoggedIn, getUserPendingReviews); //get pending reviews by user
+
+// Review CRUD operations (put /:id routes AFTER specific paths)
 reviewRouter.get("/:id", getReview); //get a review by ID
-reviewRouter.put(
+
+reviewRouter.patch(
   "/:id",
   isLoggedIn,
   uploadReview,
@@ -41,12 +51,18 @@ reviewRouter.put(
   validateRequest,
   updateReview
 ); //update a review by ID
-reviewRouter.delete("/:id", isLoggedIn, deleteReview); //delete a review by ID
 
-// Review collections and filtering
-reviewRouter.get("/", isAdmin, getReviews); // Get all reviews (with filters)
-reviewRouter.get("/product/:productId", getProductReviews); //get reviews for a product
-reviewRouter.get("/user", isLoggedIn, getUserReviews); //get reviews by user
+router.post(
+  "/:id/images",
+  authMiddleware,
+  upload.array("images", 5),
+  addReviewImages
+); // add images to a review
+
+// Delete image
+router.delete("/:id/images/:imageId", authMiddleware, deleteReviewImage); // delete an image from a review
+
+reviewRouter.delete("/:id", isLoggedIn, deleteReview); //delete a review by ID
 
 // Review interactions
 reviewRouter.post("/:id/helpful", isLoggedIn, markReviewHelpful); // Mark review as helpful

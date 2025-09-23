@@ -7,6 +7,7 @@ const Product = require("../models/productModel");
 const { default: mongoose } = require("mongoose");
 const Coupon = require("../models/couponModel");
 const ShippingRate = require("../models/shippingModel");
+const { getOrderItemsWithReviewStatus } = require("../helper/orderHelper");
 
 // Create a new order
 const createOrder = async (req, res, next) => {
@@ -635,10 +636,27 @@ const getUserOrders = async (req, res, next) => {
       throw createError(404, "No orders found");
     }
 
+    // Add review status to delivered orders
+    const ordersWithReviewStatus = await Promise.all(
+      orders.map(async (order) => {
+        const orderObj = order.toObject ? order.toObject() : order;
+
+        // Only add review status for delivered orders
+        if (orderObj.status === "Delivered") {
+          orderObj.items = await getOrderItemsWithReviewStatus(
+            orderObj.items,
+            userId
+          );
+        }
+
+        return orderObj;
+      })
+    );
+
     return successResponse(res, {
       statusCode: 200,
       message: "User orders retrieved successfully",
-      payload: orders,
+      payload: ordersWithReviewStatus,
     });
   } catch (error) {
     next(error);

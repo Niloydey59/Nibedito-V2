@@ -2,7 +2,7 @@ const createError = require("http-errors"); // error-handling middleware
 const { successResponse } = require("./responseController");
 const Product = require("../models/productModel");
 const cloudinary = require("../config/cloudinary");
-const { publicIDfromURL } = require("../helper/cloudinaryHelper");
+const { publicIDfromURL, uploadImage } = require("../helper/cloudinaryHelper");
 const Review = require("../models/reviewModel");
 const mongoose = require("mongoose");
 
@@ -11,75 +11,127 @@ const createReview = async (req, res, next) => {
     const { product, rating, comment } = req.body;
     const user = req.user._id;
 
-    // check if user has already reviewed the product
+    // Validate required fields first
+    if (!product) {
+      throw createError(400, "Product ID is required");
+    }
+    if (!rating || rating < 1 || rating > 5) {
+      throw createError(400, "Rating must be between 1 and 5");
+    }
+
+    // Check if user has already reviewed the product
     const existingReview = await Review.findOne({ product, user });
     if (existingReview) {
       throw createError(409, "You have already reviewed this product.");
     }
 
-    // Check if image is uploaded
-    const images = req.files;
-    let imageUrls = [];
-
-    // Only process images if they are provided
-    if (images && images.length > 0) {
-      // Check each image size
-      for (const image of images) {
-        if (image.size > 1024 * 1024 * 2) {
-          throw createError(400, "Each image should be less than 2MB");
-        }
-      }
-
-      // Upload images to Cloudinary
-      for (const image of images) {
-        const response = await cloudinary.uploader.upload(image.path, {
-          folder: "ecommerce/products",
-        });
-        imageUrls.push(response.secure_url);
-      }
-    }
-
-    const review = {
-      product,
-      user,
-      rating,
-      comment,
-      image: imageUrls,
-    };
-
-    //update product ratings
+    // Validate product exists
     const productExist = await Product.findById(product);
     if (!productExist) {
       throw createError(404, "Product not found!");
     }
+
+    // Validate images if provided (but don't upload yet)
+    const images = req.files;
+    let imageUrls = [];
+
+    if (images && images.length > 0) {
+      // Validate image count
+      if (images.length > 5) {
+        throw createError(400, "Maximum 5 images allowed per review");
+      }
+
+      // Validate each image size and type
+      for (const image of images) {
+        if (image.size > 1024 * 1024 * 2) {
+          throw createError(400, "Each image should be less than 2MB");
+        }
+        if (!image.mimetype.startsWith("image/")) {
+          throw createError(400, "Only image files are allowed");
+        }
+      }
+
+      // Now upload images to Cloudinary (only after all validations pass)
+      try {
+        for (const image of images) {
+          const imageUrl = await uploadImage(
+            image,
+            "review",
+            `review-${user}-${Date.now()}`
+          );
+          imageUrls.push(imageUrl);
+        }
+      } catch (uploadError) {
+        console.error("Image upload error:", uploadError);
+        throw createError(500, "Failed to upload images to cloud storage");
+      }
+    }
+
+    // Create review object
+    const review = {
+      product,
+      user,
+      rating: Number(rating),
+      comment,
+      image: imageUrls,
+    };
+
+    // Update product ratings
     const currentTotalRating =
       (productExist.ratings || 0) * (productExist.reviewCount || 0);
     const newTotalRating = currentTotalRating + Number(rating);
     const newReviewCount = (productExist.reviewCount || 0) + 1;
-    console.log("New Total Rating:", newTotalRating);
-    console.log("New Review Count:", newReviewCount);
 
     productExist.reviewCount = newReviewCount;
     productExist.ratings = Number((newTotalRating / newReviewCount).toFixed(1));
-    await productExist.save();
 
-    // Create new review in database
-    const newReview = await Review.create(review);
-    if (!newReview) {
-      throw createError(500, "Failed to create review");
+    // Use transaction to ensure data consistency
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Create review
+      const newReview = await Review.create([review], { session });
+      if (!newReview || newReview.length === 0) {
+        throw createError(500, "Failed to create review");
+      }
+
+      // Update product
+      await productExist.save({ session });
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      // Get populated review
+      const populatedReview = await Review.findById(newReview[0]._id)
+        .populate("user", "name email")
+        .populate("product", "name slug");
+
+      return successResponse(res, {
+        statusCode: 201,
+        message: "Review created successfully",
+        payload: { review: populatedReview },
+      });
+    } catch (transactionError) {
+      // Rollback transaction
+      await session.abortTransaction();
+
+      // Delete uploaded images if transaction fails
+      if (imageUrls.length > 0) {
+        for (const imageUrl of imageUrls) {
+          try {
+            const publicID = await publicIDfromURL(imageUrl);
+            await cloudinary.uploader.destroy(publicID);
+          } catch (deleteError) {
+            console.error("Failed to cleanup image:", deleteError);
+          }
+        }
+      }
+
+      throw transactionError;
+    } finally {
+      session.endSession();
     }
-
-    // Return the created review with populated fields
-    const populatedReview = await Review.findById(newReview._id)
-      .populate("user", "name email")
-      .populate("product", "name slug");
-
-    // Return success response
-    return successResponse(res, {
-      statusCode: 201,
-      message: `Review created successfully`,
-      payload: { review: populatedReview },
-    });
   } catch (error) {
     next(error);
   }
@@ -260,6 +312,73 @@ const getUserReviews = async (req, res, next) => {
   }
 };
 
+const getUserPendingReviews = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const { Order } = require("../models/orderModel");
+
+    // Pagination parameters
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    // Get all products the user has purchased from delivered orders
+    const userOrders = await Order.find({
+      user: userId,
+      status: "Delivered", // Only delivered orders
+    }).populate("items.product", "name slug thumbnailImage");
+
+    // Extract all purchased product IDs
+    const purchasedProducts = [];
+    userOrders.forEach((order) => {
+      order.items.forEach((item) => {
+        if (item.product) {
+          purchasedProducts.push({
+            productId: item.product._id,
+            product: item.product,
+            orderId: order._id,
+            orderDate: order.createdAt,
+          });
+        }
+      });
+    });
+
+    // Get products already reviewed by user
+    const reviewedProductIds = await Review.find({ user: userId }).distinct(
+      "product"
+    );
+
+    // Filter out already reviewed products
+    const pendingReviews = purchasedProducts.filter(
+      (item) =>
+        !reviewedProductIds.some(
+          (reviewedId) => reviewedId.toString() === item.productId.toString()
+        )
+    );
+
+    // Apply pagination
+    const paginatedResults = pendingReviews.slice(skip, skip + limit);
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Pending reviews retrieved successfully!",
+      payload: {
+        products: paginatedResults,
+        pagination: {
+          totalProducts: pendingReviews.length,
+          totalPages: Math.ceil(pendingReviews.length / limit),
+          currentPage: page,
+          previousPage: page > 1 ? page - 1 : null,
+          nextPage:
+            page < Math.ceil(pendingReviews.length / limit) ? page + 1 : null,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const deleteReview = async (req, res, next) => {
   try {
     // Get product by slug
@@ -332,14 +451,11 @@ const deleteReview = async (req, res, next) => {
 
 const updateReview = async (req, res, next) => {
   try {
-    // Get product by slug
     const { id } = req.params;
-
     const userId = req.user._id;
 
     // Find review from database
     const reviewExist = await Review.findById(id);
-    // Check if review exists
     if (!reviewExist) {
       throw createError(404, "Review not found!");
     }
@@ -349,50 +465,23 @@ const updateReview = async (req, res, next) => {
       throw createError(403, "You are not authorized to update this review");
     }
 
-    // update fields and allowed fields to update
+    // Update fields and allowed fields to update
     let updates = {};
     const allowedFields = ["rating", "comment"];
-    // Check if the request body contains the allowed fields
     for (const key in req.body) {
       if (allowedFields.includes(key)) {
         updates[key] = req.body[key];
       }
     }
-    console.log("Request Body:", req.body);
-    console.log("Updates:", updates);
 
-    // Check if images are uploaded
-    const images = req.files;
-
-    if (images && images.length > 0) {
-      // Check each image size
-      for (const image of images) {
-        if (image.size > 1024 * 1024 * 2) {
-          throw createError(400, "Each image should be less than 2MB");
-        }
-      }
-
-      // Upload images to Cloudinary
-      const imageUrls = [];
-      for (const image of images) {
-        const response = await cloudinary.uploader.upload(image.path, {
-          folder: "ecommerce/products",
-        });
-        imageUrls.push(response.secure_url);
-      }
-
-      // Add new images to updates
-      updates.image = imageUrls;
-    }
-    // Check if rating is updated
+    // Handle rating update for product
+    let productRatingUpdate = null;
     if (updates.rating) {
-      // Update product ratings
       const productExist = await Product.findById(reviewExist.product);
       if (!productExist) {
         throw createError(404, "Product not found!");
       }
 
-      // Remove old rating from total and add new rating
       const currentTotalRating =
         (productExist.ratings || 0) * (productExist.reviewCount || 0);
       const newTotalRating =
@@ -403,40 +492,158 @@ const updateReview = async (req, res, next) => {
       productExist.ratings = Number(
         (newTotalRating / (productExist.reviewCount || 1)).toFixed(1)
       );
-      await productExist.save();
+      productRatingUpdate = productExist;
     }
 
-    // Update review in database
-    const updatedReview = await Review.findByIdAndUpdate(
-      id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    );
-    if (!updatedReview) {
+    // Use transaction for consistency
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Update review
+      const updatedReview = await Review.findByIdAndUpdate(
+        id,
+        { $set: updates },
+        { new: true, runValidators: true, session }
+      );
+
+      if (!updatedReview) {
+        throw createError(404, "Review not found!");
+      }
+
+      // Update product rating if needed
+      if (productRatingUpdate) {
+        await productRatingUpdate.save({ session });
+      }
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      return successResponse(res, {
+        statusCode: 200,
+        message: "Review was updated successfully!",
+        payload: { review: updatedReview },
+      });
+    } catch (transactionError) {
+      // Rollback transaction
+      await session.abortTransaction();
+
+      throw transactionError;
+    } finally {
+      session.endSession();
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ===============================
+// Add images to a review
+// ===============================
+const addReviewImages = async (req, res, next) => {
+  try {
+    const { id } = req.params; // reviewId
+    const userId = req.user._id;
+
+    // Find review
+    const review = await Review.findById(id);
+    if (!review) {
       throw createError(404, "Review not found!");
     }
 
-    // Delete old images from Cloudinary if new images are uploaded
-    if (images && images.length > 0 && reviewExist.image.length > 0) {
-      for (const image of reviewExist.image) {
-        const publicID = await publicIDfromURL(image);
-        const { result } = await cloudinary.uploader.destroy(
-          `ecommerce/products/${publicID}`
-        );
-        if (result !== "ok") {
-          throw createError(
-            500,
-            "Failed to delete old review image from Cloudinary"
-          );
-        }
-      }
+    // Check if user is the owner
+    if (review.user.toString() !== userId.toString()) {
+      throw createError(403, "You are not authorized to modify this review");
     }
 
-    // Return success response
+    const images = req.files;
+    if (!images || images.length === 0) {
+      throw createError(400, "No images provided");
+    }
+
+    // Validate max image count
+    const totalImages = review.image.length + images.length;
+    if (totalImages > 5) {
+      throw createError(
+        400,
+        `Maximum 5 images allowed per review. You already have ${review.image.length}`
+      );
+    }
+
+    // Validate and upload new images
+    let newImageUrls = [];
+    for (const image of images) {
+      if (image.size > 1024 * 1024 * 2) {
+        throw createError(400, "Each image should be less than 2MB");
+      }
+      if (!image.mimetype.startsWith("image/")) {
+        throw createError(400, "Only image files are allowed");
+      }
+
+      const imageUrl = await uploadImage(
+        image,
+        "review",
+        `review-${userId}-${Date.now()}`
+      );
+      newImageUrls.push(imageUrl);
+    }
+
+    // Add new images to review
+    review.image.push(...newImageUrls);
+    await review.save();
+
     return successResponse(res, {
       statusCode: 200,
-      message: "Review was updated successfully!",
-      payload: { review: updatedReview },
+      message: "Images added successfully",
+      payload: { review },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ===============================
+// Delete a specific review image
+// ===============================
+const deleteReviewImage = async (req, res, next) => {
+  try {
+    const { id, imageId } = req.params; // reviewId & image public_id/url
+    const userId = req.user._id;
+
+    // Find review
+    const review = await Review.findById(id);
+    if (!review) {
+      throw createError(404, "Review not found!");
+    }
+
+    // Check if user is the owner
+    if (review.user.toString() !== userId.toString()) {
+      throw createError(403, "You are not authorized to modify this review");
+    }
+
+    // Check if image exists in this review
+    const imageIndex = review.image.findIndex((img) => img.includes(imageId));
+    if (imageIndex === -1) {
+      throw createError(404, "Image not found in this review");
+    }
+
+    // Delete from Cloudinary
+    try {
+      const publicID = await publicIDfromURL(review.image[imageIndex]);
+      await cloudinary.uploader.destroy(publicID);
+    } catch (deleteError) {
+      console.error("Failed to delete image from Cloudinary:", deleteError);
+      throw createError(500, "Failed to delete image from cloud storage");
+    }
+
+    // Remove from review document
+    review.image.splice(imageIndex, 1);
+    await review.save();
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Image deleted successfully",
+      payload: { review },
     });
   } catch (error) {
     next(error);
@@ -532,8 +739,11 @@ module.exports = {
   getReview,
   getProductReviews,
   getUserReviews,
+  getUserPendingReviews,
   deleteReview,
   updateReview,
+  addReviewImages,
+  deleteReviewImage,
   markReviewHelpful,
   getReviewStats,
 };

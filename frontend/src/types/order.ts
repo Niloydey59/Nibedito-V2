@@ -21,6 +21,8 @@ export interface OrderItem {
     color: string;
     size: string;
   };
+  canReview?: boolean;
+  isReviewed?: boolean;
 }
 
 export interface DiscountBreakdown {

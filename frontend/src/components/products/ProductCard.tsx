@@ -3,12 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { FiShoppingCart, FiStar } from "react-icons/fi";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
+import LoginPopup from "@/components/common/LoginPopup";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -23,6 +24,7 @@ export default function ProductCard({
   const { addToCart, cart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const { _id, slug, name, description, price, thumbnailImage, variants } =
     product;
@@ -45,8 +47,7 @@ export default function ProductCard({
 
     // Check if user is logged in
     if (!user) {
-      toast.error("Please login to add items to cart");
-      router.push("/login");
+      setShowLoginPopup(true);
       return;
     }
 
@@ -95,86 +96,106 @@ export default function ProductCard({
   // Render different layouts based on viewMode
   if (viewMode === "list") {
     return (
-      <div id={`product-${_id}`} className="product-card product-card-list">
-        <Link href={`/products/${slug}`} className="product-link-list">
-          <div className="product-image-list">
-            <Image
-              src={thumbnailImage || "/images/placeholder.jpg"}
-              alt={name}
-              width={120}
-              height={120}
-              className="product-img-list"
-              sizes="120px"
-            />
-          </div>
-          <div className="product-info-list">
-            <div className="product-details-list">
-              <h3 className="product-name-list">{name}</h3>
-              <div className="product-description-preview-list">
-                <MarkdownRenderer
-                  markdown={
-                    description.slice(0, 80) +
-                    (description.length > 80 ? "..." : "")
-                  }
-                  disableLinks={true}
-                />
+      <>
+        <div id={`product-${_id}`} className="product-card product-card-list">
+          <Link href={`/products/${slug}`} className="product-link-list">
+            <div className="product-image-list">
+              <Image
+                src={thumbnailImage || "/images/placeholder.jpg"}
+                alt={name}
+                width={120}
+                height={120}
+                className="product-img-list"
+                sizes="120px"
+              />
+            </div>
+            <div className="product-info-list">
+              <div className="product-details-list">
+                <h3 className="product-name-list">{name}</h3>
+                <div className="product-description-preview-list">
+                  <MarkdownRenderer
+                    markdown={
+                      description.slice(0, 80) +
+                      (description.length > 80 ? "..." : "")
+                    }
+                    disableLinks={true}
+                  />
+                </div>
+              </div>
+              <div className="product-meta-list">
+                <span className="product-rating-list">
+                  <FiStar /> 0.0
+                </span>
+                <p className="product-price-list">৳ {price.toFixed(2)}</p>
+                <button
+                  className="btn btn-primary btn-cart-list"
+                  onClick={handleAddToCart}
+                >
+                  <FiShoppingCart />
+                  <span>Add</span>
+                </button>
               </div>
             </div>
-            <div className="product-meta-list">
-              <span className="product-rating-list">
-                <FiStar /> 0.0
-              </span>
-              <p className="product-price-list">৳ {price.toFixed(2)}</p>
-              <button
-                className="btn btn-primary btn-cart-list"
-                onClick={handleAddToCart}
-              >
-                <FiShoppingCart />
-                <span>Add</span>
-              </button>
-            </div>
-          </div>
-        </Link>
-      </div>
+          </Link>
+        </div>
+
+        {/* Login Popup */}
+        <LoginPopup
+          isOpen={showLoginPopup}
+          onClose={() => setShowLoginPopup(false)}
+          title="Login Required"
+          message="Please login to add items to your cart and enjoy a personalized shopping experience."
+        />
+      </>
     );
   }
 
   // Original grid view
   return (
-    <div id={`product-${_id}`} className="product-card">
-      <Link href={`/products/${slug}`} className="product-link">
-        <div className="product-image">
-          <Image
-            src={thumbnailImage || "/images/placeholder.jpg"}
-            alt={name}
-            width={300}
-            height={300}
-            className="product-img"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-          <div className="product-overlay">
-            <button
-              className="btn btn-primary btn-cart"
-              onClick={handleAddToCart}
-            >
-              <FiShoppingCart />
-              <span>{isMobile.current ? "Add" : "Add to Cart"}</span>
-            </button>
+    <>
+      <div id={`product-${_id}`} className="product-card">
+        <Link href={`/products/${slug}`} className="product-link">
+          <div className="product-image">
+            <Image
+              src={thumbnailImage || "/images/placeholder.jpg"}
+              alt={name}
+              width={300}
+              height={300}
+              className="product-img"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+            <div className="product-overlay">
+              <button
+                className="btn btn-primary btn-cart"
+                onClick={handleAddToCart}
+              >
+                <FiShoppingCart />
+                <span>{isMobile.current ? "Add" : "Add to Cart"}</span>
+              </button>
+            </div>
           </div>
-        </div>
-        <div className="product-info">
-          <h3 className="product-name">{name}</h3>
-          <div className="product-description-preview">
-            <MarkdownRenderer markdown={description} disableLinks={true} />
+          <div className="product-info">
+            <h3 className="product-name">{name}</h3>
+            <div className="product-description-preview">
+              <MarkdownRenderer markdown={description} disableLinks={true} />
+            </div>
+            <div className="product-footer">
+              <p className="product-price">৳ {price.toFixed(2)}</p>
+              <span className="product-rating">
+                <FiStar /> 0.0
+              </span>
+            </div>
           </div>
-          <div className="product-footer">
-            <p className="product-price">৳ {price.toFixed(2)}</p>
-            <span className="product-rating">
-              <FiStar /> 0.0
-            </span>
-          </div>
-        </div>
-      </Link>
-    </div>
+        </Link>
+      </div>
+
+      {/* Login Popup */}
+      <LoginPopup
+        isOpen={showLoginPopup}
+        onClose={() => setShowLoginPopup(false)}
+        title="Login Required"
+        message="Please login to add items to your cart and enjoy a personalized shopping experience."
+      />
+    </>
   );
 }

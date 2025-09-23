@@ -54,6 +54,34 @@ export interface GetUserReviewsParams {
   limit?: number;
 }
 
+export interface GetUserPendingReviewsParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PendingReviewProduct {
+  productId: string;
+  product: {
+    _id: string;
+    name: string;
+    slug: string;
+    thumbnailImage?: string;
+  };
+  orderId: string;
+  orderDate: string;
+}
+
+export interface PendingReviewsResponse {
+  products: PendingReviewProduct[];
+  pagination: {
+    totalProducts: number;
+    totalPages: number;
+    currentPage: number;
+    previousPage: number | null;
+    nextPage: number | null;
+  };
+}
+
 export interface ReviewsResponse {
   reviews: Review[];
   pagination: {
@@ -92,6 +120,7 @@ export interface ReviewService {
   getReviewById(reviewId: string): Promise<ApiResponse<{ review: Review }>>;
   getProductReviews(productId: string, params?: GetProductReviewsParams): Promise<ApiResponse<ReviewsResponse>>;
   getUserReviews(params?: GetUserReviewsParams): Promise<ApiResponse<ReviewsResponse>>;
+  getUserPendingReviews(params?: GetUserPendingReviewsParams): Promise<ApiResponse<PendingReviewsResponse>>;
   updateReview(reviewId: string, reviewData: UpdateReviewRequest): Promise<ApiResponse<{ review: Review }>>;
   deleteReview(reviewId: string): Promise<ApiResponse<{ review: Review }>>;
   markReviewHelpful(reviewId: string): Promise<ApiResponse<MarkHelpfulResponse>>;

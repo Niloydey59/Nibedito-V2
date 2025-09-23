@@ -56,7 +56,7 @@ app.use("/api/coupon", couponRouter);
 app.use("/api/shipping", shippingRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/faqs", faqRouter);
-app.use("/api/review", reviewRouter);
+app.use("/api/reviews", reviewRouter);
 
 app.get("/test", (req, res) => {
   res.status(200).send({
