@@ -27,6 +27,54 @@ interface ProductGridProps {
   viewMode?: "grid" | "list";
 }
 
+// Helper component for rendering star ratings
+const StarRating = ({
+  rating,
+  reviewCount,
+}: {
+  rating: number;
+  reviewCount: number;
+}) => {
+  const numericRating = Number(rating) || 0;
+  const numericReviewCount = Number(reviewCount) || 0;
+  const fullStars = Math.floor(numericRating);
+  const hasHalfStar = numericRating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex items-center gap-1 text-sm">
+      {/* Render full stars */}
+      {Array.from({ length: fullStars }, (_, i) => (
+        <FiStar
+          key={`full-${i}`}
+          className="w-4 h-4 fill-current text-yellow-400"
+        />
+      ))}
+      {/* Render half star if applicable */}
+      {hasHalfStar && (
+        <div className="relative">
+          <FiStar className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+          <FiStar
+            className="w-4 h-4 fill-current text-yellow-400 absolute inset-0"
+            style={{ clipPath: "inset(0 50% 0 0)" }}
+          />
+        </div>
+      )}
+      {/* Render empty stars */}
+      {Array.from({ length: emptyStars }, (_, i) => (
+        <FiStar
+          key={`empty-${i}`}
+          className="w-4 h-4 text-gray-300 dark:text-gray-600"
+        />
+      ))}
+      {/* Rating text and review count */}
+      <span className="ml-1 text-text-secondary text-xs sm:text-sm">
+        {numericRating.toFixed(1)} ({numericReviewCount} )
+      </span>
+    </div>
+  );
+};
+
 export default function ProductGrid({
   products,
   isLoading,
@@ -161,7 +209,7 @@ export default function ProductGrid({
                         hover:-translate-y-2 hover:scale-105 
                         ${
                           viewMode === "list"
-                            ? "flex flex-row h-48 md:h-40"
+                            ? "flex flex-row"
                             : "flex flex-col h-full"
                         }`}
             onMouseEnter={() => setHoveredProduct(product._id)}
@@ -226,7 +274,7 @@ export default function ProductGrid({
                 }`}
               >
                 {/* Top Section - Title and Description */}
-                <div className="flex-1 min-h-0">
+                <div className={viewMode === "grid" ? "flex-1 min-h-0" : ""}>
                   <h3
                     className={`font-semibold text-foreground group-hover:text-primary transition-colors ${
                       viewMode === "list"
@@ -251,6 +299,12 @@ export default function ProductGrid({
                   >
                     {product.description || "No description available."}
                   </p>
+                  {viewMode === "grid" && (
+                    <StarRating
+                      rating={product.ratings || 0}
+                      reviewCount={product.reviewCount || 0}
+                    />
+                  )}
                 </div>
 
                 {/* Bottom Section - Price and Action Button */}
@@ -260,6 +314,12 @@ export default function ProductGrid({
                   }`}
                 >
                   <div className="flex flex-col">
+                    {viewMode === "list" && (
+                      <StarRating
+                        rating={product.ratings || 0}
+                        reviewCount={product.reviewCount || 0}
+                      />
+                    )}
                     <div className="flex items-center gap-2">
                       <span
                         className={`font-bold text-primary ${
@@ -326,61 +386,31 @@ export default function ProductGrid({
       </div>
 
       {/* Modern Pagination */}
-      {pagination && pagination.pages > 1 && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-border">
-          <div className="text-sm text-text-secondary">
-            Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-            {Math.min(pagination.page * pagination.limit, pagination.total)} of{" "}
-            {pagination.total} products
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => onPageChange?.(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-              className="btn btn-secondary btn-sm disabled:opacity-50"
-            >
-              <FiChevronLeft size={16} className="mr-1" />
-              Previous
-            </button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(pagination.pages, 5) }, (_, i) => {
-                let page;
-                if (pagination.pages <= 5) {
-                  page = i + 1;
-                } else if (pagination.page <= 3) {
-                  page = i + 1;
-                } else if (pagination.page >= pagination.pages - 2) {
-                  page = pagination.pages - 4 + i;
-                } else {
-                  page = pagination.page - 2 + i;
-                }
-
-                return (
-                  <button
-                    key={page}
-                    onClick={() => onPageChange?.(page)}
-                    className={`w-10 h-10 flex items-center justify-center text-sm rounded-lg transition-colors ${
-                      page === pagination.page
-                        ? "bg-primary text-white shadow-md"
-                        : "hover:bg-surface-elevated text-foreground"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+      {/* Pagination */}
+      {pagination && (
+        <div className="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+              Page {pagination.page} of {pagination.pages}
             </div>
-
-            <button
-              onClick={() => onPageChange?.(pagination.page + 1)}
-              disabled={pagination.page >= pagination.pages}
-              className="btn btn-secondary btn-sm disabled:opacity-50"
-            >
-              Next
-              <FiChevronRight size={16} className="ml-1" />
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => onPageChange(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FiChevronLeft className="w-4 h-4" />
+                <span>Previous</span>
+              </button>
+              <button
+                onClick={() => onPageChange(pagination.page + 1)}
+                disabled={pagination.page >= pagination.pages}
+                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>Next</span>
+                <FiChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}

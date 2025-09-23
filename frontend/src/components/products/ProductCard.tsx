@@ -17,6 +17,53 @@ interface ProductCardProps {
   viewMode?: "grid" | "list";
 }
 
+// Helper component for rendering star ratings
+const StarRating = ({
+  rating,
+  reviewCount,
+}: {
+  rating: number;
+  reviewCount: number;
+}) => {
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex items-center gap-1 text-sm">
+      {/* Render full stars */}
+      {Array.from({ length: fullStars }, (_, i) => (
+        <FiStar
+          key={`full-${i}`}
+          className="w-4 h-4 fill-current text-yellow-400"
+        />
+      ))}
+      {/* Render half star if applicable */}
+      {hasHalfStar && (
+        <div className="relative">
+          <FiStar className="w-4 h-4 text-gray-300 dark:text-gray-600" />
+          <FiStar
+            className="w-4 h-4 fill-current text-yellow-400 absolute inset-0"
+            style={{ clipPath: "inset(0 50% 0 0)" }}
+          />
+        </div>
+      )}
+      {/* Render empty stars */}
+      {Array.from({ length: emptyStars }, (_, i) => (
+        <FiStar
+          key={`empty-${i}`}
+          className="w-4 h-4 text-gray-300 dark:text-gray-600"
+        />
+      ))}
+      {/* Rating text and review count */}
+      <span className="ml-1 text-text-secondary text-xs sm:text-sm">
+        {rating.toFixed(1)} ({reviewCount}{" "}
+        {reviewCount === 1 ? "review" : "reviews"})
+      </span>
+    </div>
+  );
+};
+
 export default function ProductCard({
   product,
   viewMode = "grid",
@@ -93,6 +140,9 @@ export default function ProductCard({
     }
   };
 
+  console.log("Rendering ProductCard for:", name);
+  console.log(product.ratings, product.reviewCount);
+
   // Render different layouts based on viewMode
   if (viewMode === "list") {
     return (
@@ -123,9 +173,11 @@ export default function ProductCard({
                 </div>
               </div>
               <div className="product-meta-list">
-                <span className="product-rating-list">
-                  <FiStar /> 0.0
-                </span>
+                {/* Updated rating display */}
+                <StarRating
+                  rating={product.ratings || 0}
+                  reviewCount={product.reviewCount || 0}
+                />
                 <p className="product-price-list">৳ {price.toFixed(2)}</p>
                 <button
                   className="btn btn-primary btn-cart-list"
@@ -181,9 +233,11 @@ export default function ProductCard({
             </div>
             <div className="product-footer">
               <p className="product-price">৳ {price.toFixed(2)}</p>
-              <span className="product-rating">
-                <FiStar /> 0.0
-              </span>
+              {/* Updated rating display */}
+              <StarRating
+                rating={product.ratings || 0}
+                reviewCount={product.reviewCount || 0}
+              />
             </div>
           </div>
         </Link>
