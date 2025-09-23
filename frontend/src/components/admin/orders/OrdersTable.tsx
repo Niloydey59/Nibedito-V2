@@ -2,20 +2,20 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Pagination from "@/components/common/Pagination";
 import {
   FiEye,
   FiEdit3,
   FiTrash2,
   FiUser,
   FiGift,
-  FiChevronLeft,
-  FiChevronRight,
   FiMoreVertical,
   FiDollarSign,
   FiCalendar,
   FiCreditCard,
+  FiPackage,
 } from "react-icons/fi";
-import { Order } from "@/types";
+import { Order, PaginationInfo } from "@/types";
 
 interface OrdersTableProps {
   orders: Order[];
@@ -23,9 +23,9 @@ interface OrdersTableProps {
   onStatusUpdate: (orderId: string, newStatus: string) => void;
   onPaidStatusUpdate: (orderId: string, isPaid: boolean) => void;
   onDelete: (orderId: string) => void;
+  pagination: PaginationInfo;
   onPageChange: (page: number) => void;
-  currentPage: number;
-  totalPages: number;
+  onLimitChange?: (limit: number) => void;
 }
 
 const formatDate = (dateString: string): string => {
@@ -48,11 +48,17 @@ export default function OrdersTable({
   onStatusUpdate,
   onPaidStatusUpdate,
   onDelete,
+  pagination,
   onPageChange,
-  currentPage,
-  totalPages,
+  onLimitChange,
 }: OrdersTableProps) {
   const [actionMenuOpen, setActionMenuOpen] = useState<string | null>(null);
+
+  const handleLimitChange = (newLimit: number): void => {
+    if (onLimitChange) {
+      onLimitChange(newLimit);
+    }
+  };
 
   if (loading) {
     return (
@@ -79,7 +85,7 @@ export default function OrdersTable({
 
   return (
     <div className="overflow-hidden">
-      {/* Desktop Table */}
+      {/* Table */}
       <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead className="bg-slate-50 dark:bg-slate-700/50">
@@ -314,33 +320,14 @@ export default function OrdersTable({
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-500 dark:text-slate-400">
-              Page {currentPage} of {totalPages}
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiChevronLeft className="w-4 h-4" />
-                <span>Previous</span>
-              </button>
-              <button
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>Next</span>
-                <FiChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Pagination
+        pagination={pagination}
+        onPageChange={onPageChange}
+        onLimitChange={handleLimitChange}
+        showLimitSelector={true}
+        limitOptions={[5, 10, 25, 50]}
+        className="mt-8"
+      />
     </div>
   );
 }

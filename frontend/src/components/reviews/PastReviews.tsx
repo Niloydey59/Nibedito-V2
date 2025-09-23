@@ -26,6 +26,8 @@ import ReviewCard from "./ReviewCard";
 import EditReviewModal from "./EditReviewModal";
 import { reviewService } from "@/services/reviewService";
 import { Review, GetUserReviewsParams } from "@/types/review";
+import Pagination from "@/components/common/Pagination";
+import { PaginationInfo } from "@/types/api";
 
 export default function PastReviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -35,25 +37,30 @@ export default function PastReviews() {
     "newest" | "oldest" | "rating-high" | "rating-low"
   >("newest");
   const [editingReview, setEditingReview] = useState<Review | null>(null);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalReviews: 0,
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    pages: 1,
+    page: 1,
+    limit: 10,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
   });
+  const [limit, setLimit] = useState<number>(10); // Added: State for items per page
 
   const fetchReviews = useCallback(
-    async (params: GetUserReviewsParams = {}) => {
+    async (page: number = 1, limitParam: number = limit) => {
       try {
         setLoading(true);
-        const response = await reviewService.getUserReviews(params);
+        const response = await reviewService.getUserReviews({
+          page,
+          limit: limitParam,
+        });
 
         if (response.success && response.payload) {
           setReviews(response.payload.reviews);
-          setPagination({
-            currentPage: response.payload.pagination.currentPage,
-            totalPages: response.payload.pagination.totalPages,
-            totalReviews: response.payload.pagination.totalReviews,
-          });
+          setPagination(response.payload.pagination);
         }
       } catch (error) {
         console.error("Error fetching reviews:", error);
@@ -63,7 +70,7 @@ export default function PastReviews() {
         setLoading(false);
       }
     },
-    []
+    [limit]
   );
 
   useEffect(() => {
@@ -134,6 +141,15 @@ export default function PastReviews() {
       </div>
     );
   }
+
+  const handlePageChange = (newPage: number) => {
+    fetchReviews(newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    fetchReviews(1, newLimit); // Reset to page 1 when limit changes
+  };
 
   return (
     <div className="space-y-6">
@@ -261,6 +277,16 @@ export default function PastReviews() {
           ))}
         </div>
       )}
+
+      {/* Pagination */}
+      <Pagination
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+        showLimitSelector={true}
+        limitOptions={[5, 10, 25, 50]}
+        className="mt-8"
+      />
 
       {/* Edit Review Modal */}
       {editingReview && (

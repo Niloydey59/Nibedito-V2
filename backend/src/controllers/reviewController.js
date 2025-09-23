@@ -9,6 +9,7 @@ const {
 } = require("../helper/cloudinaryHelper");
 const Review = require("../models/reviewModel");
 const mongoose = require("mongoose");
+const { createPagination } = require("../helper/paginationHelper");
 
 const createReview = async (req, res, next) => {
   try {
@@ -166,18 +167,13 @@ const getReviews = async (req, res, next) => {
 
     // Get total count of products
     const count = await Review.countDocuments(filter);
+    const pagination = createPagination(count, page, limit);
     return successResponse(res, {
       statusCode: 200,
       message: "Reviews were returned successfully!",
       payload: {
         reviews: reviews,
-        pagination: {
-          totalReviews: count,
-          totalPages: Math.ceil(count / limit),
-          currentPage: page,
-          previousPage: page > 1 ? page - 1 : null,
-          nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
-        },
+        pagination,
         filters: {
           searchQuery,
         },
@@ -251,19 +247,14 @@ const getProductReviews = async (req, res, next) => {
 
     // Get total count of products
     const count = await Review.countDocuments(filter);
+    const pagination = createPagination(count, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
       message: "Reviews were returned successfully!",
       payload: {
         reviews: reviews,
-        pagination: {
-          totalReviews: count,
-          totalPages: Math.ceil(count / limit),
-          currentPage: page,
-          previousPage: page > 1 ? page - 1 : null,
-          nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
-        },
+        pagination,
         filters: {
           rating,
           sortBy,
@@ -296,19 +287,14 @@ const getUserReviews = async (req, res, next) => {
 
     // Get total count of reviews
     const count = await Review.countDocuments(filter);
+    const pagination = createPagination(count, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
       message: "Reviews were returned successfully!",
       payload: {
         reviews: reviews,
-        pagination: {
-          totalReviews: count,
-          totalPages: Math.ceil(count / limit),
-          currentPage: page,
-          previousPage: page > 1 ? page - 1 : null,
-          nextPage: page < Math.ceil(count / limit) ? page + 1 : null,
-        },
+        pagination,
       },
     });
   } catch (error) {
@@ -360,22 +346,15 @@ const getUserPendingReviews = async (req, res, next) => {
         )
     );
 
-    // Apply pagination
-    const paginatedResults = pendingReviews.slice(skip, skip + limit);
+    const count = pendingReviews.length;
+    const pagination = createPagination(count, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
       message: "Pending reviews retrieved successfully!",
       payload: {
         products: paginatedResults,
-        pagination: {
-          totalProducts: pendingReviews.length,
-          totalPages: Math.ceil(pendingReviews.length / limit),
-          currentPage: page,
-          previousPage: page > 1 ? page - 1 : null,
-          nextPage:
-            page < Math.ceil(pendingReviews.length / limit) ? page + 1 : null,
-        },
+        pagination,
       },
     });
   } catch (error) {

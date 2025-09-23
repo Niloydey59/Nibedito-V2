@@ -7,6 +7,7 @@ const Subcategory = require("../models/subcategoryModel");
 const { uploadImage, deleteImage } = require("../helper/cloudinaryHelper");
 const { validateImage } = require("../validators/image");
 const User = require("../models/userModel");
+const { createPagination } = require("../helper/paginationHelper");
 
 const createProduct = async (req, res, next) => {
   try {
@@ -214,12 +215,9 @@ const getProducts = async (req, res, next) => {
       .lean();
 
     // Get total count for pagination
-    const totalProducts = await Product.countDocuments(filter);
-    const totalPages = Math.ceil(totalProducts / limit);
+    const count = await Product.countDocuments(filter);
 
-    console.log(
-      `Found ${products.length} products out of ${totalProducts} total`
-    ); // Debug log
+    const pagination = createPagination(count, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
@@ -229,16 +227,7 @@ const getProducts = async (req, res, next) => {
           : "No products found",
       payload: {
         products,
-        pagination: {
-          total: totalProducts,
-          totalPages,
-          currentPage: page,
-          limit,
-          hasNextPage: page < totalPages,
-          hasPrevPage: page > 1,
-          nextPage: page < totalPages ? page + 1 : null,
-          prevPage: page > 1 ? page - 1 : null,
-        },
+        pagination,
         filters: {
           search,
           category: categoryId,

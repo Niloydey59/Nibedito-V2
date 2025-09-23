@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Pagination from "@/components/common/Pagination";
 import {
   FiUser,
   FiMail,
@@ -9,22 +10,13 @@ import {
   FiUserCheck,
   FiUserX,
   FiTrash2,
-  FiChevronLeft,
-  FiChevronRight,
 } from "react-icons/fi";
-import type { User } from "@/types";
-
-interface PaginationState {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
-}
+import type { User, PaginationInfo } from "@/types";
 
 interface UsersTableProps {
   users: User[];
-  pagination: PaginationState;
-  setPagination: (pagination: Partial<PaginationState>) => void;
+  pagination: PaginationInfo;
+  setPagination: (pagination: Partial<PaginationInfo>) => void;
   onBanUser: (userId: string) => Promise<void>;
   onUnbanUser: (userId: string) => Promise<void>;
   onDeleteUser: (userId: string) => Promise<void>;
@@ -54,9 +46,9 @@ export default function UsersTable({
     }
   };
 
-  const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+  const handleLimitChange = (newLimit: number): void => {
     setPagination({
-      limit: parseInt(e.target.value),
+      limit: newLimit,
       page: 1, // Reset to first page when changing limit
     });
   };
@@ -215,48 +207,15 @@ export default function UsersTable({
       </div>
 
       {/* Pagination */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-600 dark:text-slate-400">
-            Show
-          </span>
-          <select
-            value={pagination.limit}
-            onChange={handleLimitChange}
-            className="px-3 py-1 border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 text-sm"
-          >
-            <option value={5}>5</option>
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
-          <span className="text-sm text-slate-600 dark:text-slate-400">
-            of {pagination.total} users
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => handlePageChange(pagination.page - 1)}
-            disabled={pagination.page <= 1}
-            className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FiChevronLeft className="w-4 h-4" />
-          </button>
-
-          <span className="px-3 py-1 text-sm text-slate-600 dark:text-slate-400">
-            Page {pagination.page} of {pagination.pages}
-          </span>
-
-          <button
-            onClick={() => handlePageChange(pagination.page + 1)}
-            disabled={pagination.page >= pagination.pages}
-            className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FiChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <Pagination
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+        showLimitSelector={true}
+        limitOptions={[5, 10, 25, 50]}
+        compact={true}
+        className="flex-shrink-0"
+      />
     </div>
   );
 }

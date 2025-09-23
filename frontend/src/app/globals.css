@@ -918,6 +918,10 @@
   color: var(--text-secondary);
 }
 
+.text-text-tertiary {
+  color: var(--text-tertiary);
+}
+
 .text-foreground {
   color: var(--text-color);
 }
@@ -1544,4 +1548,193 @@
 [data-theme="dark"] .review-guidelines {
   background-color: rgba(var(--info-rgb), 0.1);
   border-color: rgba(var(--info-rgb), 0.3);
+}
+
+/* Pagination Components */
+@layer components {
+  /* Pagination Wrapper */
+  .pagination-wrapper {
+    @apply flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4;
+  }
+
+  .pagination-info {
+    @apply flex-shrink-0;
+  }
+
+  .pagination-nav {
+    @apply flex flex-col sm:flex-row items-center gap-2;
+  }
+
+  .pagination-controls {
+    @apply flex items-center gap-1;
+  }
+
+  .pagination-pages {
+    @apply flex items-center gap-1;
+  }
+
+  /* Pagination Buttons */
+  .pagination-btn {
+    @apply inline-flex items-center justify-center;
+    @apply px-3 py-2 text-sm font-medium rounded-md;
+    @apply transition-all duration-200;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply disabled:pointer-events-none disabled:opacity-50;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .pagination-btn-nav {
+    @apply pagination-btn;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+  }
+
+  .pagination-btn-nav:hover:not(:disabled) {
+    background-color: var(--surface-elevated);
+    border-color: var(--border-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .pagination-btn-nav:focus-visible {
+    outline-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.2);
+  }
+
+  .pagination-btn-active {
+    @apply pagination-btn;
+    background-color: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+  }
+
+  .pagination-btn-active:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    box-shadow: var(--shadow-md);
+  }
+
+  .pagination-btn-inactive {
+    @apply pagination-btn;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+  }
+
+  .pagination-btn-inactive:hover {
+    background-color: var(--surface-elevated);
+    border-color: var(--border-dark);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .pagination-dots {
+    @apply inline-flex items-center justify-center;
+    @apply px-2 py-2 text-sm text-text-tertiary;
+    min-width: 2.5rem;
+    min-height: 2.5rem;
+  }
+
+  .pagination-mobile-info {
+    @apply text-center mt-2 sm:hidden;
+  }
+
+  /* Simple Pagination */
+  .simple-pagination {
+    @apply w-full;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 640px) {
+    .pagination-btn {
+      @apply px-2 py-2 text-xs;
+      min-width: 2rem;
+      min-height: 2rem;
+    }
+
+    .pagination-btn-nav {
+      @apply px-3 py-2;
+      min-width: auto;
+    }
+
+    .pagination-pages {
+      @apply gap-0.5;
+    }
+
+    .pagination-controls {
+      @apply gap-0.5;
+    }
+
+    .pagination-wrapper {
+      @apply gap-2;
+    }
+  }
+
+  /* Dark theme adjustments */
+  .dark .pagination-btn-nav,
+  [data-theme="dark"] .pagination-btn-nav {
+    background-color: var(--surface-elevated);
+    border-color: var(--border-color);
+  }
+
+  .dark .pagination-btn-nav:hover:not(:disabled),
+  [data-theme="dark"] .pagination-btn-nav:hover:not(:disabled) {
+    background-color: var(--background-secondary);
+    border-color: var(--border-dark);
+  }
+
+  .dark .pagination-btn-inactive,
+  [data-theme="dark"] .pagination-btn-inactive {
+    background-color: var(--surface-elevated);
+    border-color: var(--border-color);
+  }
+
+  .dark .pagination-btn-inactive:hover,
+  [data-theme="dark"] .pagination-btn-inactive:hover {
+    background-color: var(--background-secondary);
+    border-color: var(--border-dark);
+  }
+
+  /* Enhanced hover effects */
+  .pagination-btn:not(:disabled):not(.pagination-btn-active):hover {
+    transform: translateY(-1px);
+  }
+
+  .pagination-btn-active {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pagination-btn-active::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .pagination-btn-active:hover::before {
+    left: 100%;
+  }
+
+  /* Loading state */
+  .pagination-loading {
+    @apply opacity-50 pointer-events-none animate-pulse;
+  }
+
+  /* Focus improvements for accessibility */
+  .pagination-btn:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    z-index: 10;
+    position: relative;
+  }
 }

@@ -1,4 +1,4 @@
-import { ApiResponse } from './api';
+import { ApiResponse, PaginationInfo } from './api';
 import { Category } from './category';
 import { Subcategory } from './subcategory';
 
@@ -29,13 +29,6 @@ export interface Product {
   updatedAt: string;
 }
 
-export interface Pagination {
-  total: number;
-  pages: number;
-  page: number;
-  limit: number;
-}
-
 export interface CreateProductRequest {
   name: string;
   description: string;
@@ -64,7 +57,7 @@ export interface GetProductsParams {
 
 export interface ProductsResponse {
   products: Product[];
-  pagination: Pagination;
+  pagination: PaginationInfo; // Updated to use standardized PaginationInfo
 }
 
 export interface ProductService {
@@ -76,3 +69,4 @@ export interface ProductService {
   updateProduct(slug: string, formData: FormData): Promise<ApiResponse<{ product: Product }>>;
   deleteProduct(slug: string): Promise<ApiResponse<{ product: Product }>>;
 }
+  

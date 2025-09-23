@@ -27,6 +27,8 @@ import {
   GetUserPendingReviewsParams,
 } from "@/types/review";
 import Image from "next/image";
+import Pagination from "@/components/common/Pagination";
+import { PaginationInfo } from "@/types/api";
 
 export default function PendingReviews() {
   const [pendingProducts, setPendingProducts] = useState<
@@ -37,25 +39,30 @@ export default function PendingReviews() {
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "name">("newest");
   const [reviewingProduct, setReviewingProduct] =
     useState<PendingReviewProduct | null>(null);
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    totalPages: 1,
-    totalProducts: 0,
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    pages: 1,
+    page: 1,
+    limit: 10,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
   });
+  const [limit, setLimit] = useState<number>(10); // Added: State for items per page
 
   const fetchPendingReviews = useCallback(
-    async (params: GetUserPendingReviewsParams = {}) => {
+    async (page: number = 1, limitParam: number = limit) => {
       try {
         setLoading(true);
-        const response = await reviewService.getUserPendingReviews(params);
+        const response = await reviewService.getUserPendingReviews({
+          page,
+          limit: limitParam,
+        });
 
         if (response.success && response.payload) {
           setPendingProducts(response.payload.products);
-          setPagination({
-            currentPage: response.payload.pagination.currentPage,
-            totalPages: response.payload.pagination.totalPages,
-            totalProducts: response.payload.pagination.totalProducts,
-          });
+          setPagination(response.payload.pagination);
         }
       } catch (error) {
         console.error("Error fetching pending reviews:", error);
@@ -64,7 +71,7 @@ export default function PendingReviews() {
         setLoading(false);
       }
     },
-    []
+    [limit]
   );
 
   useEffect(() => {
@@ -132,6 +139,15 @@ export default function PendingReviews() {
     );
   }
 
+  const handlePageChange = (newPage: number) => {
+    fetchPendingReviews(newPage, limit);
+  };
+
+  const handleLimitChange = (newLimit: number) => {
+    setLimit(newLimit);
+    fetchPendingReviews(1, newLimit); // Reset to page 1 when limit changes
+  };
+
   return (
     <div className="space-y-6">
       {/* Search and Filter Bar */}
@@ -179,9 +195,7 @@ export default function PendingReviews() {
               <p className="text-sm text-text-secondary">
                 Products Awaiting Review
               </p>
-              <p className="text-xl font-semibold">
-                {pagination.totalProducts}
-              </p>
+              <p className="text-xl font-semibold">{pagination.total}</p>
             </div>
           </div>
         </CardContent>
@@ -273,6 +287,16 @@ export default function PendingReviews() {
           ))}
         </div>
       )}
+
+      {/* Pagination */}
+      <Pagination
+        pagination={pagination}
+        onPageChange={handlePageChange}
+        onLimitChange={handleLimitChange}
+        showLimitSelector={true}
+        limitOptions={[5, 10, 25, 50]}
+        className="mt-8"
+      />
 
       {/* Create Review Modal */}
       {reviewingProduct && (

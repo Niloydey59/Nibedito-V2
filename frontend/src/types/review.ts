@@ -1,4 +1,4 @@
-import { ApiResponse } from './api';
+import { ApiResponse, PaginationInfo } from './api';
 
 export interface Review {
   _id: string;
@@ -72,24 +72,12 @@ export interface PendingReviewProduct {
 
 export interface PendingReviewsResponse {
   products: PendingReviewProduct[];
-  pagination: {
-    totalProducts: number;
-    totalPages: number;
-    currentPage: number;
-    previousPage: number | null;
-    nextPage: number | null;
-  };
+  pagination: PaginationInfo; // Updated to use standardized PaginationInfo
 }
 
 export interface ReviewsResponse {
   reviews: Review[];
-  pagination: {
-    totalReviews: number;
-    totalPages: number;
-    currentPage: number;
-    previousPage: number | null;
-    nextPage: number | null;
-  };
+  pagination: PaginationInfo; // Updated to use standardized PaginationInfo
   filters?: {
     searchQuery?: string;
     rating?: number;
@@ -135,4 +123,4 @@ export interface ReviewService {
   markReviewHelpful(reviewId: string): Promise<ApiResponse<MarkHelpfulResponse>>;
   getReviewStats(productId: string): Promise<ApiResponse<ReviewStats>>;
 }
-
+  

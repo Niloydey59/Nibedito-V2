@@ -14,7 +14,7 @@ import ProductGrid from "@/components/products/ProductGrid";
 import ProductFilters from "@/components/products/ProductFilter";
 import { productService } from "@/services/productService";
 import { categoryService } from "@/services/categoryService";
-import type { Product, Category, Pagination } from "@/types";
+import type { Product, Category, PaginationInfo } from "@/types";
 
 interface FilterState {
   minPrice: string;
@@ -43,12 +43,17 @@ export default function ProductsPage() {
     inStock: undefined,
     sort: "newest",
   });
-  const [pagination, setPagination] = useState<Pagination>({
+  const [pagination, setPagination] = useState<PaginationInfo>({
     total: 0,
     pages: 1,
     page: 1,
     limit: 12,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
   });
+  const [limit, setLimit] = useState<number>(12); // Added: State for items per page
   const [categories, setCategories] = useState<Category[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isFiltersInitialized, setIsFiltersInitialized] =
@@ -95,7 +100,7 @@ export default function ProductsPage() {
 
       const response = await productService.getAllProducts({
         page,
-        limit: viewMode === "list" ? 15 : 12,
+        limit, // Updated: Use dynamic limit state
         search: searchParams.get("search") || "",
         category: filters.category || "",
         subcategory: filters.subcategory || "",
@@ -373,6 +378,11 @@ export default function ProductsPage() {
     router.push(newURL);
   };
 
+  const handleLimitChange = (newLimit: number): void => {
+    setLimit(newLimit);
+    fetchProducts(1); // Reset to page 1 when limit changes
+  };
+
   return (
     <main className="min-h-screen bg-background py-6 px-4 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -524,6 +534,7 @@ export default function ProductsPage() {
               error={error}
               pagination={pagination}
               onPageChange={handlePageChange}
+              onLimitChange={handleLimitChange} // Added: Pass limit change handler
               viewMode={viewMode}
             />
           </section>

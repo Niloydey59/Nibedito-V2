@@ -1,4 +1,4 @@
-import { ApiResponse } from './api';
+import { ApiResponse, PaginationInfo } from './api';
 
 export interface OrderItem {
   _id?: string;
@@ -107,11 +107,7 @@ export interface GetAllOrdersParams {
 
 export interface OrdersResponse {
   orders: Order[];
-  pagination: {
-    total: number;
-    page: number;
-    pages: number;
-  };
+  pagination: PaginationInfo; // Updated to use standardized PaginationInfo
 }
 
 export interface UpdateOrderStatusRequest {
@@ -177,3 +173,4 @@ export interface OrderService {
   getOrderStats?(params?: GetOrderStatsParams): Promise<ApiResponse<OrderStats>>;
   getOrdersByRegion?(params?: GetOrdersByRegionParams): Promise<ApiResponse<RegionStats>>;
 }
+  

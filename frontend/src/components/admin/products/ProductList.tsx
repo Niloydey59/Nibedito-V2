@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Pagination from "@/components/common/Pagination";
 import {
   FiEdit2,
   FiEye,
@@ -9,19 +10,16 @@ import {
   FiTag,
   FiCalendar,
   FiDollarSign,
-  FiChevronLeft,
-  FiChevronRight,
 } from "react-icons/fi";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
-import MarkdownRenderer from "@/components/common/MarkdownRenderer";
-import type { Product, Pagination } from "@/types";
+import type { Product, PaginationInfo } from "@/types";
 
 interface ProductListProps {
   products: Product[];
   isLoading: boolean;
-  pagination: Pagination;
+  pagination: PaginationInfo;
   onPageChange: (page: number) => void;
   onProductClick: (slug: string) => void;
+  onLimitChange?: (limit: number) => void;
 }
 
 export default function ProductList({
@@ -30,6 +28,7 @@ export default function ProductList({
   pagination,
   onPageChange,
   onProductClick,
+  onLimitChange,
 }: ProductListProps) {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
@@ -250,31 +249,14 @@ export default function ProductList({
 
       {/* Pagination */}
       {pagination.pages > 1 && (
-        <div className="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-500 dark:text-slate-400">
-              Page {pagination.page} of {pagination.pages}
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => onPageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiChevronLeft className="w-4 h-4" />
-                <span>Previous</span>
-              </button>
-              <button
-                onClick={() => onPageChange(pagination.page + 1)}
-                disabled={pagination.page >= pagination.pages}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>Next</span>
-                <FiChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <Pagination
+          pagination={pagination}
+          onPageChange={onPageChange}
+          onLimitChange={onLimitChange}
+          showLimitSelector={true}
+          limitOptions={[5, 10, 25, 50]}
+          className="mt-8"
+        />
       )}
     </div>
   );

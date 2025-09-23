@@ -13,6 +13,7 @@ import type {
   GetAllUsersParams,
   GetAllUsersResponse,
   ApiResponse,
+  PaginationInfo,
 } from "@/types";
 import {
   FiUsers,
@@ -25,13 +26,6 @@ import {
 interface AdminAuthContextType {
   admin: Admin | null;
   isLoading: boolean;
-}
-
-interface PaginationState {
-  page: number;
-  limit: number;
-  total: number;
-  pages: number;
 }
 
 interface FiltersState {
@@ -55,11 +49,15 @@ export default function UsersPage(): React.JSX.Element {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState<PaginationState>({
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    pages: 1,
     page: 1,
     limit: 10,
-    total: 0,
-    pages: 0,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
   });
   const [filters, setFilters] = useState<FiltersState>({
     search: "",
@@ -98,11 +96,7 @@ export default function UsersPage(): React.JSX.Element {
 
         if (response.success && response.payload) {
           setUsers(response.payload.users);
-          setPagination((prev) => ({
-            ...prev,
-            total: response.payload!.pagination.total,
-            pages: response.payload!.pagination.pages,
-          }));
+          setPagination(response.payload.pagination);
         } else {
           throw new Error(response.message || "Failed to fetch users");
         }
@@ -218,7 +212,7 @@ export default function UsersPage(): React.JSX.Element {
   };
 
   const handlePaginationChange = (
-    newPagination: Partial<PaginationState>
+    newPagination: Partial<PaginationInfo>
   ): void => {
     setPagination((prev) => ({ ...prev, ...newPagination }));
   };

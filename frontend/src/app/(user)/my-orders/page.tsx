@@ -10,8 +10,9 @@ import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { OrdersHeader } from "@/components/orders/OrdersHeader";
 import { OrdersFilterHorizontal } from "@/components/orders/OrdersFilterHorizontal";
 import { OrderCard } from "@/components/orders/OrderCard";
-import { OrdersPagination } from "@/components/orders/OrdersPagination";
 import { OrdersEmptyState } from "@/components/orders/OrdersEmptyState";
+import Pagination from "@/components/common/Pagination";
+import { PaginationInfo } from "@/types/api";
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -161,7 +162,20 @@ export default function MyOrdersPage() {
     setCurrentPage(pageNumber);
   };
 
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+  // Construct PaginationInfo based on current filtered orders and pagination state
+  const paginationInfo: PaginationInfo = {
+    total: filteredOrders.length,
+    pages: Math.ceil(filteredOrders.length / ordersPerPage),
+    page: currentPage,
+    limit: ordersPerPage,
+    hasNext: currentPage < Math.ceil(filteredOrders.length / ordersPerPage),
+    hasPrev: currentPage > 1,
+    nextPage:
+      currentPage < Math.ceil(filteredOrders.length / ordersPerPage)
+        ? currentPage + 1
+        : null,
+    prevPage: currentPage > 1 ? currentPage - 1 : null,
+  };
 
   if (loading) {
     return <LoadingSpinner fullPage={true} />;
@@ -209,10 +223,11 @@ export default function MyOrdersPage() {
                 ))}
               </div>
 
-              <OrdersPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
+              <Pagination
+                pagination={paginationInfo}
                 onPageChange={handlePageChange}
+                showInfo={true} // Optional: Shows "Showing X to Y of Z items"
+                className="mt-8" // Optional: Add styling if needed
               />
             </>
           )}

@@ -4,26 +4,22 @@ import { useState } from "react";
 import ProductCard from "./ProductCard";
 import LoadingSpinner from "../common/LoadingSpinner";
 import LoginPopup from "../common/LoginPopup";
-import {
-  FiChevronLeft,
-  FiChevronRight,
-  FiShoppingCart,
-  FiStar,
-  FiHeart,
-} from "react-icons/fi";
+import Pagination from "../common/Pagination";
+import { FiShoppingCart, FiStar, FiHeart } from "react-icons/fi";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "react-hot-toast";
-import type { Product, Pagination } from "@/types";
+import type { Product, PaginationInfo } from "@/types";
 
 interface ProductGridProps {
   products: Product[];
   isLoading: boolean;
   error?: string | null;
-  pagination?: Pagination;
+  pagination?: PaginationInfo;
   onPageChange?: (page: number) => void;
+  onLimitChange?: (limit: number) => void; // Added: Prop for limit change handler
   viewMode?: "grid" | "list";
 }
 
@@ -81,6 +77,7 @@ export default function ProductGrid({
   error,
   pagination,
   onPageChange,
+  onLimitChange, // Added: Destructure new prop
   viewMode = "grid",
 }: ProductGridProps) {
   const { addToCart } = useCart();
@@ -385,34 +382,16 @@ export default function ProductGrid({
         ))}
       </div>
 
-      {/* Modern Pagination */}
       {/* Pagination */}
       {pagination && (
-        <div className="bg-slate-50 dark:bg-slate-700/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-slate-500 dark:text-slate-400">
-              Page {pagination.page} of {pagination.pages}
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => onPageChange(pagination.page - 1)}
-                disabled={pagination.page <= 1}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <FiChevronLeft className="w-4 h-4" />
-                <span>Previous</span>
-              </button>
-              <button
-                onClick={() => onPageChange(pagination.page + 1)}
-                disabled={pagination.page >= pagination.pages}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <span>Next</span>
-                <FiChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
+        <Pagination
+          pagination={pagination}
+          onPageChange={onPageChange}
+          onLimitChange={onLimitChange} // Added: Pass to Pagination
+          showLimitSelector={true} // Added: Enable limit selector
+          limitOptions={[5, 10, 25, 50]} // Added: Options for items per page
+          className="mt-8"
+        />
       )}
 
       {/* Login Popup */}

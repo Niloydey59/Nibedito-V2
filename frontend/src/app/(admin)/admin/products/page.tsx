@@ -10,7 +10,7 @@ import Error from "@/components/common/Error";
 import { productService } from "@/services/productService";
 import ProductTester from "@/components/admin/products/ProductTester";
 import { FiPlus, FiX, FiPackage } from "react-icons/fi";
-import type { Product, Pagination } from "@/types";
+import type { Product, PaginationInfo } from "@/types";
 
 interface StatusState {
   type: string;
@@ -31,12 +31,17 @@ export default function ProductsPage() {
   const [status, setStatus] = useState<StatusState>({ type: "", message: "" });
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoadingProducts, setIsLoadingProducts] = useState<boolean>(true);
-  const [pagination, setPagination] = useState<Pagination>({
+  const [pagination, setPagination] = useState<PaginationInfo>({
     total: 0,
     pages: 1,
     page: 1,
-    limit: 12,
+    limit: 10,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
   });
+  const [limit, setLimit] = useState<number>(10);
   const [totalStats, setTotalStats] = useState<TotalStats>({
     totalProducts: 0,
     totalValue: 0,
@@ -47,7 +52,7 @@ export default function ProductsPage() {
   const fetchProducts = async (page: number = 1): Promise<void> => {
     try {
       setIsLoadingProducts(true);
-      const response = await productService.getAllProducts({ page, limit: 12 });
+      const response = await productService.getAllProducts({ page, limit });
 
       if (!response.success) {
         throw new globalThis.Error(
@@ -78,18 +83,12 @@ export default function ProductsPage() {
         }
       });
 
-      // Handle pagination properties - map from API response to component expected format
-      const apiPagination = response.payload!.pagination;
-      setPagination({
-        total: apiPagination.total,
-        pages: apiPagination.pages,
-        page: apiPagination.page,
-        limit: apiPagination.limit,
-      });
+      // Set pagination directly from API response
+      setPagination(response.payload!.pagination);
 
       // Set stats
       setTotalStats({
-        totalProducts: apiPagination.total || 0,
+        totalProducts: response.payload!.pagination.total || 0,
         totalValue,
         totalVariants,
         activeCategories: uniqueCategories.size,
@@ -111,6 +110,11 @@ export default function ProductsPage() {
       fetchProducts();
     }
   }, [isLoading, admin, router]);
+
+  const handleLimitChange = (newLimit: number): void => {
+    setLimit(newLimit);
+    fetchProducts(1); // Reset to first page when changing limit
+  };
 
   if (isLoading || !admin) {
     return (
@@ -233,6 +237,7 @@ export default function ProductsPage() {
               pagination={pagination}
               onPageChange={fetchProducts}
               onProductClick={handleProductClick}
+              onLimitChange={handleLimitChange}
             />
           </div>
         )}

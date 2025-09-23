@@ -5,7 +5,12 @@ import { adminService } from "@/services/adminService";
 import OrdersTable from "@/components/admin/orders/OrdersTable";
 import OrderFilters from "@/components/admin/orders/OrderFilters";
 import { toast } from "react-hot-toast";
-import { Order, GetAllOrdersParams, OrdersResponse } from "@/types";
+import {
+  Order,
+  GetAllOrdersParams,
+  OrdersResponse,
+  PaginationInfo,
+} from "@/types";
 import {
   FiShoppingCart,
   FiGift,
@@ -17,10 +22,15 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<PaginationInfo>({
     total: 0,
-    page: 1,
     pages: 1,
+    page: 1,
+    limit: 10,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
   });
   const [giftOrdersCount, setGiftOrdersCount] = useState(0);
   const [filters, setFilters] = useState<GetAllOrdersParams>({
@@ -66,8 +76,12 @@ export default function AdminOrdersPage() {
     setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
-  const handlePageChange = (newPage: number) => {
+  const handlePageChange = (newPage: number): void => {
     setFilters((prev) => ({ ...prev, page: newPage }));
+  };
+
+  const handleLimitChange = (newLimit: number): void => {
+    setFilters((prev) => ({ ...prev, limit: newLimit, page: 1 }));
   };
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
@@ -211,9 +225,9 @@ export default function AdminOrdersPage() {
             onStatusUpdate={handleStatusUpdate}
             onPaidStatusUpdate={handlePaidStatusUpdate}
             onDelete={handleOrderDelete}
+            pagination={pagination}
             onPageChange={handlePageChange}
-            currentPage={pagination.page}
-            totalPages={pagination.pages}
+            onLimitChange={handleLimitChange}
           />
         </div>
       </div>

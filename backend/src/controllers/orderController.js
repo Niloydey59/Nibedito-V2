@@ -8,6 +8,7 @@ const { default: mongoose } = require("mongoose");
 const Coupon = require("../models/couponModel");
 const ShippingRate = require("../models/shippingModel");
 const { getOrderItemsWithReviewStatus } = require("../helper/orderHelper");
+const { createPagination } = require("../helper/paginationHelper");
 
 // Create a new order
 const createOrder = async (req, res, next) => {
@@ -350,7 +351,9 @@ const getAllOrders = async (req, res, next) => {
       .limit(parseInt(limit));
 
     // Get total count for pagination
-    const total = await Order.countDocuments(query);
+    const count = await Order.countDocuments(query);
+
+    const pagination = createPagination(count, page, limit);
 
     // Process orders to include variant details
     const processedOrders = await Promise.all(
@@ -408,11 +411,7 @@ const getAllOrders = async (req, res, next) => {
       message: "Orders retrieved successfully",
       payload: {
         orders: processedOrders,
-        pagination: {
-          total,
-          page: parseInt(page),
-          pages: Math.ceil(total / limit),
-        },
+        pagination,
       },
     });
   } catch (error) {

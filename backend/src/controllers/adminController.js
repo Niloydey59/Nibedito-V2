@@ -8,6 +8,7 @@ const { successResponse } = require("./responseController");
 const { findWithID } = require("../services/findItem");
 const { createJSONWebToken } = require("../helper/jsonwebtoken");
 const { jwtAccessKey, nodeEnv } = require("../secret");
+const { createPagination } = require("../helper/paginationHelper");
 
 const handleAdminLogin = async (req, res, next) => {
   try {
@@ -329,19 +330,16 @@ const getAllUsers = async (req, res, next) => {
       .limit(limit)
       .lean(); // Use lean() for better performance
 
-    const total = await User.countDocuments(query);
+    const count = await User.countDocuments(query);
+
+    const pagination = createPagination(count, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
       message: "Users retrieved successfully",
       payload: {
         users,
-        pagination: {
-          total,
-          pages: Math.ceil(total / limit),
-          page,
-          limit,
-        },
+        pagination,
       },
     });
   } catch (error) {
