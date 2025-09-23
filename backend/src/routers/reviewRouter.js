@@ -11,6 +11,8 @@ const {
   getReviews,
   getReview,
   getUserPendingReviews,
+  addReviewImages,
+  deleteReviewImages,
 } = require("../controllers/reviewController");
 const { uploadReview } = require("../config/cloudinary");
 const { isLoggedIn, isAdmin } = require("../middlewares/authMiddleware");
@@ -46,21 +48,16 @@ reviewRouter.get("/:id", getReview); //get a review by ID
 reviewRouter.patch(
   "/:id",
   isLoggedIn,
-  uploadReview,
   validateReviewUpdate,
   validateRequest,
   updateReview
 ); //update a review by ID
 
-router.post(
-  "/:id/images",
-  authMiddleware,
-  upload.array("images", 5),
-  addReviewImages
-); // add images to a review
+// Add images to a review
+reviewRouter.post("/:id/images", isLoggedIn, uploadReview, addReviewImages);
 
-// Delete image
-router.delete("/:id/images/:imageId", authMiddleware, deleteReviewImage); // delete an image from a review
+// Delete images from a review (bulk)
+reviewRouter.delete("/:id/images", isLoggedIn, deleteReviewImages);
 
 reviewRouter.delete("/:id", isLoggedIn, deleteReview); //delete a review by ID
 

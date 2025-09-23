@@ -93,25 +93,9 @@ export const reviewService: ReviewService = {
     },
 
     async updateReview(reviewId: string, reviewData: UpdateReviewRequest): Promise<ApiResponse<{ review: Review }>> {
-        const formData = new FormData();
-        
-        if (reviewData.rating !== undefined) {
-            formData.append('rating', reviewData.rating.toString());
-        }
-        
-        if (reviewData.comment !== undefined) {
-            formData.append('comment', reviewData.comment);
-        }
-
-        if (reviewData.images && reviewData.images.length > 0) {
-            reviewData.images.forEach((image) => {
-                formData.append('reviewImages', image);
-            });
-        }
-
-        const { data } = await axios.put<ApiResponse<{ review: Review }>>(`/reviews/${reviewId}`, formData, {
+        const { data } = await axios.patch<ApiResponse<{ review: Review }>>(`/reviews/${reviewId}`, reviewData, {
             headers: {
-                'Content-Type': 'multipart/form-data',
+                'Content-Type': 'application/json',
             },
         });
         return data;
@@ -130,5 +114,27 @@ export const reviewService: ReviewService = {
     async getReviewStats(productId: string): Promise<ApiResponse<ReviewStats>> {
         const { data } = await axios.get<ApiResponse<ReviewStats>>(`/reviews/product/${productId}/stats`);
         return data;
-    }
+    },
+
+    async addReviewImages(reviewId: string, images: File[]): Promise<ApiResponse<{ review: Review }>> {
+        const formData = new FormData();
+        images.forEach((image) => {
+            formData.append('reviewImages', image); // Changed from 'images' to 'reviewImages'
+        });
+
+        const { data } = await axios.post<ApiResponse<{ review: Review }>>(`/reviews/${reviewId}/images`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return data;
+    },
+
+    async deleteReviewImages(reviewId: string, imageIds: string[]): Promise<ApiResponse<{ review: Review; deletedImages: string[]; failedDeletions: any[] }>> {
+        const { data } = await axios.delete<ApiResponse<{ review: Review; deletedImages: string[]; failedDeletions: any[] }>>(`/reviews/${reviewId}/images`, {
+            data: { imageIds }, // Send imageIds in the body
+        });
+        return data;
+    },
 };
+  

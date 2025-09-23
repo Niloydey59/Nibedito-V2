@@ -32,7 +32,6 @@ export interface CreateReviewRequest {
 export interface UpdateReviewRequest {
   rating?: number;
   comment?: string;
-  images?: File[];
 }
 
 export interface GetReviewsParams {
@@ -114,6 +113,14 @@ export interface MarkHelpfulResponse {
   isHelpful: boolean;
 }
 
+export interface AddReviewImagesRequest {
+  images: File[];
+}
+
+export interface DeleteReviewImageRequest {
+  imageId: string;
+}
+
 export interface ReviewService {
   createReview(reviewData: CreateReviewRequest): Promise<ApiResponse<{ review: Review }>>;
   getReviews?(params?: GetReviewsParams): Promise<ApiResponse<ReviewsResponse>>;
@@ -123,6 +130,9 @@ export interface ReviewService {
   getUserPendingReviews(params?: GetUserPendingReviewsParams): Promise<ApiResponse<PendingReviewsResponse>>;
   updateReview(reviewId: string, reviewData: UpdateReviewRequest): Promise<ApiResponse<{ review: Review }>>;
   deleteReview(reviewId: string): Promise<ApiResponse<{ review: Review }>>;
+  addReviewImages(reviewId: string, images: File[]): Promise<ApiResponse<{ review: Review }>>;
+  deleteReviewImages(reviewId: string, imageIds: string[]): Promise<ApiResponse<{ review: Review; deletedImages: string[]; failedDeletions: any[] }>>;
   markReviewHelpful(reviewId: string): Promise<ApiResponse<MarkHelpfulResponse>>;
   getReviewStats(productId: string): Promise<ApiResponse<ReviewStats>>;
 }
+

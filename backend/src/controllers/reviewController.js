@@ -2,7 +2,11 @@ const createError = require("http-errors"); // error-handling middleware
 const { successResponse } = require("./responseController");
 const Product = require("../models/productModel");
 const cloudinary = require("../config/cloudinary");
-const { publicIDfromURL, uploadImage } = require("../helper/cloudinaryHelper");
+const {
+  publicIDfromURL,
+  uploadImage,
+  deleteImage,
+} = require("../helper/cloudinaryHelper");
 const Review = require("../models/reviewModel");
 const mongoose = require("mongoose");
 
@@ -417,18 +421,14 @@ const deleteReview = async (req, res, next) => {
       await productExist.save();
     }
 
-    // Delete review images from Cloudinary
+    // Delete review images from Cloudinary using the helper
     if (reviewExist.image.length > 0) {
-      for (const image of reviewExist.image) {
-        const publicID = await publicIDfromURL(image);
-        const { result } = await cloudinary.uploader.destroy(
-          `ecommerce/products/${publicID}`
-        );
-        if (result !== "ok") {
-          throw createError(
-            500,
-            "Failed to delete review image from Cloudinary"
-          );
+      for (const imageUrl of reviewExist.image) {
+        try {
+          await deleteImage(imageUrl);
+          console.log("Review image deleted:", imageUrl);
+        } catch (error) {
+          console.error("Error deleting review image:", error);
         }
       }
     }
@@ -560,6 +560,7 @@ const addReviewImages = async (req, res, next) => {
     if (!images || images.length === 0) {
       throw createError(400, "No images provided");
     }
+    console.log(`Received ${images.length} images to add`);
 
     // Validate max image count
     const totalImages = review.image.length + images.length;
@@ -579,23 +580,36 @@ const addReviewImages = async (req, res, next) => {
       if (!image.mimetype.startsWith("image/")) {
         throw createError(400, "Only image files are allowed");
       }
+    }
 
-      const imageUrl = await uploadImage(
-        image,
-        "review",
-        `review-${userId}-${Date.now()}`
-      );
-      newImageUrls.push(imageUrl);
+    // Now upload images to Cloudinary (only after all validations pass)
+    try {
+      for (const image of images) {
+        const imageUrl = await uploadImage(
+          image,
+          "review",
+          `review-${userId}-${Date.now()}`
+        );
+        newImageUrls.push(imageUrl);
+      }
+    } catch (uploadError) {
+      console.error("Image upload error:", uploadError);
+      throw createError(500, "Failed to upload images to cloud storage");
     }
 
     // Add new images to review
     review.image.push(...newImageUrls);
     await review.save();
 
+    // Populate the review before returning
+    const populatedReview = await Review.findById(review._id)
+      .populate("user", "name email")
+      .populate("product", "name slug thumbnailImage");
+
     return successResponse(res, {
       statusCode: 200,
       message: "Images added successfully",
-      payload: { review },
+      payload: { review: populatedReview },
     });
   } catch (error) {
     next(error);
@@ -603,12 +617,17 @@ const addReviewImages = async (req, res, next) => {
 };
 
 // ===============================
-// Delete a specific review image
+// Delete multiple review images
 // ===============================
-const deleteReviewImage = async (req, res, next) => {
+const deleteReviewImages = async (req, res, next) => {
   try {
-    const { id, imageId } = req.params; // reviewId & image public_id/url
+    const { id } = req.params; // reviewId
     const userId = req.user._id;
+    const { imageIds } = req.body; // Array of image URLs to delete
+
+    if (!imageIds || !Array.isArray(imageIds) || imageIds.length === 0) {
+      throw createError(400, "Image IDs array is required");
+    }
 
     // Find review
     const review = await Review.findById(id);
@@ -621,29 +640,50 @@ const deleteReviewImage = async (req, res, next) => {
       throw createError(403, "You are not authorized to modify this review");
     }
 
-    // Check if image exists in this review
-    const imageIndex = review.image.findIndex((img) => img.includes(imageId));
-    if (imageIndex === -1) {
-      throw createError(404, "Image not found in this review");
+    const deletedImages = [];
+    const failedDeletions = [];
+
+    // Process each image ID
+    for (const imageUrl of imageIds) {
+      // Check if image exists in this review
+      const imageIndex = review.image.indexOf(imageUrl);
+      if (imageIndex === -1) {
+        failedDeletions.push({ imageUrl, reason: "Image not found in review" });
+        continue;
+      }
+
+      // Delete from Cloudinary using the helper
+      try {
+        await deleteImage(imageUrl);
+        console.log("Review image deleted:", imageUrl);
+        deletedImages.push(imageUrl);
+        // Remove from review document
+        review.image.splice(imageIndex, 1);
+      } catch (deleteError) {
+        console.error("Failed to delete image from Cloudinary:", deleteError);
+        failedDeletions.push({
+          imageUrl,
+          reason: "Cloudinary deletion failed",
+        });
+      }
     }
 
-    // Delete from Cloudinary
-    try {
-      const publicID = await publicIDfromURL(review.image[imageIndex]);
-      await cloudinary.uploader.destroy(publicID);
-    } catch (deleteError) {
-      console.error("Failed to delete image from Cloudinary:", deleteError);
-      throw createError(500, "Failed to delete image from cloud storage");
-    }
-
-    // Remove from review document
-    review.image.splice(imageIndex, 1);
+    // Save the updated review
     await review.save();
+
+    // Populate the review before returning
+    const populatedReview = await Review.findById(review._id)
+      .populate("user", "name email")
+      .populate("product", "name slug thumbnailImage");
 
     return successResponse(res, {
       statusCode: 200,
-      message: "Image deleted successfully",
-      payload: { review },
+      message: `Images processed: ${deletedImages.length} deleted, ${failedDeletions.length} failed`,
+      payload: {
+        review: populatedReview,
+        deletedImages,
+        failedDeletions,
+      },
     });
   } catch (error) {
     next(error);
@@ -743,7 +783,7 @@ module.exports = {
   deleteReview,
   updateReview,
   addReviewImages,
-  deleteReviewImage,
+  deleteReviewImages, // Updated export
   markReviewHelpful,
   getReviewStats,
 };

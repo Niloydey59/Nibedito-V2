@@ -30,6 +30,7 @@ export default function EditReviewModal({
   const [rating, setRating] = useState(review.rating);
   const [comment, setComment] = useState(review.comment || "");
   const [existingImages, setExistingImages] = useState(review.image || []);
+  const [removedImageIds, setRemovedImageIds] = useState<string[]>([]); // Track URLs of images to delete
   const [newImages, setNewImages] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [hoveredStar, setHoveredStar] = useState(0);
@@ -40,8 +41,18 @@ export default function EditReviewModal({
     const files = Array.from(event.target.files || []);
     const validFiles = files.filter((file) => file.type.startsWith("image/"));
 
-    if (validFiles.length + existingImages.length + newImages.length > 5) {
-      alert("You can upload maximum 5 images");
+    // Calculate expected total images after operations
+    const currentTotal =
+      existingImages.length -
+      removedImageIds.length +
+      newImages.length +
+      validFiles.length;
+    if (currentTotal > 5) {
+      alert(
+        `You can have a maximum of 5 images. You currently have ${
+          existingImages.length - removedImageIds.length + newImages.length
+        } and are trying to add ${validFiles.length}.`
+      );
       return;
     }
 
@@ -49,6 +60,8 @@ export default function EditReviewModal({
   };
 
   const removeExistingImage = (index: number) => {
+    const imageUrl = existingImages[index];
+    setRemovedImageIds((prev) => [...prev, imageUrl]); // Track full URL
     setExistingImages((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -64,17 +77,48 @@ export default function EditReviewModal({
 
     setIsSubmitting(true);
     try {
-      const updateData: UpdateReviewRequest = {
-        rating,
-        comment: comment.trim() || undefined,
-        images: newImages.length > 0 ? newImages : undefined,
-      };
+      let updatedReview = { ...review };
 
-      const response = await reviewService.updateReview(review._id, updateData);
-
-      if (response.success && response.payload) {
-        onUpdate(response.payload.review);
+      // Step 1: Update rating and comment if changed
+      const hasRatingChanged = rating !== review.rating;
+      const hasCommentChanged = comment.trim() !== (review.comment || "");
+      if (hasRatingChanged || hasCommentChanged) {
+        const updateData: UpdateReviewRequest = {
+          ...(hasRatingChanged && { rating }),
+          ...(hasCommentChanged && { comment: comment.trim() || undefined }),
+        };
+        const response = await reviewService.updateReview(
+          review._id,
+          updateData
+        );
+        if (response.success && response.payload) {
+          updatedReview = response.payload.review;
+        }
       }
+
+      // Step 2: Delete removed images (bulk)
+      if (removedImageIds.length > 0) {
+        const response = await reviewService.deleteReviewImages(
+          review._id,
+          removedImageIds
+        );
+        if (response.success && response.payload) {
+          updatedReview = response.payload.review;
+        }
+      }
+
+      // Step 3: Add new images
+      if (newImages.length > 0) {
+        const response = await reviewService.addReviewImages(
+          review._id,
+          newImages
+        );
+        if (response.success && response.payload) {
+          updatedReview = response.payload.review;
+        }
+      }
+
+      onUpdate(updatedReview);
     } catch (error) {
       console.error("Error updating review:", error);
       alert("Failed to update review. Please try again.");
