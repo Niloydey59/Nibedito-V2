@@ -10,7 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import ImageMagnifier from "@/components/products/ImageMagnifier";
 import LoginPopup from "@/components/common/LoginPopup";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import type { Product, ProductVariant } from "@/types";
 
@@ -18,6 +18,7 @@ export default function ProductDetailsPage() {
   const { slug } = useParams() as { slug: string };
   const { addToCart, cart } = useCart();
   const { user } = useAuth();
+  const toast = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
     null

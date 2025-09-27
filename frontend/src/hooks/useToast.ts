@@ -10,20 +10,20 @@ export function useToast() {
     success: (message: string, options?: ToastOptions) => {
       return toast.success(message, {
         duration: options?.duration || 3000,
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 
     error: (message: string, options?: ToastOptions) => {
       return toast.error(message, {
         duration: options?.duration || 4000,
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 
     loading: (message: string, options?: ToastOptions) => {
       return toast.loading(message, {
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 
@@ -31,7 +31,7 @@ export function useToast() {
       return toast(message, {
         icon: 'ℹ️',
         duration: options?.duration || 3000,
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 
@@ -39,7 +39,7 @@ export function useToast() {
       return toast(message, {
         icon: '⚠️',
         duration: options?.duration || 4000,
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 
@@ -47,7 +47,7 @@ export function useToast() {
       return toast(message, {
         icon: icon || '📢',
         duration: options?.duration || 3000,
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 
@@ -61,7 +61,7 @@ export function useToast() {
       options?: ToastOptions
     ) => {
       return toast.promise(promise, messages, {
-        position: options?.position || 'top-right',
+        position: options?.position || 'bottom-right',
       });
     },
 

@@ -1,7 +1,7 @@
 import axios from '@/utils/axios';
-import { 
-    ReviewService, 
-    CreateReviewRequest, 
+import {
+    ReviewService,
+    CreateReviewRequest,
     UpdateReviewRequest,
     GetReviewsParams,
     GetProductReviewsParams,
@@ -12,7 +12,7 @@ import {
     PendingReviewsResponse,
     ReviewStats,
     MarkHelpfulResponse,
-    ApiResponse 
+    ApiResponse
 } from '@/types';
 
 export const reviewService: ReviewService = {
@@ -20,7 +20,7 @@ export const reviewService: ReviewService = {
         const formData = new FormData();
         formData.append('product', reviewData.product);
         formData.append('rating', reviewData.rating.toString());
-        
+
         if (reviewData.comment) {
             formData.append('comment', reviewData.comment);
         }
@@ -71,10 +71,13 @@ export const reviewService: ReviewService = {
     },
 
     async getUserReviews(params: GetUserReviewsParams = {}): Promise<ApiResponse<ReviewsResponse>> {
-        const { page, limit } = params;
+        const { page, limit, search, sortBy, sortOrder } = params;
         const query = new URLSearchParams({
             ...(page && { page: page.toString() }),
-            ...(limit && { limit: limit.toString() })
+            ...(limit && { limit: limit.toString() }),
+            ...(search && { search }),
+            ...(sortBy && { sortBy }),
+            ...(sortOrder && { sortOrder })
         });
 
         const { data } = await axios.get<ApiResponse<ReviewsResponse>>(`/reviews/user?${query}`);
@@ -82,13 +85,16 @@ export const reviewService: ReviewService = {
     },
 
     async getUserPendingReviews(params: GetUserPendingReviewsParams = {}): Promise<ApiResponse<PendingReviewsResponse>> {
-        const { page, limit } = params;
+        const { page, limit, search, sortBy, sortOrder } = params;
         const query = new URLSearchParams({
             ...(page && { page: page.toString() }),
-            ...(limit && { limit: limit.toString() })
+            ...(limit && { limit: limit.toString() }),
+            ...(search && { search }),
+            ...(sortBy && { sortBy }),
+            ...(sortOrder && { sortOrder })
         });
 
-        const { data } = await axios.get<ApiResponse<PendingReviewsResponse>>(`/reviews/user/pending?${query}`);
+        const { data } = await axios.get<ApiResponse<PendingReviewsResponse>>(`/reviews/pending/user?${query}`);
         return data;
     },
 
@@ -137,4 +143,3 @@ export const reviewService: ReviewService = {
         return data;
     },
 };
-  

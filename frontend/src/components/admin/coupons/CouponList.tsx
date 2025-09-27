@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { couponService } from "@/services/couponService";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { format } from "date-fns";
 import { FiTag, FiEdit3, FiTrash2, FiClock, FiPlus } from "react-icons/fi";
 import { Coupon } from "@/types";
@@ -17,6 +17,7 @@ export default function CouponList({
   coupons,
   onCouponsUpdate,
 }: CouponListProps) {
+  const toast = useToast();
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

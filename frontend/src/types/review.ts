@@ -51,11 +51,17 @@ export interface GetProductReviewsParams {
 export interface GetUserReviewsParams {
   page?: number;
   limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface GetUserPendingReviewsParams {
   page?: number;
   limit?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PendingReviewProduct {
@@ -72,14 +78,19 @@ export interface PendingReviewProduct {
 
 export interface PendingReviewsResponse {
   products: PendingReviewProduct[];
-  pagination: PaginationInfo; // Updated to use standardized PaginationInfo
+  pagination: PaginationInfo;
+  filters?: {
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+  };
 }
 
 export interface ReviewsResponse {
   reviews: Review[];
-  pagination: PaginationInfo; // Updated to use standardized PaginationInfo
+  pagination: PaginationInfo;
   filters?: {
-    searchQuery?: string;
+    search?: string;
     rating?: number;
     sortBy?: string;
     sortOrder?: string;
@@ -123,4 +134,3 @@ export interface ReviewService {
   markReviewHelpful(reviewId: string): Promise<ApiResponse<MarkHelpfulResponse>>;
   getReviewStats(productId: string): Promise<ApiResponse<ReviewStats>>;
 }
-  

@@ -267,34 +267,61 @@ const getProductReviews = async (req, res, next) => {
   }
 };
 
+
 const getUserReviews = async (req, res, next) => {
   try {
     const userId = req.user._id;
-    //console.log("User ID:", userId);
 
-    // Pagination and search query parameters
+    // Pagination / search / sort
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 5;
+    const limit = Number(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const search = req.query.search || "";
+    const sortBy = req.query.sortBy || "createdAt";
+    const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
 
+    // Build filter: search can match comment OR product name (via product IDs)
     const filter = { user: userId };
 
-    const reviews = await Review.find(filter)
-      .populate("product", "name slug thumbnailImage") // ADD product population
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    if (search) {
+      // Find product IDs that match product name search
+      const matchingProducts = await Product.find(
+        { name: { $regex: search, $options: "i" } },
+        { _id: 1 }
+      ).lean();
+      const productIds = matchingProducts.map((p) => p._id);
 
-    // Get total count of reviews
-    const count = await Review.countDocuments(filter);
+      filter.$or = [{ comment: { $regex: search, $options: "i" } }];
+      if (productIds.length) filter.$or.push({ product: { $in: productIds } });
+    }
+
+    const sortObj = {};
+    sortObj[sortBy] = sortOrder;
+
+    const [reviews, count] = await Promise.all([
+      Review.find(filter)
+        .populate("product", "name slug thumbnailImage")
+        .populate("user", "name email")
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Review.countDocuments(filter),
+    ]);
+
     const pagination = createPagination(count, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
       message: "Reviews were returned successfully!",
       payload: {
-        reviews: reviews,
+        reviews,
         pagination,
+        filters: {
+          search,
+          sortBy,
+          sortOrder: sortOrder === 1 ? "asc" : "desc",
+        },
       },
     });
   } catch (error) {
@@ -307,47 +334,85 @@ const getUserPendingReviews = async (req, res, next) => {
     const userId = req.user._id;
     const { Order } = require("../models/orderModel");
 
-    // Pagination parameters
+    // Pagination / search / sort
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 5;
     const skip = (page - 1) * limit;
+    const search = req.query.search || "";
+    const sortBy = req.query.sortBy || "orderDate"; // or "product.name"
+    const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
 
-    // Get all products the user has purchased from delivered orders
+    // 1) Get delivered orders and populate products on items
     const userOrders = await Order.find({
       user: userId,
-      status: "Delivered", // Only delivered orders
-    }).populate("items.product", "name slug thumbnailImage");
+      status: "Delivered",
+    })
+      .populate("items.product", "name slug thumbnailImage")
+      .lean();
 
-    // Extract all purchased product IDs
-    const purchasedProducts = [];
-    userOrders.forEach((order) => {
-      order.items.forEach((item) => {
-        if (item.product) {
-          purchasedProducts.push({
-            productId: item.product._id,
-            product: item.product,
-            orderId: order._id,
-            orderDate: order.createdAt,
-          });
-        }
+    // 2) Flatten purchased products (keep order info)
+    const purchased = [];
+    for (const order of userOrders) {
+      for (const item of order.items || []) {
+        if (!item.product) continue;
+        purchased.push({
+          productId: item.product._id.toString(),
+          product: item.product,
+          orderId: order._id,
+          orderDate: order.createdAt,
+        });
+      }
+    }
+
+    if (purchased.length === 0) {
+      const pagination = createPagination(0, page, limit);
+      return successResponse(res, {
+        statusCode: 200,
+        message: "Pending reviews retrieved successfully!",
+        payload: { products: [], pagination, filters: { search, sortBy, sortOrder: sortOrder === 1 ? "asc" : "desc" } },
       });
+    }
+
+    // 3) Get product IDs already reviewed by user
+    const reviewedProductIds = await Review.find({ user: userId }).distinct("product");
+    const reviewedSet = new Set(reviewedProductIds.map((id) => id.toString()));
+
+    // 4) Filter out already reviewed products
+    let pending = purchased.filter((p) => !reviewedSet.has(p.productId));
+
+    // 5) Optional product-name search
+    if (search) {
+      const term = search.toLowerCase();
+      pending = pending.filter((p) => (p.product && p.product.name && p.product.name.toLowerCase().includes(term)));
+    }
+
+    // 6) Dedupe products (user might have bought same product multiple times) — keep most recent orderDate
+    const dedupMap = new Map();
+    for (const p of pending) {
+      const existing = dedupMap.get(p.productId);
+      if (!existing || new Date(p.orderDate) > new Date(existing.orderDate)) {
+        dedupMap.set(p.productId, p);
+      }
+    }
+    let pendingList = Array.from(dedupMap.values());
+
+    // 7) Sort
+    pendingList.sort((a, b) => {
+      if (sortBy === "product.name") {
+        const nameA = (a.product?.name || "").toLowerCase();
+        const nameB = (b.product?.name || "").toLowerCase();
+        if (nameA < nameB) return -1 * sortOrder;
+        if (nameA > nameB) return 1 * sortOrder;
+        return 0;
+      }
+      // default: orderDate
+      return (new Date(a.orderDate) - new Date(b.orderDate)) * sortOrder;
     });
 
-    // Get products already reviewed by user
-    const reviewedProductIds = await Review.find({ user: userId }).distinct(
-      "product"
-    );
-
-    // Filter out already reviewed products
-    const pendingReviews = purchasedProducts.filter(
-      (item) =>
-        !reviewedProductIds.some(
-          (reviewedId) => reviewedId.toString() === item.productId.toString()
-        )
-    );
-
-    const count = pendingReviews.length;
-    const pagination = createPagination(count, page, limit);
+    // 8) Paginate
+    const total = pendingList.length;
+    const paginatedResults = pendingList.slice(skip, skip + limit);
+    const pagination = createPagination(total, page, limit);
 
     return successResponse(res, {
       statusCode: 200,
@@ -355,12 +420,18 @@ const getUserPendingReviews = async (req, res, next) => {
       payload: {
         products: paginatedResults,
         pagination,
+        filters: {
+          search,
+          sortBy,
+          sortOrder: sortOrder === 1 ? "asc" : "desc",
+        },
       },
     });
   } catch (error) {
     next(error);
   }
 };
+
 
 const deleteReview = async (req, res, next) => {
   try {
@@ -712,7 +783,7 @@ const getReviewStats = async (req, res, next) => {
     const { productId } = req.params;
 
     const stats = await Review.aggregate([
-      { $match: { product: mongoose.Types.ObjectId(productId) } },
+      { $match: { product: new mongoose.Types.ObjectId(productId) } },
       {
         $group: {
           _id: "$rating",

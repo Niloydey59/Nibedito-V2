@@ -10,7 +10,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import type { Product, PaginationInfo } from "@/types";
 
 interface ProductGridProps {
@@ -82,6 +82,7 @@ export default function ProductGrid({
 }: ProductGridProps) {
   const { addToCart } = useCart();
   const { user } = useAuth();
+  const toast = useToast();
   const [addingToCart, setAddingToCart] = useState<Record<string, boolean>>({});
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [showLoginPopup, setShowLoginPopup] = useState(false);

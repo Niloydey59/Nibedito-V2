@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
 import LoginPopup from "@/components/common/LoginPopup";
 import type { Product } from "@/types";
@@ -71,6 +71,7 @@ export default function ProductCard({
   const { addToCart, cart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [showLoginPopup, setShowLoginPopup] = useState(false);
 
   const { _id, slug, name, description, price, thumbnailImage, variants } =

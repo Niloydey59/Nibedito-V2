@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useState, useCallback } from "react";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ interface CartItemRowProps {
 
 // Single cart item component
 function CartItemRow({ item }: CartItemRowProps) {
+  const toast = useToast();
   const { updateCartItem, removeFromCart } = useCart();
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
   const [isRemoving, setIsRemoving] = useState<boolean>(false);

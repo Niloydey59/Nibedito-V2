@@ -7,7 +7,7 @@ import {
   CreateShippingRateRequest,
   UpdateShippingRateRequest,
 } from "@/types/shipping";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { FiSave, FiX, FiMapPin, FiRefreshCw } from "react-icons/fi";
 
 interface ShippingFormProps {
@@ -23,6 +23,7 @@ export default function ShippingForm({
   onError,
   onCancel,
 }: ShippingFormProps) {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     region: editingRate?.region || "",
     cost: editingRate?.cost || "",

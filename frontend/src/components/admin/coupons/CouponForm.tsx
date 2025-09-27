@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { couponService } from "@/services/couponService";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { Coupon, CreateCouponRequest } from "@/types";
 import {
   FiGift,
@@ -37,6 +37,7 @@ export default function CouponForm({
   onError,
   onCancel,
 }: CouponFormProps) {
+  const toast = useToast();
   const [formData, setFormData] = useState<FormData>({
     code: editingCoupon?.code || "",
     productDiscountType:

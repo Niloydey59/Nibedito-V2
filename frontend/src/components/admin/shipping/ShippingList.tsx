@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { shippingService } from "@/services/shippingService";
 import { ShippingRate } from "@/types/shipping";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import {
   FiTruck,
   FiEdit3,
@@ -22,6 +22,7 @@ export default function ShippingList({
   rates,
   onRatesUpdate,
 }: ShippingListProps) {
+  const toast = useToast();
   const [editingRate, setEditingRate] = useState<ShippingRate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 

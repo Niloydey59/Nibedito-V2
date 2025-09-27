@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { couponService } from "@/services/couponService";
 import { shippingService } from "@/services/shippingService";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -36,6 +36,7 @@ interface AppliedCoupon {
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const toast = useToast();
   const { cart, loading: cartLoading, clearCart, refetchCart } = useCart();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);

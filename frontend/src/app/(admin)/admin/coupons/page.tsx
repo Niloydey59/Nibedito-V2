@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { couponService } from "@/services/couponService";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { FiPlus, FiX, FiTag } from "react-icons/fi";
 import { Coupon } from "@/types";
 import CouponStats from "@/components/admin/coupons/CouponStats";
@@ -13,6 +13,7 @@ export default function CouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const toast = useToast();
 
   const loadCoupons = async () => {
     try {

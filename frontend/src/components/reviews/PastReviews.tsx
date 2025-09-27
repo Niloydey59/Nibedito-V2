@@ -32,6 +32,8 @@ import { PaginationInfo } from "@/types/api";
 export default function PastReviews() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<
     "newest" | "oldest" | "rating-high" | "rating-low"
@@ -47,44 +49,91 @@ export default function PastReviews() {
     nextPage: null,
     prevPage: null,
   });
-  const [limit, setLimit] = useState<number>(10); // Added: State for items per page
+  const [limit, setLimit] = useState<number>(10);
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchReviews(1, limit, false); // Not initial
+    }, 500); // 500ms debounce
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Effect for sort change
+  useEffect(() => {
+    fetchReviews(1, limit, false); // Not initial
+  }, [sortBy]);
 
   const fetchReviews = useCallback(
-    async (page: number = 1, limitParam: number = limit) => {
+    async (page: number = 1, limitParam: number = limit, isInitial: boolean = true) => {
       try {
-        setLoading(true);
-        const response = await reviewService.getUserReviews({
+        if (isInitial) {
+          setLoading(true);
+        } else {
+          setIsFetching(true);
+        }
+        // Map UI sort to backend params
+        let backendSortBy = "createdAt";
+        let backendSortOrder: "asc" | "desc" = "desc";
+        switch (sortBy) {
+          case "newest":
+            backendSortBy = "createdAt";
+            backendSortOrder = "desc";
+            break;
+          case "oldest":
+            backendSortBy = "createdAt";
+            backendSortOrder = "asc";
+            break;
+          case "rating-high":
+            backendSortBy = "rating";
+            backendSortOrder = "desc";
+            break;
+          case "rating-low":
+            backendSortBy = "rating";
+            backendSortOrder = "asc";
+            break;
+        }
+
+        const params: GetUserReviewsParams = {
           page,
           limit: limitParam,
-        });
+          search: searchTerm || undefined,
+          sortBy: backendSortBy,
+          sortOrder: backendSortOrder,
+        };
+
+        const response = await reviewService.getUserReviews(params);
 
         if (response.success && response.payload) {
           setReviews(response.payload.reviews);
           setPagination(response.payload.pagination);
+          // Optionally sync sortBy from response.filters if it differs, but keep user input priority
+          if (response.payload.filters?.sortBy) {
+            // Map back if needed, but for now, rely on local state
+          }
         }
       } catch (error) {
         console.error("Error fetching reviews:", error);
-        // You can add a proper toast notification here later
         alert("Failed to load your reviews. Please try again.");
       } finally {
         setLoading(false);
+        setIsFetching(false);
+        setIsInitialLoad(false);
       }
     },
-    [limit]
+    [limit, searchTerm, sortBy]
   );
 
   useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
+    fetchReviews(1, limit, true); // Initial load
+  }, []); // Initial load, but effects above handle changes
 
   const handleSearch = (value: string) => {
     setSearchTerm(value);
-    // In a real implementation, you'd debounce this and call the API with search params
   };
 
   const handleSort = (value: typeof sortBy) => {
     setSortBy(value);
-    // In a real implementation, you'd call the API with sort params
   };
 
   const handleEditReview = (review: Review) => {
@@ -100,35 +149,25 @@ export default function PastReviews() {
     setEditingReview(null);
   };
 
-  const filteredReviews = reviews.filter((review) => {
-    const productName =
-      typeof review.product === "object" ? review.product.name : "";
-    return (
-      productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      review.comment?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-  const sortedReviews = [...filteredReviews].sort((a, b) => {
+  const getSortLabel = (sortBy: string) => {
     switch (sortBy) {
       case "newest":
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
+        return "Newest First";
       case "oldest":
-        return (
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
+        return "Oldest First";
       case "rating-high":
-        return b.rating - a.rating;
+        return "Highest Rating";
       case "rating-low":
-        return a.rating - b.rating;
+        return "Lowest Rating";
       default:
-        return 0;
+        return "Newest First";
     }
-  });
+  };
 
-  if (loading) {
+  // Remove filteredReviews and sortedReviews; use reviews directly
+  const reviewsToDisplay = reviews; // No local filter/sort
+
+  if (loading && isInitialLoad) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row gap-4">
@@ -148,13 +187,13 @@ export default function PastReviews() {
 
   const handleLimitChange = (newLimit: number) => {
     setLimit(newLimit);
-    fetchReviews(1, newLimit); // Reset to page 1 when limit changes
+    fetchReviews(1, newLimit);
   };
 
   return (
     <div className="space-y-6">
       {/* Search and Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 relative">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-tertiary h-4 w-4" />
           <Input
@@ -162,15 +201,17 @@ export default function PastReviews() {
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
+            disabled={isFetching}
           />
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2" disabled={isFetching}>
               <Filter className="h-4 w-4" />
-              Sort by
+              Sort by: {getSortLabel(sortBy)}
               <ChevronDown className="h-4 w-4" />
+              {isFetching && <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full ml-2" />}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -201,7 +242,7 @@ export default function PastReviews() {
               <div>
                 <p className="text-sm text-text-secondary">Total Reviews</p>
                 <p className="text-xl font-semibold">
-                  {pagination.totalReviews}
+                  {pagination.total}
                 </p>
               </div>
             </div>
@@ -247,36 +288,38 @@ export default function PastReviews() {
       </div>
 
       {/* Reviews List */}
-      {sortedReviews.length === 0 ? (
-        <Card className="card-modern">
-          <CardContent className="p-8 text-center">
-            <div className="mx-auto w-24 h-24 bg-surface-elevated rounded-full flex items-center justify-center mb-4">
-              <MessageSquare className="h-12 w-12 text-text-tertiary" />
-            </div>
-            <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
-            <p className="text-text-secondary mb-4">
-              {searchTerm
-                ? `No reviews match your search "${searchTerm}"`
-                : "You haven't written any reviews yet."}
-            </p>
-            {searchTerm && (
-              <Button variant="outline" onClick={() => setSearchTerm("")}>
-                Clear Search
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-4">
-          {sortedReviews.map((review) => (
-            <ReviewCard
-              key={review._id}
-              review={review}
-              onEdit={() => handleEditReview(review)}
-            />
-          ))}
-        </div>
-      )}
+      <div className={`space-y-4 ${isFetching ? 'opacity-75' : 'animate-fade-in'}`}>
+        {reviewsToDisplay.length === 0 ? (
+          <Card className="card-modern">
+            <CardContent className="p-8 text-center">
+              <div className="mx-auto w-24 h-24 bg-surface-elevated rounded-full flex items-center justify-center mb-4">
+                <MessageSquare className="h-12 w-12 text-text-tertiary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No reviews found</h3>
+              <p className="text-text-secondary mb-4">
+                {searchTerm
+                  ? `No reviews match your search "${searchTerm}"`
+                  : "You haven't written any reviews yet."}
+              </p>
+              {searchTerm && (
+                <Button variant="outline" onClick={() => setSearchTerm("")}>
+                  Clear Search
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {reviewsToDisplay.map((review) => (
+              <ReviewCard
+                key={review._id}
+                review={review}
+                onEdit={() => handleEditReview(review)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Pagination */}
       <Pagination

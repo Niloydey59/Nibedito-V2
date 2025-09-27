@@ -40,7 +40,7 @@ reviewRouter.post(
 reviewRouter.get("/", isAdmin, getReviews); // Get all reviews (with filters)
 reviewRouter.get("/product/:productId", getProductReviews); //get reviews for a product
 reviewRouter.get("/user", isLoggedIn, getUserReviews); //get reviews by user
-reviewRouter.get("/user/pending", isLoggedIn, getUserPendingReviews); //get pending reviews by user
+reviewRouter.get("/pending/user", isLoggedIn, getUserPendingReviews); //get pending reviews by user
 
 // Review CRUD operations (put /:id routes AFTER specific paths)
 reviewRouter.get("/:id", getReview); //get a review by ID

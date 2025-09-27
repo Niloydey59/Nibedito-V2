@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { faqService } from "@/services/faqService";
 import { FAQ, CreateFAQRequest, UpdateFAQRequest } from "@/types/faq";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { FiSave, FiX, FiHelpCircle } from "react-icons/fi";
 
 interface FaqFormProps {
@@ -21,6 +21,7 @@ export default function FaqForm({
   onCancel,
   faqs = [],
 }: FaqFormProps) {
+  const toast = useToast();
   const [formData, setFormData] = useState({
     question: editingFaq?.question || "",
     answer: editingFaq?.answer || "",

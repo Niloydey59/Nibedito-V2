@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { adminService } from "@/services/adminService";
 import Link from "next/link";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { Order } from "@/types";
 import {
   FiArrowLeft,
@@ -26,6 +26,7 @@ import {
 export default function OrderDetailsPage() {
   const { orderId } = useParams() as { orderId: string };
   const router = useRouter();
+  const toast = useToast();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

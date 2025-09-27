@@ -6,13 +6,14 @@ import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { FiHelpCircle, FiPlus, FiX, FiAlertCircle } from "react-icons/fi";
 import { faqService } from "@/services/faqService";
 import { FAQ } from "@/types/faq";
-import toast from "react-hot-toast";
+import {useToast} from "@/hooks/useToast";
 import FaqStats from "@/components/admin/faq/FaqStats";
 import FaqList from "@/components/admin/faq/FaqList";
 import FaqForm from "@/components/admin/faq/FaqForm";
 
 export default function FaqsAdminPage() {
   const router = useRouter();
+  const toast = useToast();
   const { admin, isLoading: authLoading } = useAdminAuth();
   const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);

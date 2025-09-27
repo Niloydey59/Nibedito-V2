@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { faqService } from "@/services/faqService";
 import { FAQ } from "@/types/faq";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import {
   FiHelpCircle,
   FiEdit3,
@@ -21,6 +21,7 @@ interface FaqListProps {
 export default function FaqList({ faqs, onFaqsUpdate }: FaqListProps) {
   const [editingFaq, setEditingFaq] = useState<FAQ | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const toast = useToast();
 
   const handleDelete = async (faqId: string) => {
     if (!window.confirm("Are you sure you want to delete this FAQ?")) {

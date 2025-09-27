@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { adminService } from "@/services/adminService";
 import OrdersTable from "@/components/admin/orders/OrdersTable";
 import OrderFilters from "@/components/admin/orders/OrderFilters";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import {
   Order,
   GetAllOrdersParams,
@@ -19,6 +19,7 @@ import {
 } from "react-icons/fi";
 
 export default function AdminOrdersPage() {
+  const toast = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { orderService } from "@/services/orderService";
 import { Order } from "@/types/order";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
@@ -20,6 +20,7 @@ export default function MyOrdersPage() {
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const router = useRouter();
+  const toast = useToast();
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState("all");

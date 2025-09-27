@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
-import { toast } from "react-hot-toast";
+import { useToast } from "@/hooks/useToast";
 import { useRouter } from "next/navigation";
 import { shippingService } from "@/services/shippingService";
 import { ShippingRate } from "@/types/shipping";
@@ -13,6 +13,7 @@ import ShippingForm from "@/components/admin/shipping/ShippingForm";
 
 export default function ShippingManagement() {
   const router = useRouter();
+  const toast = useToast();
   const { admin, isLoading: authLoading } = useAdminAuth();
   const [rates, setRates] = useState<ShippingRate[]>([]);
   const [loading, setLoading] = useState(true);
