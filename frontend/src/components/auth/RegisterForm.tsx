@@ -48,6 +48,16 @@ export default function RegisterForm() {
     e.preventDefault();
     setErrors({});
 
+    // Add phone validation before general validation
+    const phone = formData.phone;
+    if (phone.length !== 11 ) {
+      setErrors((prev) => ({
+        ...prev,
+        phone: "Phone number must be exactly 11 digits ",
+      }));
+      return;
+    }
+
     const { isValid, errors: validationErrors } =
       validateRegistrationData(formData);
     if (!isValid) {
@@ -116,12 +126,62 @@ export default function RegisterForm() {
           )}
 
           {Object.keys(errors).length > 0 && !errors.general && (
-            <div className="mb-6">
-              <Error
-                type="warning"
-                message="Please correct the following errors:"
-                onClose={() => setErrors({})}
-              />
+            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg shadow-sm">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <svg
+                    className="h-5 w-5 text-amber-400"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div className="ml-3 flex-1">
+                  <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                    Please correct the following errors:
+                  </h3>
+                  <div className="mt-2 text-sm text-amber-700 dark:text-amber-300">
+                    <ul className="list-disc list-inside space-y-1">
+                      {Object.entries(errors)
+                        .filter(([key]) => key !== 'general')
+                        .map(([key, message]) => (
+                          <li key={key} className="capitalize">
+                            {key}: {message}
+                          </li>
+                        ))}
+                    </ul>
+                  </div>
+                </div>
+                <div className="ml-auto pl-3">
+                  <div className="-mx-1.5 -my-1.5">
+                    <button
+                      type="button"
+                      className="inline-flex bg-amber-50 dark:bg-amber-900/20 rounded-md p-1.5 text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-800/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-amber-50 dark:focus:ring-offset-amber-900/20 focus:ring-amber-600 transition-colors duration-200"
+                      onClick={() => setErrors({})}
+                    >
+                      <span className="sr-only">Dismiss</span>
+                      <svg
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -187,7 +247,7 @@ export default function RegisterForm() {
                 </label>
                 <div className="flex">
                   <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-600 text-slate-500 dark:text-slate-400 text-sm shadow-sm">
-                    +880
+                    +88
                   </span>
                   <input
                     type="tel"
@@ -200,8 +260,8 @@ export default function RegisterForm() {
                         ? "border-red-500 dark:border-red-400"
                         : "border-slate-300 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500"
                     }`}
-                    maxLength={10}
-                    placeholder="1234567890"
+                    maxLength={11}
+                    placeholder="01234567890"
                   />
                 </div>
                 {errors.phone && (

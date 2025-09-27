@@ -26,8 +26,8 @@ export const validateRegistrationData = (data: RegisterData): ValidationResult =
   // Phone validation
   if (!data.phone?.trim()) {
     errors.phone = 'Phone number is required';
-  } else if (!/^\d{10}$/.test(data.phone.trim())) {
-    errors.phone = 'Please enter a valid 10-digit phone number';
+  } else if (!/^\d{11}$/.test(data.phone.trim())) {
+    errors.phone = 'Please enter a valid 11-digit phone number';
   }
 
   // Password validation
@@ -43,11 +43,11 @@ export const validateRegistrationData = (data: RegisterData): ValidationResult =
   if (!data.street?.trim()) {
     errors.street = 'Street address is required';
   }
-  
+
   if (!data.city?.trim()) {
     errors.city = 'City is required';
   }
-  
+
   if (!data.state?.trim()) {
     errors.state = 'State is required';
   }

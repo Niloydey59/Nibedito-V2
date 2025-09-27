@@ -13,8 +13,8 @@ const registerValidator = [
         .matches(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{6,}$/)
         .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character'),
     body('phone')
-        .matches(/^\d{10}$/)
-        .withMessage('Phone number must be 10 digits'),
+        .matches(/^\d{11}$/)
+        .withMessage('Phone number must be 11 digits'),
     body('address')
         .notEmpty()
         .withMessage('Address is required')
@@ -26,7 +26,7 @@ const loginValidator = [
         .withMessage('Email or phone number is required')
         .custom((value) => {
             const isEmail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(value);
-            const isPhone = /^\d{10}$/.test(value);
+            const isPhone = /^\d{11}$/.test(value);
             if (!isEmail && !isPhone) {
                 throw new Error('Invalid email or phone number format');
             }

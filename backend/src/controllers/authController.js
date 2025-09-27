@@ -15,7 +15,7 @@ const handleLogin = async (req, res, next) => {
   try {
     const { emailOrPhone, password } = req.body;
     const isEmail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(emailOrPhone);
-    const isPhone = /^\d{10}$/.test(emailOrPhone);
+    const isPhone = /^\d{11}$/.test(emailOrPhone);
 
     let user;
     if (isEmail) {
@@ -265,8 +265,8 @@ const processRegister = async (req, res, next) => {
     // Check if user already exists with this email or phone
     const userExists = await User.findOne({
       $or: [
-        { email, "verificationStatus.email": true },
-        { phone, "verificationStatus.phone": true },
+        { email },
+        { phone },
       ],
     });
 
