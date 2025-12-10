@@ -12,6 +12,7 @@ import ImageMagnifier from "@/components/products/ImageMagnifier";
 import LoginPopup from "@/components/common/LoginPopup";
 import { useToast } from "@/hooks/useToast";
 import MarkdownRenderer from "@/components/common/MarkdownRenderer";
+import ReviewList from "@/components/products/review/ReviewList";
 import type { Product, ProductVariant } from "@/types";
 
 export default function ProductDetailsPage() {
@@ -321,6 +322,14 @@ export default function ProductDetailsPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-6">
+            Customer Reviews
+          </h2>
+          <ReviewList productId={product._id!} />
         </div>
       </div>
 
