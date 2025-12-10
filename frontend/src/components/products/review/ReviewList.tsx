@@ -9,6 +9,7 @@ import ReviewCard from "./ReviewCard";
 import ReviewFilters from "./ReviewFilters";
 import ReviewStatsBar from "./ReviewStatsBar";
 import Pagination from "./Pagination";
+import ImageModal from "./ImageModal";
 
 interface ReviewListProps {
   productId: string;
@@ -26,6 +27,9 @@ export default function ReviewList({ productId }: ReviewListProps) {
     sortBy: "createdAt" as "createdAt" | "rating" | "helpful",
     sortOrder: "desc" as "asc" | "desc",
   });
+  // Image modal state
+  const [selectedImages, setSelectedImages] = useState<string[] | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const toast = useToast();
 
   useEffect(() => {
@@ -129,6 +133,16 @@ export default function ReviewList({ productId }: ReviewListProps) {
     [toast]
   );
 
+  const handleImageClick = useCallback((images: string[], index: number) => {
+    setSelectedImages(images);
+    setSelectedImageIndex(index);
+  }, []);
+
+  const handleCloseImageModal = useCallback(() => {
+    setSelectedImages(null);
+    setSelectedImageIndex(0);
+  }, []);
+
   if (loading && page === 1) {
     return <LoadingSpinner fullPage={false} size="lg" />;
   }
@@ -171,7 +185,11 @@ export default function ReviewList({ productId }: ReviewListProps) {
               className="animate-fade-in"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <ReviewCard review={review} onHelpfulClick={handleHelpfulClick} />
+              <ReviewCard 
+                review={review} 
+                onHelpfulClick={handleHelpfulClick}
+                onImageClick={handleImageClick}
+              />
             </div>
           ))
         )}
@@ -183,6 +201,15 @@ export default function ReviewList({ productId }: ReviewListProps) {
           currentPage={page}
           totalPages={totalPages}
           onPageChange={handlePageChange}
+        />
+      )}
+
+      {/* Image Modal - Rendered at top level */}
+      {selectedImages && (
+        <ImageModal
+          images={selectedImages}
+          initialIndex={selectedImageIndex}
+          onClose={handleCloseImageModal}
         />
       )}
     </div>
