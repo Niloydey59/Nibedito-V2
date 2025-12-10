@@ -1,6 +1,7 @@
 "use client";
 
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { memo } from "react";
 
 interface PaginationProps {
   currentPage: number;
@@ -8,7 +9,7 @@ interface PaginationProps {
   onPageChange: (page: number) => void;
 }
 
-export default function Pagination({
+const Pagination = memo(function Pagination({
   currentPage,
   totalPages,
   onPageChange,
@@ -44,12 +45,18 @@ export default function Pagination({
     return pages;
   };
 
+  const handlePageChange = (page: number) => {
+    if (page !== currentPage) {
+      onPageChange(page);
+    }
+  };
+
   return (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-2 animate-fade-in">
       <button
-        onClick={() => onPageChange(currentPage - 1)}
+        onClick={() => handlePageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="p-2 rounded-lg border border-border hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="pagination-btn-nav"
       >
         <FiChevronLeft className="w-5 h-5 text-foreground" />
       </button>
@@ -59,19 +66,19 @@ export default function Pagination({
           page === "..." ? (
             <span
               key={`ellipsis-${index}`}
-              className="px-3 py-2 text-text-secondary"
+              className="pagination-dots"
             >
               ...
             </span>
           ) : (
             <button
               key={page}
-              onClick={() => onPageChange(page as number)}
-              className={`px-3 py-2 rounded-lg border transition-colors ${
+              onClick={() => handlePageChange(page as number)}
+              className={
                 currentPage === page
-                  ? "bg-primary text-white border-primary"
-                  : "border-border hover:bg-primary/5 text-foreground"
-              }`}
+                  ? "pagination-btn-active"
+                  : "pagination-btn-inactive"
+              }
             >
               {page}
             </button>
@@ -80,12 +87,14 @@ export default function Pagination({
       </div>
 
       <button
-        onClick={() => onPageChange(currentPage + 1)}
+        onClick={() => handlePageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="p-2 rounded-lg border border-border hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="pagination-btn-nav"
       >
         <FiChevronRight className="w-5 h-5 text-foreground" />
       </button>
     </div>
   );
-}
+});
+
+export default Pagination;

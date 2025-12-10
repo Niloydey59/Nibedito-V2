@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import Image from "next/image";
 import { FiThumbsUp, FiUser } from "react-icons/fi";
 import { Review } from "@/types";
@@ -12,9 +12,10 @@ interface ReviewCardProps {
   onHelpfulClick: (reviewId: string) => void;
 }
 
-export default function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) {
+const ReviewCard = memo(function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) {
   const { user } = useAuth();
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const reviewUser = typeof review.user === "object" ? review.user : null;
   const reviewUserId = typeof review.user === "object" ? review.user._id : review.user;
@@ -29,9 +30,17 @@ export default function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) 
     });
   };
 
+  const handleHelpfulClick = () => {
+    setIsAnimating(true);
+    onHelpfulClick(review._id);
+
+    // Reset animation after a short delay
+    setTimeout(() => setIsAnimating(false), 300);
+  };
+
   return (
     <>
-      <div className="bg-surface border border-border rounded-xl p-4 sm:p-6 hover:shadow-md transition-shadow">
+      <div className="bg-surface border border-border rounded-xl p-4 sm:p-6 hover:shadow-md transition-all duration-300">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
@@ -58,7 +67,7 @@ export default function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) 
             {[1, 2, 3, 4, 5].map((star) => (
               <svg
                 key={star}
-                className={`w-4 h-4 sm:w-5 sm:h-5 ${
+                className={`w-4 h-4 sm:w-5 sm:h-5 transition-colors duration-200 ${
                   star <= review.rating
                     ? "text-yellow-400 fill-yellow-400"
                     : "text-gray-300 dark:text-gray-600"
@@ -87,7 +96,7 @@ export default function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) 
               <button
                 key={index}
                 onClick={() => setSelectedImageIndex(index)}
-                className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-colors"
+                className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-all duration-200 hover:scale-105"
               >
                 <Image
                   src={img}
@@ -104,14 +113,20 @@ export default function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) 
         {/* Helpful Button - Only show if not own review */}
         {!isOwnReview && (
           <button
-            onClick={() => onHelpfulClick(review._id)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            onClick={handleHelpfulClick}
+            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              isAnimating ? 'scale-95' : 'scale-100'
+            } ${
               isHelpful
                 ? "bg-primary/10 text-primary"
                 : "bg-background hover:bg-primary/5 text-text-secondary hover:text-primary"
             }`}
           >
-            <FiThumbsUp className={`w-4 h-4 ${isHelpful ? "fill-current" : ""}`} />
+            <FiThumbsUp
+              className={`w-4 h-4 transition-all duration-200 ${
+                isHelpful ? "fill-current" : ""
+              } ${isAnimating ? 'scale-125' : 'scale-100'}`}
+            />
             <span>Helpful {review.helpful > 0 && `(${review.helpful})`}</span>
           </button>
         )}
@@ -135,4 +150,6 @@ export default function ReviewCard({ review, onHelpfulClick }: ReviewCardProps) 
       )}
     </>
   );
-}
+});
+
+export default ReviewCard;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { reviewService } from "@/services/reviewService";
 import { Review, ReviewStats } from "@/types";
 import { useToast } from "@/hooks/useToast";
@@ -18,6 +18,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [filters, setFilters] = useState({
@@ -37,7 +38,12 @@ export default function ReviewList({ productId }: ReviewListProps) {
 
   const fetchReviews = async () => {
     try {
-      setLoading(true);
+      if (reviews.length === 0) {
+        setLoading(true);
+      } else {
+        setUpdating(true);
+      }
+
       const response = await reviewService.getProductReviews(productId, {
         page,
         limit: 5,
@@ -51,6 +57,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
       toast.error(error.message || "Failed to fetch reviews");
     } finally {
       setLoading(false);
+      setUpdating(false);
     }
   };
 
@@ -63,19 +70,57 @@ export default function ReviewList({ productId }: ReviewListProps) {
     }
   };
 
-  const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters((prev) => ({ ...prev, ...newFilters }));
-    setPage(1);
-  };
+  const handleFilterChange = useCallback(
+    (newFilters: Partial<typeof filters>) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+      setPage(1);
+    },
+    []
+  );
 
-  const handleHelpfulClick = async (reviewId: string) => {
-    try {
-      await reviewService.markReviewHelpful(reviewId);
-      fetchReviews();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to mark review as helpful");
-    }
-  };
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+  }, []);
+
+  const handleHelpfulClick = useCallback(
+    async (reviewId: string) => {
+      try {
+        // Optimistic update
+        setReviews((prevReviews) =>
+          prevReviews.map((review) => {
+            if (review._id === reviewId) {
+              const userId = localStorage.getItem("user")
+                ? JSON.parse(localStorage.getItem("user")!)?._id
+                : null;
+
+              if (!userId) return review;
+
+              const isCurrentlyHelpful = review.helpfulUsers.includes(userId);
+              return {
+                ...review,
+                helpful: isCurrentlyHelpful ? review.helpful - 1 : review.helpful + 1,
+                helpfulUsers: isCurrentlyHelpful
+                  ? review.helpfulUsers.filter((id) => id !== userId)
+                  : [...review.helpfulUsers, userId],
+              };
+            }
+            return review;
+          })
+        );
+
+        // Make API call
+        await reviewService.markReviewHelpful(reviewId);
+
+        // Refresh stats in background
+        fetchStats();
+      } catch (error: any) {
+        toast.error(error.message || "Failed to mark review as helpful");
+        // Revert optimistic update on error
+        fetchReviews();
+      }
+    },
+    [toast]
+  );
 
   if (loading && page === 1) {
     return <LoadingSpinner fullPage={false} size="lg" />;
@@ -93,24 +138,28 @@ export default function ReviewList({ productId }: ReviewListProps) {
         totalReviews={stats?.totalReviews || 0}
       />
 
-      {/* Reviews */}
-      <div className="space-y-4">
-        {loading && page > 1 ? (
-          <LoadingSpinner fullPage={false} size="md" />
-        ) : reviews.length === 0 ? (
-          <div className="text-center py-12 bg-surface border border-border rounded-xl">
+      {/* Reviews with smooth transition */}
+      <div
+        className={`space-y-4 transition-opacity duration-300 ${
+          updating ? "opacity-50" : "opacity-100"
+        }`}
+      >
+        {reviews.length === 0 ? (
+          <div className="text-center py-12 bg-surface border border-border rounded-xl animate-fade-in">
             <p className="text-text-secondary text-lg">No reviews yet</p>
             <p className="text-text-secondary text-sm mt-2">
               Be the first to review this product!
             </p>
           </div>
         ) : (
-          reviews.map((review) => (
-            <ReviewCard
+          reviews.map((review, index) => (
+            <div
               key={review._id}
-              review={review}
-              onHelpfulClick={handleHelpfulClick}
-            />
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <ReviewCard review={review} onHelpfulClick={handleHelpfulClick} />
+            </div>
           ))
         )}
       </div>
@@ -120,7 +169,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
         <Pagination
           currentPage={page}
           totalPages={totalPages}
-          onPageChange={setPage}
+          onPageChange={handlePageChange}
         />
       )}
     </div>
