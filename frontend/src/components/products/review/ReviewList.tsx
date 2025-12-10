@@ -78,6 +78,13 @@ export default function ReviewList({ productId }: ReviewListProps) {
     []
   );
 
+  const handleRatingClick = useCallback(
+    (rating: number | undefined) => {
+      handleFilterChange({ rating });
+    },
+    [handleFilterChange]
+  );
+
   const handlePageChange = useCallback((newPage: number) => {
     setPage(newPage);
   }, []);
@@ -128,8 +135,14 @@ export default function ReviewList({ productId }: ReviewListProps) {
 
   return (
     <div className="space-y-6">
-      {/* Stats Bar */}
-      {stats && <ReviewStatsBar stats={stats} />}
+      {/* Stats Bar with clickable rating bars */}
+      {stats && (
+        <ReviewStatsBar
+          stats={stats}
+          onRatingClick={handleRatingClick}
+          selectedRating={filters.rating}
+        />
+      )}
 
       {/* Filters */}
       <ReviewFilters

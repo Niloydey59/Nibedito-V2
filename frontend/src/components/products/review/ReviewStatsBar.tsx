@@ -2,12 +2,19 @@
 
 import { ReviewStats } from "@/types";
 import { FiStar } from "react-icons/fi";
+import { memo } from "react";
 
 interface ReviewStatsBarProps {
   stats: ReviewStats;
+  onRatingClick?: (rating: number | undefined) => void;
+  selectedRating?: number | undefined;
 }
 
-export default function ReviewStatsBar({ stats }: ReviewStatsBarProps) {
+const ReviewStatsBar = memo(function ReviewStatsBar({
+  stats,
+  onRatingClick,
+  selectedRating,
+}: ReviewStatsBarProps) {
   const getRatingCount = (rating: number) => {
     const stat = stats.stats.find((s) => s.rating === rating);
     return stat ? stat.count : 0;
@@ -18,8 +25,15 @@ export default function ReviewStatsBar({ stats }: ReviewStatsBarProps) {
     return stat ? stat.percentage : 0;
   };
 
+  const handleRatingClick = (rating: number) => {
+    if (onRatingClick) {
+      // If clicking the same rating, clear the filter
+      onRatingClick(selectedRating === rating ? undefined : rating);
+    }
+  };
+
   return (
-    <div className="bg-surface border border-border rounded-xl p-4 sm:p-6">
+    <div className="bg-surface border border-border rounded-xl p-4 sm:p-6 transition-all duration-300">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Average Rating */}
         <div className="flex flex-col items-center justify-center p-4 bg-background rounded-lg">
@@ -46,7 +60,16 @@ export default function ReviewStatsBar({ stats }: ReviewStatsBarProps) {
         {/* Rating Distribution */}
         <div className="md:col-span-2 space-y-2">
           {[5, 4, 3, 2, 1].map((rating) => (
-            <div key={rating} className="flex items-center gap-3">
+            <button
+              key={rating}
+              onClick={() => handleRatingClick(rating)}
+              className={`w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-200 ${
+                selectedRating === rating
+                  ? "bg-primary/10 ring-2 ring-primary/30"
+                  : "hover:bg-background"
+              } ${onRatingClick ? "cursor-pointer" : "cursor-default"}`}
+              disabled={!onRatingClick}
+            >
               <div className="flex items-center gap-1 min-w-[3rem]">
                 <span className="text-sm font-medium text-foreground">
                   {rating}
@@ -62,10 +85,23 @@ export default function ReviewStatsBar({ stats }: ReviewStatsBarProps) {
               <span className="text-sm text-text-secondary min-w-[3rem] text-right">
                 {getRatingCount(rating)}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       </div>
+
+      {selectedRating && (
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => onRatingClick && onRatingClick(undefined)}
+            className="text-sm text-primary hover:underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
     </div>
   );
-}
+});
+
+export default ReviewStatsBar;
