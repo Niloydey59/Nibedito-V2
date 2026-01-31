@@ -369,6 +369,23 @@ export default function UserProfile({
     return address.isDefault ? `${fullAddress} (Default)` : fullAddress;
   };
 
+  const formatAddressShort = (address: Address): string => {
+    // Create a shorter version for mobile display
+    const parts = [];
+    if (address.street) parts.push(address.street.substring(0, 30));
+    if (address.city) parts.push(address.city);
+    if (address.state) parts.push(address.state);
+    
+    const shortAddress = parts.join(', ');
+    const suffix = address.isDefault ? ' (Default)' : '';
+    
+    // Truncate if too long
+    if (shortAddress.length > 50) {
+      return shortAddress.substring(0, 50) + '...' + suffix;
+    }
+    return shortAddress + suffix;
+  };
+
   if (isLoading || !formData) {
     return (
       <Card className="h-fit">
@@ -388,15 +405,10 @@ export default function UserProfile({
   }
 
   return (
-    <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-blue-500/20 to-indigo-500/20 dark:from-blue-400/20 dark:to-indigo-400/20 border-b border-blue-100 dark:border-blue-800/30">
-        <CardTitle className="flex items-center gap-3 text-xl">
-          <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-md">
-            <FiEdit2 className="w-5 h-5 text-white" />
-          </div>
-          <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent font-bold">
-            Profile Information
-          </span>
+    <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+      <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
+        <CardTitle className="text-xl font-semibold">
+          Personal Information
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 p-6 lg:p-8">
@@ -409,10 +421,10 @@ export default function UserProfile({
         )}
 
         {/* Enhanced Profile Header */}
-        <div className="flex flex-col sm:flex-row items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-200 dark:border-slate-800">
           <div className="relative">
             <div
-              className="relative w-24 h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 shadow-xl ring-4 ring-blue-100 dark:ring-blue-900/30"
+              className="relative w-24 h-24 lg:w-28 lg:h-28 rounded-full overflow-hidden cursor-pointer group transition-all duration-300 hover:scale-105 shadow-lg ring-4 ring-slate-200 dark:ring-slate-700"
               onClick={handleImageClick}
             >
               {user.profilePicture ? (
@@ -424,7 +436,7 @@ export default function UserProfile({
                   priority={true}
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-3xl lg:text-4xl font-bold">
+                <div className="w-full h-full bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center text-white text-3xl lg:text-4xl font-bold">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -443,10 +455,7 @@ export default function UserProfile({
             />
             {isUploading && (
               <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2">
-                <Badge
-                  variant="outline"
-                  className="text-xs bg-white dark:bg-slate-800 shadow-md"
-                >
+                <Badge variant="outline" className="text-xs bg-white dark:bg-slate-800 shadow-md">
                   <Spinner size="sm" className="mr-1" />
                   Uploading...
                 </Badge>
@@ -454,7 +463,7 @@ export default function UserProfile({
             )}
           </div>
           <div className="text-center sm:text-left">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
               {user.name}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-lg">
@@ -463,16 +472,11 @@ export default function UserProfile({
           </div>
         </div>
 
-        <Separator className="bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent" />
-
-        {/* Enhanced Profile Form - Remove form wrapper */}
+        {/* Profile Form */}
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div className="space-y-3">
-              <Label
-                htmlFor="name"
-                className="text-slate-700 dark:text-slate-300 font-medium"
-              >
+              <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Full Name
               </Label>
               <Input
@@ -481,19 +485,16 @@ export default function UserProfile({
                 value={formData.name}
                 onChange={handleChange}
                 disabled={!isEditing}
-                className="transition-all duration-200 bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 focus:border-blue-400 dark:focus:border-blue-500 focus:ring-blue-400/20 dark:focus:ring-blue-500/20"
+                className="transition-all duration-200 bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-700"
               />
             </div>
 
             <div className="space-y-3">
-              <Label
-                htmlFor="phone"
-                className="text-slate-700 dark:text-slate-300 font-medium"
-              >
+              <Label htmlFor="phone" className="text-sm font-medium text-slate-700 dark:text-slate-300">
                 Phone Number
               </Label>
               <div className="flex">
-                <div className="flex items-center px-4 bg-slate-100 dark:bg-slate-900 border border-r-0 border-slate-200 dark:border-slate-700 rounded-l-md">
+                <div className="flex items-center px-4 bg-slate-100 dark:bg-slate-900 border border-r-0 border-slate-300 dark:border-slate-700 rounded-l-md">
                   <span className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                     +880
                   </span>
@@ -506,17 +507,17 @@ export default function UserProfile({
                   disabled={!isEditing}
                   maxLength={10}
                   placeholder="1234567890"
-                  className="rounded-l-none bg-slate-50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-700 focus:border-blue-400 dark:focus:border-blue-500"
+                  className="rounded-l-none bg-slate-50 dark:bg-slate-900 border-slate-300 dark:border-slate-700"
                 />
               </div>
             </div>
           </div>
 
-          {/* Enhanced Address Section */}
-          <div className="space-y-4 p-4 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-            <Label className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-medium">
-              <div className="p-1 bg-gradient-to-r from-green-500 to-emerald-600 rounded">
-                <FiMapPin className="w-4 h-4 text-white" />
+          {/* Address Section */}
+          <div className="space-y-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700">
+            <Label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+              <div className="p-1.5 bg-rose-100 dark:bg-rose-950/30 rounded-lg">
+                <FiMapPin className="w-4 h-4 text-rose-600 dark:text-rose-400" />
               </div>
               Delivery Address
             </Label>
@@ -524,13 +525,18 @@ export default function UserProfile({
               <select
                 value={selectedAddressId}
                 onChange={handleAddressSelect}
-                className="flex-1 h-11 px-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400/20 dark:focus:ring-blue-500/20 focus:border-blue-400 dark:focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+                className="flex-1 h-11 px-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200 overflow-hidden text-ellipsis"
                 disabled={!user.addresses?.length}
+                title={user.addresses?.find((addr) => addr._id === selectedAddressId) ? formatAddress(user.addresses.find((addr) => addr._id === selectedAddressId)!) : ''}
               >
                 {user.addresses?.length ? (
                   user.addresses.map((address) => (
-                    <option key={address._id} value={address._id}>
-                      {formatAddress(address)}
+                    <option 
+                      key={address._id} 
+                      value={address._id}
+                      title={formatAddress(address)}
+                    >
+                      {formatAddressShort(address)}
                     </option>
                   ))
                 ) : (
@@ -544,7 +550,7 @@ export default function UserProfile({
                 onClick={handleEditAddress}
                 disabled={!selectedAddressId}
                 title="Edit selected address"
-                className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm"
+                className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 flex-shrink-0"
               >
                 <FiEdit2 className="w-4 h-4" />
               </Button>
@@ -554,144 +560,139 @@ export default function UserProfile({
                 size="icon"
                 onClick={handleAddNewAddress}
                 title="Add new address"
-                className="bg-gradient-to-r from-green-500 to-emerald-600 border-0 text-white hover:from-green-600 hover:to-emerald-700 shadow-md"
+                className="bg-rose-600 hover:bg-rose-700 border-0 text-white flex-shrink-0"
               >
                 <FiPlus className="w-4 h-4" />
               </Button>
             </div>
+            
+            {/* Show full address details below select on mobile */}
+            {selectedAddressId && user.addresses?.length && (
+              <div className="lg:hidden p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg">
+                <p className="text-xs text-slate-600 dark:text-slate-400 font-medium mb-1">
+                  Selected Address:
+                </p>
+                <p className="text-sm text-slate-900 dark:text-white break-words leading-relaxed">
+                  {formatAddress(user.addresses.find((addr) => addr._id === selectedAddressId)!)}
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Enhanced Address Form - Separate div instead of nested form */}
+          {/* Address Form */}
           {showAddressForm && (
-            <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 bg-blue-50/30 dark:bg-blue-950/20">
+            <Card className="border-2 border-dashed border-rose-300 dark:border-rose-700 bg-rose-50/30 dark:bg-rose-950/20">
               <CardHeader className="pb-4">
-                <CardTitle className="text-lg text-blue-900 dark:text-blue-100">
+                <CardTitle className="text-lg text-rose-900 dark:text-rose-100">
                   {selectedAddressId ? "Edit Address" : "Add New Address"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-4">
+                <div className="space-y-3">
+                  <Label htmlFor="street" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Street Address
+                  </Label>
+                  <Input
+                    id="street"
+                    name="street"
+                    value={addressFormData.street}
+                    onChange={handleAddressChange}
+                    placeholder="Enter your street address"
+                    className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
+                  />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-3">
-                    <Label
-                      htmlFor="street"
-                      className="text-slate-700 dark:text-slate-300 font-medium"
-                    >
-                      Street Address
+                    <Label htmlFor="city" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      City
                     </Label>
                     <Input
-                      id="street"
-                      name="street"
-                      value={addressFormData.street}
+                      id="city"
+                      name="city"
+                      value={addressFormData.city}
                       onChange={handleAddressChange}
-                      placeholder="Enter your street address"
-                      className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      placeholder="City"
+                      className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
                     />
                   </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="city"
-                        className="text-slate-700 dark:text-slate-300 font-medium"
-                      >
-                        City
-                      </Label>
-                      <Input
-                        id="city"
-                        name="city"
-                        value={addressFormData.city}
-                        onChange={handleAddressChange}
-                        placeholder="City"
-                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="state"
-                        className="text-slate-700 dark:text-slate-300 font-medium"
-                      >
-                        State
-                      </Label>
-                      <Input
-                        id="state"
-                        name="state"
-                        value={addressFormData.state}
-                        onChange={handleAddressChange}
-                        placeholder="State"
-                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label
-                        htmlFor="postalCode"
-                        className="text-slate-700 dark:text-slate-300 font-medium"
-                      >
-                        Postal Code
-                      </Label>
-                      <Input
-                        id="postalCode"
-                        name="postalCode"
-                        value={addressFormData.postalCode}
-                        onChange={handleAddressChange}
-                        placeholder="Postal Code"
-                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <input
-                      type="checkbox"
-                      id="isDefault"
-                      name="isDefault"
-                      checked={addressFormData.isDefault}
-                      onChange={handleAddressChange}
-                      className="w-4 h-4 text-blue-600 border-2 border-slate-300 dark:border-slate-600 rounded focus:ring-blue-500/20"
-                    />
-                    <Label
-                      htmlFor="isDefault"
-                      className="text-sm font-medium text-slate-700 dark:text-slate-300"
-                    >
-                      Set as default address
+                  <div className="space-y-3">
+                    <Label htmlFor="state" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      State
                     </Label>
+                    <Input
+                      id="state"
+                      name="state"
+                      value={addressFormData.state}
+                      onChange={handleAddressChange}
+                      placeholder="State"
+                      className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
+                    />
                   </div>
-                  <div className="flex gap-3 pt-4">
-                    <Button
-                      type="button"
-                      onClick={handleAddressSubmit}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-md"
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <Spinner size="sm" className="mr-2" />
-                          {selectedAddressId ? "Updating..." : "Adding..."}
-                        </>
-                      ) : selectedAddressId ? (
-                        "Update Address"
-                      ) : (
-                        "Add Address"
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowAddressForm(false)}
-                      className="flex-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-                    >
-                      Cancel
-                    </Button>
+                  <div className="space-y-3">
+                    <Label htmlFor="postalCode" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                      Postal Code
+                    </Label>
+                    <Input
+                      id="postalCode"
+                      name="postalCode"
+                      value={addressFormData.postalCode}
+                      onChange={handleAddressChange}
+                      placeholder="Postal Code"
+                      className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
+                    />
                   </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="isDefault"
+                    name="isDefault"
+                    checked={addressFormData.isDefault}
+                    onChange={handleAddressChange}
+                    className="w-4 h-4 text-rose-600 border-2 border-slate-300 dark:border-slate-600 rounded focus:ring-rose-500/20"
+                  />
+                  <Label htmlFor="isDefault" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Set as default address
+                  </Label>
+                </div>
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    type="button"
+                    onClick={handleAddressSubmit}
+                    className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Spinner size="sm" className="mr-2" />
+                        {selectedAddressId ? "Updating..." : "Adding..."}
+                      </>
+                    ) : selectedAddressId ? (
+                      "Update Address"
+                    ) : (
+                      "Add Address"
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowAddressForm(false)}
+                    className="flex-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Enhanced Action Buttons - Remove nested form */}
+          {/* Action Buttons */}
           <div className="flex gap-3 pt-6">
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white"
             >
               {isLoading ? (
                 <>
@@ -715,7 +716,7 @@ export default function UserProfile({
                     phone: user.phone || "",
                   });
                 }}
-                className="flex-1 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
+                className="flex-1 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
               >
                 Cancel
               </Button>

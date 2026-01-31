@@ -52,15 +52,11 @@ export default function VerificationStatus({
   };
 
   return (
-    <Card className="h-fit bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300">
-      <CardHeader className="bg-gradient-to-r from-emerald-500/20 to-green-500/20 dark:from-emerald-400/20 dark:to-green-400/20 border-b border-emerald-100 dark:border-emerald-800/30">
-        <CardTitle className="flex items-center gap-3 text-xl">
-          <div className="p-2 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg shadow-md">
-            <FiShield className="w-5 h-5 text-white" />
-          </div>
-          <span className="bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent font-bold">
-            Verification Status
-          </span>
+    <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+      <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
+        <CardTitle className="text-xl font-semibold flex items-center gap-2">
+          <FiShield className="w-5 h-5 text-green-600 dark:text-green-400" />
+          Verification Status
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6 p-6 lg:p-8">
@@ -68,41 +64,35 @@ export default function VerificationStatus({
           <Error type={status.type} message={status.message} className="mb-4" />
         )}
 
-        <div className="space-y-5">
-          {/* Enhanced Email Verification */}
-          <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border border-blue-200/50 dark:border-blue-800/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="p-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-md">
-              <FiMail className="w-6 h-6 text-white" />
+        <div className="space-y-4">
+          {/* Email Verification */}
+          <div className="flex items-start gap-4 p-5 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800/30 rounded-xl">
+            <div className="p-3 bg-blue-100 dark:bg-blue-950/30 rounded-lg">
+              <FiMail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-slate-900 dark:text-white text-lg">
-                  Email Status
+                <h3 className="font-semibold text-slate-900 dark:text-white">
+                  Email
                 </h3>
-                <Badge
-                  variant={
-                    user.verificationStatus.email ? "default" : "secondary"
-                  }
-                  className={`gap-1 px-3 py-1 font-medium ${
-                    user.verificationStatus.email
-                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
-                      : "bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md"
-                  }`}
-                >
+                <Badge className={user.verificationStatus.email
+                  ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/30"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/30"
+                }>
                   {user.verificationStatus.email ? (
                     <>
-                      <FiCheckCircle className="w-3 h-3" />
+                      <FiCheckCircle className="w-3 h-3 mr-1" />
                       Verified
                     </>
                   ) : (
                     <>
-                      <FiClock className="w-3 h-3" />
+                      <FiClock className="w-3 h-3 mr-1" />
                       Pending
                     </>
                   )}
                 </Badge>
               </div>
-              <p className="text-slate-600 dark:text-slate-300 mb-4 truncate font-medium">
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 break-words">
                 {user.email}
               </p>
               {!user.verificationStatus.email && (
@@ -111,7 +101,7 @@ export default function VerificationStatus({
                   variant="outline"
                   size="sm"
                   disabled={isLoading}
-                  className="w-full sm:w-auto bg-white dark:bg-slate-800 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 shadow-sm"
+                  className="w-full sm:w-auto"
                 >
                   {isLoading ? (
                     <>
@@ -126,44 +116,38 @@ export default function VerificationStatus({
             </div>
           </div>
 
-          {/* Enhanced Phone Verification */}
-          <div className="flex items-start gap-4 p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border border-green-200/50 dark:border-green-800/30 rounded-xl shadow-sm hover:shadow-md transition-all duration-200">
-            <div className="p-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-md">
-              <FiPhone className="w-6 h-6 text-white" />
+          {/* Phone Verification */}
+          <div className="flex items-start gap-4 p-5 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800/30 rounded-xl">
+            <div className="p-3 bg-green-100 dark:bg-green-950/30 rounded-lg">
+              <FiPhone className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="font-semibold text-slate-900 dark:text-white text-lg">
-                  Phone Status
+                <h3 className="font-semibold text-slate-900 dark:text-white">
+                  Phone
                 </h3>
-                <Badge
-                  variant={
-                    user.verificationStatus.phone ? "default" : "secondary"
-                  }
-                  className={`gap-1 px-3 py-1 font-medium ${
-                    user.verificationStatus.phone
-                      ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-md"
-                      : "bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-md"
-                  }`}
-                >
+                <Badge className={user.verificationStatus.phone
+                  ? "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/30"
+                  : "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/30"
+                }>
                   {user.verificationStatus.phone ? (
                     <>
-                      <FiCheckCircle className="w-3 h-3" />
+                      <FiCheckCircle className="w-3 h-3 mr-1" />
                       Verified
                     </>
                   ) : (
                     <>
-                      <FiClock className="w-3 h-3" />
+                      <FiClock className="w-3 h-3 mr-1" />
                       Pending
                     </>
                   )}
                 </Badge>
               </div>
-              <p className="text-slate-600 dark:text-slate-300 mb-4 font-medium">
+              <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">
                 +880{user.phone}
               </p>
               {!user.verificationStatus.phone && (
-                <p className="text-sm text-slate-500 dark:text-slate-400 italic bg-slate-100 dark:bg-slate-800 px-3 py-2 rounded-lg">
+                <p className="text-xs text-slate-500 dark:text-slate-400 italic">
                   Phone verification coming soon
                 </p>
               )}
@@ -171,33 +155,33 @@ export default function VerificationStatus({
           </div>
         </div>
 
-        {/* Enhanced Verification Benefits */}
+        {/* Verification Benefits */}
         {(!user.verificationStatus.email || !user.verificationStatus.phone) && (
-          <div className="p-5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/20 dark:to-yellow-950/20 rounded-xl border border-amber-200/50 dark:border-amber-800/30 shadow-sm">
+          <div className="p-5 bg-amber-50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-800/30">
             <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-gradient-to-r from-amber-500 to-yellow-600 rounded-lg">
-                <FiShield className="w-5 h-5 text-white" />
+              <div className="p-2 bg-amber-100 dark:bg-amber-950/30 rounded-lg">
+                <FiShield className="w-5 h-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <h4 className="text-lg font-semibold text-amber-900 dark:text-amber-100">
+              <h4 className="text-base font-semibold text-slate-900 dark:text-white">
                 Why verify your account?
               </h4>
             </div>
-            <ul className="text-sm text-amber-800 dark:text-amber-200 space-y-2 ml-2">
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                Enhanced account security
+            <ul className="text-sm text-slate-700 dark:text-slate-300 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-amber-600 dark:text-amber-400 mt-0.5">•</span>
+                <span>Enhanced account security</span>
               </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                Access to exclusive features
+              <li className="flex items-start gap-2">
+                <span className="text-amber-600 dark:text-amber-400 mt-0.5">•</span>
+                <span>Access to exclusive features</span>
               </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                Priority customer support
+              <li className="flex items-start gap-2">
+                <span className="text-amber-600 dark:text-amber-400 mt-0.5">•</span>
+                <span>Priority customer support</span>
               </li>
-              <li className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                Order and shipping updates
+              <li className="flex items-start gap-2">
+                <span className="text-amber-600 dark:text-amber-400 mt-0.5">•</span>
+                <span>Order and shipping updates</span>
               </li>
             </ul>
           </div>
