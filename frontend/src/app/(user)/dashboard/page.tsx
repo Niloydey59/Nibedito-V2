@@ -40,8 +40,8 @@ export default function DashboardPage(): React.JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <div className="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
+      <div className="relative z-10 container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
         {/* Header */}
         <DashboardHeader user={user} onLogout={handleLogout} />
 

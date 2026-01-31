@@ -15,11 +15,14 @@ interface AccountSummaryProps {
 
 export default function AccountSummary({ user }: AccountSummaryProps): React.JSX.Element {
   return (
-    <Card className="border-slate-200 dark:border-slate-800">
-      <CardHeader className="pb-4">
+    <Card className="border-slate-200 dark:border-slate-800 relative overflow-hidden">
+      {/* Rose accent corner */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-rose-500/10 to-transparent dark:from-rose-600/10 rounded-bl-full"></div>
+      
+      <CardHeader className="pb-4 relative">
         <CardTitle className="text-xl font-semibold">Account Summary</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 relative">
         {/* Profile Section */}
         <div className="flex items-center gap-4">
           <div className="relative w-16 h-16 rounded-full overflow-hidden ring-2 ring-slate-200 dark:ring-slate-700">
