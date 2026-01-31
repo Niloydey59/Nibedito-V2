@@ -53,18 +53,24 @@ export default function ProductsPage() {
     nextPage: null,
     prevPage: null,
   });
-  const [limit, setLimit] = useState<number>(12); // Added: State for items per page
+  const [limit, setLimit] = useState<number>(12);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [isFiltersInitialized, setIsFiltersInitialized] =
     useState<boolean>(false);
 
-  const fetchProducts = async (page: number = 1): Promise<void> => {
+  const fetchProducts = async (
+    page: number = 1,
+    pageLimit?: number
+  ): Promise<void> => {
     try {
       setIsLoading(true);
       setError(null);
 
-      console.log("Fetching products with filters:", filters); // Debug log
+      // Use provided pageLimit or current limit state
+      const currentLimit = pageLimit !== undefined ? pageLimit : limit;
+
+      console.log("Fetching products with filters:", filters, "limit:", currentLimit);
 
       // Map sort value to sortField and sortOrder
       let sortField = "createdAt";
@@ -100,7 +106,7 @@ export default function ProductsPage() {
 
       const response = await productService.getAllProducts({
         page,
-        limit, // Updated: Use dynamic limit state
+        limit: currentLimit, // Use the current limit
         search: searchParams.get("search") || "",
         category: filters.category || "",
         subcategory: filters.subcategory || "",
@@ -111,7 +117,7 @@ export default function ProductsPage() {
         sortOrder,
       });
 
-      console.log("Products fetched:", response.payload?.products?.length || 0); // Debug log
+      console.log("Products fetched:", response.payload?.products?.length || 0);
 
       setProducts(response.payload!.products);
       setPagination(response.payload!.pagination);
@@ -141,16 +147,16 @@ export default function ProductsPage() {
     setIsFiltersInitialized(true);
   }, [searchParams]);
 
-  // Fetch products when filters are initialized or changed
+  // Fetch products when filters are initialized or changed OR when limit changes
   useEffect(() => {
     if (!isFiltersInitialized) {
       console.log("Filters not yet initialized, skipping fetch");
       return;
     }
 
-    console.log("Filters changed, fetching products:", filters);
-    fetchProducts(1);
-  }, [filters, viewMode, isFiltersInitialized]);
+    console.log("Filters or limit changed, fetching products:", filters, "limit:", limit);
+    fetchProducts(1, limit);
+  }, [filters, limit, isFiltersInitialized]); // Added limit to dependencies
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -303,7 +309,7 @@ export default function ProductsPage() {
   };
 
   const handlePageChange = (newPage: number): void => {
-    fetchProducts(newPage);
+    fetchProducts(newPage, limit);
   };
 
   // Function to clear search and show all products
@@ -379,8 +385,9 @@ export default function ProductsPage() {
   };
 
   const handleLimitChange = (newLimit: number): void => {
+    console.log("Limit changed to:", newLimit);
     setLimit(newLimit);
-    fetchProducts(1); // Reset to page 1 when limit changes
+    // fetchProducts will be called automatically via useEffect
   };
 
   return (
@@ -510,31 +517,28 @@ export default function ProductsPage() {
           className={`grid gap-8 transition-all duration-300 ${
             isFilterVisible ? "lg:grid-cols-[320px_1fr]" : "grid-cols-1"
           }`}
-          style={{ height: "calc(100vh - 200px)" }}
         >
           {/* Filters Sidebar */}
           {isFilterVisible && (
-            <aside className="lg:sticky lg:top-0 h-full">
-              <div className="h-full overflow-y-auto scrollbar-thin">
-                <ProductFilters
-                  filters={filters}
-                  onFilterChange={handleFilterChange}
-                  categories={categories}
-                  onHideFilters={() => setIsFilterVisible(false)}
-                />
-              </div>
+            <aside className="lg:sticky lg:top-6 lg:self-start">
+              <ProductFilters
+                filters={filters}
+                onFilterChange={handleFilterChange}
+                categories={categories}
+                onHideFilters={() => setIsFilterVisible(false)}
+              />
             </aside>
           )}
 
           {/* Products Content */}
-          <section className="h-full overflow-y-auto scrollbar-none">
+          <section>
             <ProductGrid
               products={products}
               isLoading={isLoading}
               error={error}
               pagination={pagination}
               onPageChange={handlePageChange}
-              onLimitChange={handleLimitChange} // Added: Pass limit change handler
+              onLimitChange={handleLimitChange}
               viewMode={viewMode}
             />
           </section>

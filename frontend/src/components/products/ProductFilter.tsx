@@ -303,9 +303,9 @@ export default function ProductFilters({
   );
 
   return (
-    <div className="bg-surface border border-border rounded-xl overflow-hidden h-full flex flex-col">
-      {/* Filter Header - Fixed */}
-      <div className="p-4 border-b border-border bg-surface-elevated flex-shrink-0">
+    <div className="bg-surface border border-border rounded-xl overflow-hidden shadow-md">
+      {/* Filter Header */}
+      <div className="p-4 border-b border-border bg-surface-elevated">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <FiFilter className="w-4 h-4 text-primary" />
@@ -361,8 +361,8 @@ export default function ProductFilters({
         )}
       </div>
 
-      {/* Scrollable Filter Content */}
-      <div className="flex-1 overflow-y-auto scrollbar-thin">
+      {/* Filter Content - No internal scroll */}
+      <div className="max-h-[calc(100vh-180px)] overflow-y-auto scrollbar-thin">
         {/* Sort */}
         <div className="p-4 border-b border-border">
           <label className="block text-sm font-medium text-foreground mb-2">

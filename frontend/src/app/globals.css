@@ -795,7 +795,7 @@
 
     .filter-scroll-container,
     .products-scroll-container {
-      max-height: calc(100vh - 150px);
+      max-height: none;
     }
 
     /* Hide scrollbars on mobile for cleaner look */
@@ -812,10 +812,12 @@
   }
 }
 
-/* Ensure proper scroll containment */
+/* Remove fixed scroll section containment */
+/* Delete or comment out:
 .scroll-section {
   contain: layout style paint;
 }
+*/
 
 /* Product Card Enhancements */
 .product-card {
@@ -1130,7 +1132,9 @@
       rgba(236, 72, 153, 0.9) 25%,
       rgba(168, 85, 247, 0.9) 50%,
       rgba(59, 130, 246, 0.9) 75%,
-      rgba(99, 102, 241, 0.9) 100%);
+      rgba(99, 102, 241, 0.9) 100%
+      /* purple-300 with opacity */
+    );
   z-index: 1;
 }
 

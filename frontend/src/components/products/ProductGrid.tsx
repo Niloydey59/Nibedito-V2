@@ -77,7 +77,7 @@ export default function ProductGrid({
   error,
   pagination,
   onPageChange,
-  onLimitChange, // Added: Destructure new prop
+  onLimitChange,
   viewMode = "grid",
 }: ProductGridProps) {
   const { addToCart } = useCart();
@@ -384,13 +384,13 @@ export default function ProductGrid({
       </div>
 
       {/* Pagination */}
-      {pagination && (
+      {pagination && onPageChange && (
         <Pagination
           pagination={pagination}
           onPageChange={onPageChange}
-          onLimitChange={onLimitChange} // Added: Pass to Pagination
-          showLimitSelector={true} // Added: Enable limit selector
-          limitOptions={[5, 10, 25, 50]} // Added: Options for items per page
+          onLimitChange={onLimitChange}
+          showLimitSelector={true}
+          limitOptions={[5, 10, 12, 25, 50]}
           className="mt-8"
         />
       )}

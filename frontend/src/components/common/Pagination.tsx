@@ -79,6 +79,7 @@ export default function Pagination({
 
   const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLimit = parseInt(e.target.value);
+    //console.log("Pagination limit change:", newLimit); // Debug log
     if (onLimitChange && !isNaN(newLimit)) {
       onLimitChange(newLimit);
     }
@@ -89,7 +90,7 @@ export default function Pagination({
       className={`pagination-wrapper flex justify-between items-center ${className}`}
     >
       {/* Limit Selector on the left */}
-      {showLimitSelector && (
+      {showLimitSelector && onLimitChange && (
         <div className="pagination-limit-container flex items-center">
           <span className="text-sm text-text-secondary mr-2">
             Items per page:
