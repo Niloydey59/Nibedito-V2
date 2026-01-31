@@ -48,7 +48,7 @@ export default function ReviewCard({ review, onEdit }: ReviewCardProps) {
   const remainingImages = review.image.length - 3;
 
   return (
-    <Card className="card-modern hover:shadow-lg transition-all duration-300">
+    <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 transition-shadow duration-200 hover:shadow-md">
       <CardContent className="p-6">
         <div className="space-y-4">
           {/* Header */}

@@ -231,17 +231,17 @@ export default function PastReviews() {
         </DropdownMenu>
       </div>
 
-      {/* Reviews Stats */}
+      {/* Reviews Stats - Removed excessive hover effects */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="card-modern">
+        <Card className="border-slate-200 dark:border-slate-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="bg-primary/10 p-2 rounded-lg">
-                <MessageSquare className="h-5 w-5 text-primary" />
+              <div className="bg-blue-100 dark:bg-blue-950/30 p-3 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Total Reviews</p>
-                <p className="text-xl font-semibold">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Total Reviews</p>
+                <p className="text-xl font-semibold text-slate-900 dark:text-white">
                   {pagination.total}
                 </p>
               </div>
@@ -249,15 +249,15 @@ export default function PastReviews() {
           </CardContent>
         </Card>
 
-        <Card className="card-modern">
+        <Card className="border-slate-200 dark:border-slate-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="bg-warning/10 p-2 rounded-lg">
-                <Star className="h-5 w-5 text-warning" />
+              <div className="bg-amber-100 dark:bg-amber-950/30 p-3 rounded-lg">
+                <Star className="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Average Rating</p>
-                <p className="text-xl font-semibold">
+                <p className="text-sm text-slate-600 dark:text-slate-400">Average Rating</p>
+                <p className="text-xl font-semibold text-slate-900 dark:text-white">
                   {reviews.length > 0
                     ? (
                         reviews.reduce(
@@ -272,15 +272,15 @@ export default function PastReviews() {
           </CardContent>
         </Card>
 
-        <Card className="card-modern">
+        <Card className="border-slate-200 dark:border-slate-800">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="bg-success/10 p-2 rounded-lg">
-                <Package className="h-5 w-5 text-success" />
+              <div className="bg-green-100 dark:bg-green-950/30 p-3 rounded-lg">
+                <Package className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Products Reviewed</p>
-                <p className="text-xl font-semibold">{reviews.length}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Products Reviewed</p>
+                <p className="text-xl font-semibold text-slate-900 dark:text-white">{reviews.length}</p>
               </div>
             </div>
           </CardContent>

@@ -230,7 +230,7 @@ export default function PendingReviews() {
       </div>
 
       {/* Stats */}
-      <Card className="card-modern">
+      <Card className="border-slate-200 dark:border-slate-800">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <div className="bg-warning/10 p-2 rounded-lg">
@@ -249,10 +249,10 @@ export default function PendingReviews() {
       {/* Pending Products List */}
       <div className={`grid gap-4 ${isFetching ? 'opacity-75' : 'animate-fade-in'}`}>
         {productsToDisplay.length === 0 ? (
-          <Card className="card-modern">
+          <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
             <CardContent className="p-8 text-center">
-              <div className="mx-auto w-24 h-24 bg-surface-elevated rounded-full flex items-center justify-center mb-4">
-                <Clock className="h-12 w-12 text-text-tertiary" />
+              <div className="mx-auto w-24 h-24 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                <Clock className="h-12 w-12 text-slate-400" />
               </div>
               <h3 className="text-lg font-semibold mb-2">No pending reviews</h3>
               <p className="text-text-secondary mb-4">
@@ -272,7 +272,7 @@ export default function PendingReviews() {
             {productsToDisplay.map((item) => (
               <Card
                 key={item.productId}
-                className="card-modern hover:shadow-lg transition-all duration-300"
+                className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 transition-shadow duration-200 hover:shadow-md"
               >
                 <CardContent className="p-6">
                   <div className="flex flex-col sm:flex-row items-start gap-4">
