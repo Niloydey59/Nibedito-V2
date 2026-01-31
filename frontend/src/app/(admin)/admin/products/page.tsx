@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { useRouter } from "next/navigation";
 import ProductList from "@/components/admin/products/ProductList";
@@ -49,71 +49,75 @@ export default function ProductsPage() {
     activeCategories: 0,
   });
 
-  const fetchProducts = async (page: number = 1): Promise<void> => {
-    try {
-      setIsLoadingProducts(true);
-      const response = await productService.getAllProducts({ page, limit });
+  const fetchProducts = useCallback(
+    async (page: number = 1): Promise<void> => {
+      try {
+        setIsLoadingProducts(true);
+        const response = await productService.getAllProducts({ page, limit });
 
-      if (!response.success) {
-        throw new globalThis.Error(
-          response.message || "Failed to fetch products"
-        );
-      }
-
-      setProducts(response.payload!.products || []);
-
-      // Calculate total variants and value for stats
-      const totalVariants =
-        response.payload!.products?.reduce(
-          (sum, product) => sum + (product.variants?.length || 0),
-          0
-        ) || 0;
-
-      const totalValue =
-        response.payload!.products?.reduce(
-          (sum, product) => sum + (product.price || 0),
-          0
-        ) || 0;
-
-      // Get unique categories count
-      const uniqueCategories = new Set<string>();
-      response.payload!.products?.forEach((product) => {
-        if (typeof product.category === "object" && product.category?._id) {
-          uniqueCategories.add(product.category._id);
+        if (!response.success) {
+          throw new globalThis.Error(
+            response.message || "Failed to fetch products"
+          );
         }
-      });
 
-      // Set pagination directly from API response
-      setPagination(response.payload!.pagination);
+        setProducts(response.payload!.products || []);
 
-      // Set stats
-      setTotalStats({
-        totalProducts: response.payload!.pagination.total || 0,
-        totalValue,
-        totalVariants,
-        activeCategories: uniqueCategories.size,
-      });
-    } catch (error: any) {
-      setStatus({
-        type: "error",
-        message: error.message || "Failed to fetch products",
-      });
-    } finally {
-      setIsLoadingProducts(false);
-    }
-  };
+        // Calculate total variants and value for stats
+        const totalVariants =
+          response.payload!.products?.reduce(
+            (sum, product) => sum + (product.variants?.length || 0),
+            0
+          ) || 0;
 
+        const totalValue =
+          response.payload!.products?.reduce(
+            (sum, product) => sum + (product.price || 0),
+            0
+          ) || 0;
+
+        // Get unique categories count
+        const uniqueCategories = new Set<string>();
+        response.payload!.products?.forEach((product) => {
+          if (typeof product.category === "object" && product.category?._id) {
+            uniqueCategories.add(product.category._id);
+          }
+        });
+
+        // Set pagination directly from API response
+        setPagination(response.payload!.pagination);
+
+        // Set stats
+        setTotalStats({
+          totalProducts: response.payload!.pagination.total || 0,
+          totalValue,
+          totalVariants,
+          activeCategories: uniqueCategories.size,
+        });
+      } catch (error: any) {
+        setStatus({
+          type: "error",
+          message: error.message || "Failed to fetch products",
+        });
+      } finally {
+        setIsLoadingProducts(false);
+      }
+    },
+    [limit]
+  );
+
+  // Initial load effect - only runs once
   useEffect(() => {
     if (!isLoading && !admin) {
       router.push("/admin-login");
     } else if (admin) {
-      fetchProducts();
+      fetchProducts(1);
     }
-  }, [isLoading, admin, router]);
+  }, [isLoading, admin, router, fetchProducts]);
 
   const handleLimitChange = (newLimit: number): void => {
     setLimit(newLimit);
-    fetchProducts(1); // Reset to first page when changing limit
+    // fetchProducts will be called automatically via useEffect when limit changes
   };
 
   if (isLoading || !admin) {

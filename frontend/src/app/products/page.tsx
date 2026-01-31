@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
   FiGrid,
@@ -59,75 +59,138 @@ export default function ProductsPage() {
   const [isFiltersInitialized, setIsFiltersInitialized] =
     useState<boolean>(false);
 
-  const fetchProducts = async (
-    page: number = 1,
-    pageLimit?: number
-  ): Promise<void> => {
-    try {
-      setIsLoading(true);
-      setError(null);
+  const fetchProducts = useCallback(
+    async (page: number = 1, pageLimit?: number): Promise<void> => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-      // Use provided pageLimit or current limit state
-      const currentLimit = pageLimit !== undefined ? pageLimit : limit;
+        // Use provided pageLimit or current limit state
+        const currentLimit = pageLimit !== undefined ? pageLimit : limit;
 
-      console.log("Fetching products with filters:", filters, "limit:", currentLimit);
+        console.log("Fetching products with filters:", filters, "limit:", currentLimit);
 
-      // Map sort value to sortField and sortOrder
-      let sortField = "createdAt";
-      let sortOrder = "desc";
+        // Map sort value to sortField and sortOrder
+        let sortField = "createdAt";
+        let sortOrder = "desc";
 
-      if (filters.sort) {
-        switch (filters.sort) {
-          case "newest":
-            sortField = "createdAt";
-            sortOrder = "desc";
-            break;
-          case "price-high":
-            sortField = "price";
-            sortOrder = "desc";
-            break;
-          case "price-low":
-            sortField = "price";
-            sortOrder = "asc";
-            break;
-          case "name-asc":
-            sortField = "name";
-            sortOrder = "asc";
-            break;
-          case "name-desc":
-            sortField = "name";
-            sortOrder = "desc";
-            break;
-          default:
-            sortField = "createdAt";
-            sortOrder = "desc";
+        if (filters.sort) {
+          switch (filters.sort) {
+            case "newest":
+              sortField = "createdAt";
+              sortOrder = "desc";
+              break;
+            case "price-high":
+              sortField = "price";
+              sortOrder = "desc";
+              break;
+            case "price-low":
+              sortField = "price";
+              sortOrder = "asc";
+              break;
+            case "name-asc":
+              sortField = "name";
+              sortOrder = "asc";
+              break;
+            case "name-desc":
+              sortField = "name";
+              sortOrder = "desc";
+              break;
+            default:
+              sortField = "createdAt";
+              sortOrder = "desc";
+          }
         }
+
+        const response = await productService.getAllProducts({
+          page,
+          limit: currentLimit,
+          search: searchParams.get("search") || "",
+          category: filters.category || "",
+          subcategory: filters.subcategory || "",
+          minPrice: filters.minPrice || undefined,
+          maxPrice: filters.maxPrice || undefined,
+          inStock: filters.inStock,
+          sortField,
+          sortOrder,
+        });
+
+        console.log("Products fetched:", response.payload?.products?.length || 0);
+
+        setProducts(response.payload!.products);
+        setPagination(response.payload!.pagination);
+      } catch (err: any) {
+        console.error("Error fetching products:", err);
+        setError(err.message || "Failed to fetch products");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [filters, limit, searchParams]
+  );
+
+  // Function to update URL parameters based on filters
+  const updateURLParams = useCallback(
+    (filterState: FilterState): void => {
+      const params = new URLSearchParams(searchParams.toString());
+
+      // Handle search parameter separately (don't remove it)
+      const currentSearch = searchParams.get("search");
+      if (currentSearch) {
+        params.set("search", currentSearch);
       }
 
-      const response = await productService.getAllProducts({
-        page,
-        limit: currentLimit, // Use the current limit
-        search: searchParams.get("search") || "",
-        category: filters.category || "",
-        subcategory: filters.subcategory || "",
-        minPrice: filters.minPrice || undefined,
-        maxPrice: filters.maxPrice || undefined,
-        inStock: filters.inStock,
-        sortField,
-        sortOrder,
-      });
+      // Handle view parameter separately
+      const currentView = searchParams.get("view");
+      if (currentView) {
+        params.set("view", currentView);
+      }
 
-      console.log("Products fetched:", response.payload?.products?.length || 0);
+      // Update filter parameters
+      if (filterState.category) {
+        params.set("category", filterState.category);
+      } else {
+        params.delete("category");
+      }
 
-      setProducts(response.payload!.products);
-      setPagination(response.payload!.pagination);
-    } catch (err: any) {
-      console.error("Error fetching products:", err);
-      setError(err.message || "Failed to fetch products");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (filterState.subcategory) {
+        params.set("subcategory", filterState.subcategory);
+      } else {
+        params.delete("subcategory");
+      }
+
+      if (filterState.minPrice) {
+        params.set("minPrice", filterState.minPrice);
+      } else {
+        params.delete("minPrice");
+      }
+
+      if (filterState.maxPrice) {
+        params.set("maxPrice", filterState.maxPrice);
+      } else {
+        params.delete("maxPrice");
+      }
+
+      if (filterState.inStock !== undefined) {
+        params.set("inStock", filterState.inStock.toString());
+      } else {
+        params.delete("inStock");
+      }
+
+      if (filterState.sort && filterState.sort !== "newest") {
+        params.set("sort", filterState.sort);
+      } else {
+        params.delete("sort");
+      }
+
+      // Update URL without triggering a page reload
+      const newURL = params.toString()
+        ? `/products?${params.toString()}`
+        : "/products";
+      window.history.replaceState({}, "", newURL);
+    },
+    [searchParams]
+  );
 
   // Initialize filters from URL parameters first
   useEffect(() => {
@@ -156,7 +219,7 @@ export default function ProductsPage() {
 
     console.log("Filters or limit changed, fetching products:", filters, "limit:", limit);
     fetchProducts(1, limit);
-  }, [filters, limit, isFiltersInitialized]); // Added limit to dependencies
+  }, [filters, limit, isFiltersInitialized, fetchProducts]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -223,10 +286,9 @@ export default function ProductsPage() {
     const currentFiltersString = JSON.stringify(filters);
     if (currentFiltersString !== lastFiltersRef.current) {
       lastFiltersRef.current = currentFiltersString;
-      // Update URL parameters when filters change
       updateURLParams(filters);
     }
-  }, [filters]);
+  }, [filters, updateURLParams]);
 
   const handleFilterChange = (newFilters: FilterState): void => {
     console.log("Filter change received:", newFilters); // Debug log
@@ -246,66 +308,6 @@ export default function ProductsPage() {
       console.log("Updating filters:", processedFilters); // Debug log
       setFilters(processedFilters);
     }
-  };
-
-  // Function to update URL parameters based on filters
-  const updateURLParams = (filterState: FilterState): void => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    // Handle search parameter separately (don't remove it)
-    const currentSearch = searchParams.get("search");
-    if (currentSearch) {
-      params.set("search", currentSearch);
-    }
-
-    // Handle view parameter separately
-    const currentView = searchParams.get("view");
-    if (currentView) {
-      params.set("view", currentView);
-    }
-
-    // Update filter parameters
-    if (filterState.category) {
-      params.set("category", filterState.category);
-    } else {
-      params.delete("category");
-    }
-
-    if (filterState.subcategory) {
-      params.set("subcategory", filterState.subcategory);
-    } else {
-      params.delete("subcategory");
-    }
-
-    if (filterState.minPrice) {
-      params.set("minPrice", filterState.minPrice);
-    } else {
-      params.delete("minPrice");
-    }
-
-    if (filterState.maxPrice) {
-      params.set("maxPrice", filterState.maxPrice);
-    } else {
-      params.delete("maxPrice");
-    }
-
-    if (filterState.inStock !== undefined) {
-      params.set("inStock", filterState.inStock.toString());
-    } else {
-      params.delete("inStock");
-    }
-
-    if (filterState.sort && filterState.sort !== "newest") {
-      params.set("sort", filterState.sort);
-    } else {
-      params.delete("sort");
-    }
-
-    // Update URL without triggering a page reload
-    const newURL = params.toString()
-      ? `/products?${params.toString()}`
-      : "/products";
-    window.history.replaceState({}, "", newURL);
   };
 
   const handlePageChange = (newPage: number): void => {

@@ -79,15 +79,16 @@ export default function Pagination({
 
   const handleLimitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLimit = parseInt(e.target.value);
-    //console.log("Pagination limit change:", newLimit); // Debug log
     if (onLimitChange && !isNaN(newLimit)) {
       onLimitChange(newLimit);
+      // Optionally reset to page 1 when limit changes
+      onPageChange(1);
     }
   };
 
   return (
     <div
-      className={`pagination-wrapper flex justify-between items-center ${className}`}
+      className={`pagination-wrapper flex flex-col sm:flex-row justify-between items-center gap-4 ${className}`}
     >
       {/* Limit Selector on the left */}
       {showLimitSelector && onLimitChange && (
@@ -111,7 +112,7 @@ export default function Pagination({
 
       {/* Showing Info in the center */}
       {showInfo && safeTotal > 0 && (
-        <div className="pagination-info text-center">
+        <div className="pagination-info text-center flex-1">
           <p className="text-sm text-text-secondary">
             Showing{" "}
             <span className="font-medium text-foreground">

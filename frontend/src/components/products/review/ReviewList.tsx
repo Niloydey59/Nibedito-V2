@@ -5,10 +5,11 @@ import { reviewService } from "@/services/reviewService";
 import { Review, ReviewStats } from "@/types";
 import { useToast } from "@/hooks/useToast";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
+import Pagination from "@/components/common/Pagination";
+import { PaginationInfo } from "@/types/api";
 import ReviewCard from "./ReviewCard";
 import ReviewFilters from "./ReviewFilters";
 import ReviewStatsBar from "./ReviewStatsBar";
-import Pagination from "./Pagination";
 import ImageModal from "./ImageModal";
 
 interface ReviewListProps {
@@ -20,64 +21,74 @@ export default function ReviewList({ productId }: ReviewListProps) {
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    pages: 1,
+    page: 1,
+    limit: 5,
+    hasNext: false,
+    hasPrev: false,
+    nextPage: null,
+    prevPage: null,
+  });
   const [filters, setFilters] = useState({
     rating: undefined as number | undefined,
     sortBy: "createdAt" as "createdAt" | "rating" | "helpful",
     sortOrder: "desc" as "asc" | "desc",
   });
-  // Image modal state
   const [selectedImages, setSelectedImages] = useState<string[] | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number>(0);
   const toast = useToast();
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId, page, filters]);
+  const fetchReviews = useCallback(
+    async (page: number = 1) => {
+      try {
+        if (reviews.length === 0) {
+          setLoading(true);
+        } else {
+          setUpdating(true);
+        }
 
-  useEffect(() => {
-    fetchStats();
-  }, [productId]);
-
-  const fetchReviews = async () => {
-    try {
-      if (reviews.length === 0) {
-        setLoading(true);
-      } else {
-        setUpdating(true);
+        const response = await reviewService.getProductReviews(productId, {
+          page,
+          limit: pagination.limit,
+          rating: filters.rating,
+          sortBy: filters.sortBy,
+          sortOrder: filters.sortOrder,
+        });
+        setReviews(response.payload.reviews);
+        setPagination(response.payload.pagination);
+      } catch (error: any) {
+        toast.error(error.message || "Failed to fetch reviews");
+      } finally {
+        setLoading(false);
+        setUpdating(false);
       }
+    },
+    [productId, pagination.limit, filters, toast]
+  );
 
-      const response = await reviewService.getProductReviews(productId, {
-        page,
-        limit: 5,
-        rating: filters.rating,
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-      });
-      setReviews(response.payload.reviews);
-      setTotalPages(response.payload.pagination.pages);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to fetch reviews");
-    } finally {
-      setLoading(false);
-      setUpdating(false);
-    }
-  };
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await reviewService.getReviewStats(productId);
       setStats(response.payload);
     } catch (error) {
       console.error("Failed to fetch review stats:", error);
     }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    fetchReviews(pagination.page);
+  }, [filters]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [productId, fetchStats]);
 
   const handleFilterChange = useCallback(
     (newFilters: Partial<typeof filters>) => {
       setFilters((prev) => ({ ...prev, ...newFilters }));
-      setPage(1);
+      setPagination(prev => ({ ...prev, page: 1 }));
     },
     []
   );
@@ -90,8 +101,8 @@ export default function ReviewList({ productId }: ReviewListProps) {
   );
 
   const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-  }, []);
+    fetchReviews(newPage);
+  }, [fetchReviews]);
 
   const handleHelpfulClick = useCallback(
     async (reviewId: string) => {
@@ -119,18 +130,14 @@ export default function ReviewList({ productId }: ReviewListProps) {
           })
         );
 
-        // Make API call
         await reviewService.markReviewHelpful(reviewId);
-
-        // Refresh stats in background
         fetchStats();
       } catch (error: any) {
         toast.error(error.message || "Failed to mark review as helpful");
-        // Revert optimistic update on error
-        fetchReviews();
+        fetchReviews(pagination.page);
       }
     },
-    [toast]
+    [toast, fetchStats, fetchReviews, pagination.page]
   );
 
   const handleImageClick = useCallback((images: string[], index: number) => {
@@ -143,7 +150,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
     setSelectedImageIndex(0);
   }, []);
 
-  if (loading && page === 1) {
+  if (loading && pagination.page === 1) {
     return <LoadingSpinner fullPage={false} size="lg" />;
   }
 
@@ -196,11 +203,12 @@ export default function ReviewList({ productId }: ReviewListProps) {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {pagination.pages > 1 && (
         <Pagination
-          currentPage={page}
-          totalPages={totalPages}
+          pagination={pagination}
           onPageChange={handlePageChange}
+          showInfo={true}
+          className="mt-8"
         />
       )}
 
