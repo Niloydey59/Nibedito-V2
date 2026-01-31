@@ -93,7 +93,7 @@ export default function RecentOrders(): React.JSX.Element {
             {orders.map((order) => (
               <div
                 key={order._id}
-                className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+                className="flex items-center justify-between p-4 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 hover:shadow-md transition-all duration-200"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FiLogOut, FiUser } from "react-icons/fi";
+import { FiLogOut } from "react-icons/fi";
 import type { User } from "@/types";
 
 interface DashboardHeaderProps {
@@ -30,10 +30,11 @@ export default function DashboardHeader({
           Welcome to your account dashboard
         </p>
       </div>
+      {/* Hide logout button on mobile, show only on desktop */}
       <Button
         onClick={onLogout}
         variant="outline"
-        className="gap-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+        className="hidden sm:flex gap-2 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
       >
         <FiLogOut className="w-4 h-4" />
         <span>Logout</span>

@@ -79,10 +79,10 @@ export default function DashboardOverview(): React.JSX.Element {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="animate-pulse">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="h-16 bg-slate-200 dark:bg-slate-800 rounded" />
             </CardContent>
           </Card>
@@ -92,24 +92,26 @@ export default function DashboardOverview(): React.JSX.Element {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {statsCards.map((stat, index) => (
         <Card
           key={index}
-          className="hover:shadow-lg transition-all duration-300 border-slate-200 dark:border-slate-800"
+          className="hover:shadow-lg transition-all duration-300 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800"
         >
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div className={`p-2 sm:p-3 rounded-lg ${stat.bgColor} ${stat.color}`}>
+                  {stat.icon}
+                </div>
+              </div>
               <div>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-1">
                   {stat.title}
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
                   {stat.value}
                 </p>
-              </div>
-              <div className={`p-3 rounded-lg ${stat.bgColor} ${stat.color}`}>
-                {stat.icon}
               </div>
             </div>
           </CardContent>

@@ -11,6 +11,7 @@ import {
   FiMenu,
   FiX,
   FiChevronDown,
+  FiLogOut,
 } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { categoryService } from "@/services/categoryService";
@@ -27,7 +28,7 @@ interface Category {
 
 export default function Navbar() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -131,6 +132,29 @@ export default function Navbar() {
     );
   };
 
+  const renderMobileProfile = () => {
+    if (!user) return null;
+
+    return (
+      <div className="relative w-9 h-9 rounded-full overflow-hidden bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700">
+        {user.profilePicture ? (
+          <Image
+            src={getImageUrl(user.profilePicture)}
+            alt={user.name}
+            width={35}
+            height={35}
+            className="w-full h-full object-cover rounded-full"
+            priority={true}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-rose-600 to-rose-700 text-white text-sm font-semibold">
+            {user.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const CartCount = () => {
     return (
       <Link
@@ -146,6 +170,16 @@ export default function Navbar() {
         )}
       </Link>
     );
+  };
+
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await logout();
+      setIsMobileMenuOpen(false);
+      router.push("/login");
+    } catch (error: any) {
+      console.error("Logout failed:", error);
+    }
   };
 
   // Get the appropriate logo based on theme
@@ -402,13 +436,24 @@ export default function Navbar() {
                 )}
 
                 {user ? (
-                  <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
-                    <div className="flex items-center gap-3 px-4 py-3">
-                      {renderProfileLink()}
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">
+                    <Link
+                      href="/dashboard"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-xl transition-all duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {renderMobileProfile()}
                       <span className="text-slate-700 dark:text-slate-300 font-medium">
                         {user.name}
                       </span>
-                    </div>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 font-medium rounded-xl transition-all duration-200"
+                    >
+                      <FiLogOut className="w-5 h-5" />
+                      <span>Logout</span>
+                    </button>
                   </div>
                 ) : (
                   <div className="pt-3 border-t border-slate-200 dark:border-slate-700 space-y-2">

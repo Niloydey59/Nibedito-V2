@@ -46,15 +46,22 @@ export default function DashboardPage(): React.JSX.Element {
         <DashboardHeader user={user} onLogout={handleLogout} />
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-8 space-y-6">
+        <div className="mt-6 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-6">
+          {/* Mobile Order: Account Summary first */}
+          <div className="lg:hidden space-y-6">
+            <AccountSummary user={user} />
+            <QuickActions />
             <DashboardOverview />
             <RecentOrders />
           </div>
 
-          {/* Right Column - Sidebar */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* Desktop Layout - Original order */}
+          <div className="hidden lg:block lg:col-span-8 space-y-6">
+            <DashboardOverview />
+            <RecentOrders />
+          </div>
+
+          <div className="hidden lg:block lg:col-span-4 space-y-6">
             <AccountSummary user={user} />
             <QuickActions />
           </div>

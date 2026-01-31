@@ -172,9 +172,9 @@ const OrderSummary: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-6 p-6 lg:p-8">
-        {/* Enhanced Order Statistics */}
+        {/* Enhanced Order Statistics with better light mode contrast */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-4 bg-white dark:bg-blue-950/30 rounded-xl border border-blue-200 dark:border-blue-800/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
@@ -189,7 +189,7 @@ const OrderSummary: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/30 dark:to-amber-950/30 rounded-xl border border-orange-200/50 dark:border-orange-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-4 bg-white dark:bg-orange-950/30 rounded-xl border border-orange-200 dark:border-orange-800/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
@@ -204,7 +204,7 @@ const OrderSummary: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/50 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-4 bg-white dark:bg-green-950/30 rounded-xl border border-green-200 dark:border-green-800/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
@@ -219,7 +219,7 @@ const OrderSummary: React.FC = () => {
               </div>
             </div>
           </div>
-          <div className="p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30 rounded-xl border border-red-200/50 dark:border-red-800/30 shadow-sm hover:shadow-md transition-all duration-200">
+          <div className="p-4 bg-white dark:bg-red-950/30 rounded-xl border border-red-200 dark:border-red-800/30 shadow-sm hover:shadow-md transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
@@ -267,7 +267,7 @@ const OrderSummary: React.FC = () => {
               {orders.map((order) => (
                 <div
                   key={order._id}
-                  className="p-5 bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-sm hover:shadow-md hover:from-slate-100 hover:to-gray-100 dark:hover:from-slate-900/70 dark:hover:to-gray-900/70 transition-all duration-200"
+                  className="p-5 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl shadow-sm hover:shadow-md hover:bg-slate-50 dark:hover:bg-slate-900/70 transition-all duration-200"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
