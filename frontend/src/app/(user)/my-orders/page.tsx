@@ -7,12 +7,19 @@ import { useToast } from "@/hooks/useToast";
 import { orderService } from "@/services/orderService";
 import { Order } from "@/types/order";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import { OrdersHeader } from "@/components/orders/OrdersHeader";
-import { OrdersFilterHorizontal } from "@/components/orders/OrdersFilterHorizontal";
+import { FiShoppingBag, FiFilter, FiX } from "react-icons/fi";
 import { OrderCard } from "@/components/orders/OrderCard";
 import { OrdersEmptyState } from "@/components/orders/OrdersEmptyState";
 import Pagination from "@/components/common/Pagination";
 import { PaginationInfo } from "@/types/api";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -24,21 +31,12 @@ export default function MyOrdersPage() {
 
   // Filter states
   const [statusFilter, setStatusFilter] = useState("all");
-  const [paymentFilter, setPaymentFilter] = useState("all");
-  const [giftFilter, setGiftFilter] = useState("all");
-  const [sortByDate, setSortByDate] = useState("latest");
-  const [sortByPrice, setSortByPrice] = useState("none");
+  const [sortBy, setSortBy] = useState<"latest" | "oldest" | "price-high" | "price-low">("latest");
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [ordersPerPage] = useState(10);
   const [paginatedOrders, setPaginatedOrders] = useState<Order[]>([]);
-
-  // Get unique statuses from orders
-  const getUniqueStatuses = () => {
-    const statuses = orders.map((order) => order.status || "Processing");
-    return ["all", ...new Set(statuses)];
-  };
 
   useEffect(() => {
     if (!user) {
@@ -89,73 +87,38 @@ export default function MyOrdersPage() {
       );
     }
 
-    // Apply payment filter
-    if (paymentFilter !== "all") {
-      const isPaid = paymentFilter === "paid";
-      result = result.filter((order) => order.isPaid === isPaid);
-    }
-
-    // Apply gift filter
-    if (giftFilter !== "all") {
-      if (giftFilter === "gift") {
-        result = result.filter((order) => order.isGift === true);
-      } else {
-        result = result.filter(
-          (order) =>
-            order.isGift === false ||
-            order.isGift === undefined ||
-            order.isGift === null
-        );
-      }
-    }
-
-    // Apply date sorting
-    if (sortByDate === "latest") {
+    // Apply sorting
+    if (sortBy === "latest") {
       result.sort(
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-    } else if (sortByDate === "oldest") {
+    } else if (sortBy === "oldest") {
       result.sort(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
       );
-    }
-
-    // Apply price sorting
-    if (sortByPrice === "highest") {
+    } else if (sortBy === "price-high") {
       result.sort((a, b) => (b.finalPrice || 0) - (a.finalPrice || 0));
-    } else if (sortByPrice === "lowest") {
+    } else if (sortBy === "price-low") {
       result.sort((a, b) => (a.finalPrice || 0) - (b.finalPrice || 0));
     }
 
     setFilteredOrders(result);
-    setCurrentPage(1); // Reset to first page when filters change
-  }, [
-    orders,
-    statusFilter,
-    paymentFilter,
-    giftFilter,
-    sortByDate,
-    sortByPrice,
-  ]);
+    setCurrentPage(1);
+  }, [orders, statusFilter, sortBy]);
 
-  // Apply filters whenever filter states change
   useEffect(() => {
     applyFilters();
   }, [applyFilters]);
 
-  // Apply pagination whenever filtered orders or pagination settings change
   useEffect(() => {
     applyPagination();
   }, [applyPagination]);
 
   const resetFilters = () => {
     setStatusFilter("all");
-    setPaymentFilter("all");
-    setGiftFilter("all");
-    setSortByDate("latest");
-    setSortByPrice("none");
+    setSortBy("latest");
     setCurrentPage(1);
   };
 
@@ -163,7 +126,6 @@ export default function MyOrdersPage() {
     setCurrentPage(pageNumber);
   };
 
-  // Construct PaginationInfo based on current filtered orders and pagination state
   const paginationInfo: PaginationInfo = {
     total: filteredOrders.length,
     pages: Math.ceil(filteredOrders.length / ordersPerPage),
@@ -178,6 +140,21 @@ export default function MyOrdersPage() {
     prevPage: currentPage > 1 ? currentPage - 1 : null,
   };
 
+  const getSortLabel = () => {
+    switch (sortBy) {
+      case "latest": return "Newest First";
+      case "oldest": return "Oldest First";
+      case "price-high": return "Highest Price";
+      case "price-low": return "Lowest Price";
+      default: return "Newest First";
+    }
+  };
+
+  const getStatusLabel = () => {
+    if (statusFilter === "all") return "All Orders";
+    return statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
+  };
+
   if (loading) {
     return <LoadingSpinner fullPage={true} />;
   }
@@ -187,52 +164,217 @@ export default function MyOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
-      <div className="absolute inset-0 bg-grid-slate-200 dark:bg-grid-slate-700/25 bg-[size:20px_20px] opacity-50"></div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
+        {/* Enhanced Header with Rose Theme */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-slate-200 dark:border-slate-800 relative">
+          {/* Rose accent line */}
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
+          
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-rose-100 dark:bg-rose-950/30 rounded-xl">
+              <FiShoppingBag className="h-6 w-6 text-rose-600 dark:text-rose-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                My <span className="text-rose-600 dark:text-rose-400">Orders</span>
+              </h1>
+              <p className="text-slate-600 dark:text-slate-400">
+                Track and manage your orders
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <div className="relative z-10 animate-fade-in">
-        <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 max-w-7xl">
-          <OrdersHeader />
-
-          <OrdersFilterHorizontal
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            paymentFilter={paymentFilter}
-            setPaymentFilter={setPaymentFilter}
-            giftFilter={giftFilter}
-            setGiftFilter={setGiftFilter}
-            sortByDate={sortByDate}
-            setSortByDate={setSortByDate}
-            sortByPrice={sortByPrice}
-            setSortByPrice={setSortByPrice}
-            uniqueStatuses={getUniqueStatuses()}
-            totalOrders={orders.length}
-            filteredOrdersLength={filteredOrders.length}
-            resetFilters={resetFilters}
-          />
-
-          {filteredOrders.length === 0 ? (
-            <OrdersEmptyState
-              type="no-filtered-orders"
-              onResetFilters={resetFilters}
-            />
-          ) : (
-            <>
-              <div className="space-y-6">
-                {paginatedOrders.map((order) => (
-                  <OrderCard key={order._id} order={order} />
-                ))}
+        {/* Enhanced Filters - Modern Design */}
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 mb-6 overflow-hidden">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col gap-4">
+              {/* Filter Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-700">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-rose-100 dark:bg-rose-950/30 rounded-lg">
+                    <FiFilter className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-900 dark:text-white">
+                    Filter Orders
+                  </h3>
+                </div>
+                {(statusFilter !== "all" || sortBy !== "latest") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetFilters}
+                    className="text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/20"
+                  >
+                    <FiX className="h-4 w-4 mr-1" />
+                    Reset All
+                  </Button>
+                )}
               </div>
 
-              <Pagination
-                pagination={paginationInfo}
-                onPageChange={handlePageChange}
-                showInfo={true} // Optional: Shows "Showing X to Y of Z items"
-                className="mt-8" // Optional: Add styling if needed
-              />
-            </>
-          )}
-        </div>
+              {/* Filter Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {/* Status Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Order Status
+                  </label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-between bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      >
+                        <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                          {getStatusLabel()}
+                        </span>
+                        <FiFilter className="h-4 w-4 text-slate-400" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      className="w-56 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg"
+                    >
+                      <DropdownMenuItem 
+                        onClick={() => setStatusFilter("all")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={statusFilter === "all" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          All Orders
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setStatusFilter("pending")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={statusFilter === "pending" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Pending
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setStatusFilter("processing")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={statusFilter === "processing" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Processing
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setStatusFilter("delivered")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={statusFilter === "delivered" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Delivered
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setStatusFilter("cancelled")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={statusFilter === "cancelled" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Cancelled
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Sort Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Sort By
+                  </label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-between bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      >
+                        <span className="flex items-center gap-2 text-slate-700 dark:text-slate-300">
+                          {getSortLabel()}
+                        </span>
+                        <FiFilter className="h-4 w-4 text-slate-400" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent 
+                      align="start" 
+                      className="w-56 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 shadow-lg"
+                    >
+                      <DropdownMenuItem 
+                        onClick={() => setSortBy("latest")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={sortBy === "latest" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Newest First
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setSortBy("oldest")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={sortBy === "oldest" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Oldest First
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setSortBy("price-high")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={sortBy === "price-high" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Highest Price
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => setSortBy("price-low")}
+                        className="cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        <span className={sortBy === "price-low" ? "font-semibold text-rose-600 dark:text-rose-400" : ""}>
+                          Lowest Price
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                {/* Results Info */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Results
+                  </label>
+                  <div className="flex items-center h-10 px-4 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-md">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                      {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""} found
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Orders List */}
+        {filteredOrders.length === 0 ? (
+          <OrdersEmptyState
+            type="no-filtered-orders"
+            onResetFilters={resetFilters}
+          />
+        ) : (
+          <>
+            <div className="space-y-4">
+              {paginatedOrders.map((order) => (
+                <OrderCard key={order._id} order={order} />
+              ))}
+            </div>
+
+            <Pagination
+              pagination={paginationInfo}
+              onPageChange={handlePageChange}
+              showInfo={true}
+              className="mt-8"
+            />
+          </>
+        )}
       </div>
     </div>
   );

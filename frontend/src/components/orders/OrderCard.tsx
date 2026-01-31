@@ -24,11 +24,7 @@ import {
   FiEdit3,
 } from "react-icons/fi";
 
-interface OrderCardProps {
-  order: Order;
-}
-
-export function OrderCard({ order }: OrderCardProps) {
+export const OrderCard = ({ order }: { order: Order }) => {
   const [reviewModalProduct, setReviewModalProduct] =
     useState<PendingReviewProduct | null>(null);
 
@@ -68,18 +64,19 @@ export function OrderCard({ order }: OrderCardProps) {
     }
   };
 
-  const getStatusColor = (status?: string) => {
-    switch ((status || "").toLowerCase()) {
+  const getStatusBadgeClasses = (status: string): string => {
+    const statusLower = (status || "processing").toLowerCase();
+    switch (statusLower) {
       case "delivered":
-        return "bg-gradient-to-r from-green-500 to-emerald-600 text-white";
-      case "shipped":
-        return "bg-gradient-to-r from-blue-500 to-indigo-600 text-white";
+        return "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400 border border-green-200 dark:border-green-800/30";
       case "processing":
-        return "bg-gradient-to-r from-yellow-500 to-orange-600 text-white";
+        return "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400 border border-blue-200 dark:border-blue-800/30";
+      case "pending":
+        return "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200 dark:border-amber-800/30";
       case "cancelled":
-        return "bg-gradient-to-r from-red-500 to-rose-600 text-white";
+        return "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400 border border-red-200 dark:border-red-800/30";
       default:
-        return "bg-gradient-to-r from-gray-500 to-slate-600 text-white";
+        return "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700";
     }
   };
 
@@ -109,7 +106,7 @@ export function OrderCard({ order }: OrderCardProps) {
   };
 
   return (
-    <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden">
+    <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 transition-shadow duration-200 hover:shadow-md">
       {/* Order Header */}
       <CardHeader className="bg-gradient-to-r from-slate-50 to-gray-50 dark:from-slate-900/50 dark:to-gray-900/50 border-b border-slate-200/50 dark:border-slate-700/50 p-4 lg:p-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -127,12 +124,7 @@ export function OrderCard({ order }: OrderCardProps) {
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              className={`gap-1 px-3 py-1 font-medium shadow-sm ${getStatusColor(
-                order.status
-              )}`}
-            >
-              {getStatusIcon(order.status)}
+            <Badge className={`${getStatusBadgeClasses(order.status)} px-3 py-1 font-medium`}>
               {order.status || "Processing"}
             </Badge>
             {order.isPaid ? (
@@ -362,4 +354,4 @@ export function OrderCard({ order }: OrderCardProps) {
       )}
     </Card>
   );
-}
+};
