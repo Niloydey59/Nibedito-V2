@@ -13,24 +13,27 @@ export default function MyReviewsPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <div className="container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
-        {/* Header Section - Simplified, no hover effects */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-slate-200 dark:border-slate-800">
+        {/* Enhanced Header with Red Theme Accent */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 mb-6 border-b border-slate-200 dark:border-slate-800 relative">
+          {/* Rose accent line */}
+          <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-rose-500/50 to-transparent"></div>
+          
           <div className="flex items-center gap-4">
-            <div className="p-3 bg-blue-100 dark:bg-blue-950/30 rounded-xl">
-              <MessageSquare className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="p-3 bg-rose-100 dark:bg-rose-950/30 rounded-xl">
+              <MessageSquare className="h-6 w-6 text-rose-600 dark:text-rose-400" />
             </div>
             <div>
               <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mb-1">
-                My Reviews
+                My <span className="text-rose-600 dark:text-rose-400">Reviews</span>
               </h1>
               <p className="text-slate-600 dark:text-slate-400">
-                Manage your product reviews and share your experiences
+                Share your experiences and help others
               </p>
             </div>
           </div>
         </div>
 
-        {/* Reviews Tabs - Simplified styling */}
+        {/* Reviews Tabs */}
         <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
           <CardHeader className="pb-4 border-b border-slate-200 dark:border-slate-800">
             <CardTitle className="text-xl font-semibold">
@@ -46,7 +49,7 @@ export default function MyReviewsPage() {
               <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-100 dark:bg-slate-900 p-1 h-auto">
                 <TabsTrigger
                   value="past"
-                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 data-[state=active]:shadow-sm transition-colors"
+                  className="flex items-center gap-2 py-3 data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400 data-[state=active]:shadow-sm transition-colors"
                 >
                   <MessageSquare className="h-4 w-4" />
                   <span className="hidden sm:inline">Past Reviews</span>
