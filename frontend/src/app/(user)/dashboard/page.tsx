@@ -4,11 +4,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
-import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import DashboardOverview from "@/components/dashboard/DashboardOverview";
 import RecentOrders from "@/components/dashboard/RecentOrders";
-import QuickActions from "@/components/dashboard/QuickActions";
-import AccountSummary from "@/components/dashboard/AccountSummary";
+import DashboardSidebar from "@/components/dashboard/DashboardSidebar";
 import type { AuthContextType } from "@/contexts/AuthContext";
 
 export default function DashboardPage(): React.JSX.Element {
@@ -39,33 +37,47 @@ export default function DashboardPage(): React.JSX.Element {
     }
   };
 
+  const getGreeting = (): string => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good Morning";
+    if (hour < 18) return "Good Afternoon";
+    return "Good Evening";
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 relative overflow-hidden">
-      <div className="relative z-10 container mx-auto px-4 py-6 lg:py-8 max-w-7xl">
-        {/* Header */}
-        <DashboardHeader user={user} onLogout={handleLogout} />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+      <div className="flex min-h-screen">
+        {/* Sidebar */}
+        <DashboardSidebar user={user} onLogout={handleLogout} />
 
-        {/* Main Content Grid */}
-        <div className="mt-6 space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-6">
-          {/* Mobile Order: Account Summary first */}
-          <div className="lg:hidden space-y-6">
-            <AccountSummary user={user} />
-            <QuickActions />
-            <DashboardOverview />
-            <RecentOrders />
-          </div>
+        {/* Main content */}
+        <main className="flex-1 min-w-0 overflow-auto">
+          <div className="container mx-auto px-4 sm:px-6 py-6 lg:py-8 max-w-5xl">
+            {/* Page Header */}
+            <div className="mb-8">
+              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white mb-1">
+                {getGreeting()},{" "}
+                <span className="text-rose-600 dark:text-rose-400">
+                  {user.name.split(" ")[0]}
+                </span>
+                !
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 text-sm">
+                Here&apos;s what&apos;s happening with your account today.
+              </p>
+            </div>
 
-          {/* Desktop Layout - Original order */}
-          <div className="hidden lg:block lg:col-span-8 space-y-6">
-            <DashboardOverview />
-            <RecentOrders />
-          </div>
+            {/* Stats Overview */}
+            <section aria-label="Order statistics" className="mb-6">
+              <DashboardOverview />
+            </section>
 
-          <div className="hidden lg:block lg:col-span-4 space-y-6">
-            <AccountSummary user={user} />
-            <QuickActions />
+            {/* Recent Orders */}
+            <section aria-label="Recent orders">
+              <RecentOrders />
+            </section>
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );

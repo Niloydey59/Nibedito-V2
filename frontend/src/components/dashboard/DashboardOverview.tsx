@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { orderService } from "@/services/orderService";
-import { FiShoppingBag, FiPackage, FiCheckCircle, FiClock } from "react-icons/fi";
+import { FiShoppingBag, FiPackage, FiCheckCircle, FiClock, FiArrowRight } from "react-icons/fi";
 import type { Order } from "@/types";
 
 interface StatsCard {
@@ -12,6 +13,8 @@ interface StatsCard {
   icon: React.ReactNode;
   color: string;
   bgColor: string;
+  href: string;
+  description: string;
 }
 
 export default function DashboardOverview(): React.JSX.Element {
@@ -50,30 +53,38 @@ export default function DashboardOverview(): React.JSX.Element {
     {
       title: "Total Orders",
       value: stats.total,
-      icon: <FiShoppingBag className="w-6 h-6" />,
+      icon: <FiShoppingBag className="w-5 h-5" />,
       color: "text-blue-600 dark:text-blue-400",
-      bgColor: "bg-blue-100 dark:bg-blue-950/30",
+      bgColor: "bg-blue-50 dark:bg-blue-950/30",
+      href: "/my-orders",
+      description: "All time",
     },
     {
       title: "Processing",
       value: stats.processing,
-      icon: <FiPackage className="w-6 h-6" />,
+      icon: <FiPackage className="w-5 h-5" />,
       color: "text-orange-600 dark:text-orange-400",
-      bgColor: "bg-orange-100 dark:bg-orange-950/30",
+      bgColor: "bg-orange-50 dark:bg-orange-950/30",
+      href: "/my-orders?status=processing",
+      description: "Being prepared",
     },
     {
       title: "Delivered",
       value: stats.delivered,
-      icon: <FiCheckCircle className="w-6 h-6" />,
+      icon: <FiCheckCircle className="w-5 h-5" />,
       color: "text-green-600 dark:text-green-400",
-      bgColor: "bg-green-100 dark:bg-green-950/30",
+      bgColor: "bg-green-50 dark:bg-green-950/30",
+      href: "/my-orders?status=delivered",
+      description: "Successfully delivered",
     },
     {
       title: "Pending",
       value: stats.pending,
-      icon: <FiClock className="w-6 h-6" />,
+      icon: <FiClock className="w-5 h-5" />,
       color: "text-yellow-600 dark:text-yellow-400",
-      bgColor: "bg-yellow-100 dark:bg-yellow-950/30",
+      bgColor: "bg-yellow-50 dark:bg-yellow-950/30",
+      href: "/my-orders?status=pending",
+      description: "Awaiting confirmation",
     },
   ];
 
@@ -81,9 +92,9 @@ export default function DashboardOverview(): React.JSX.Element {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="p-4 sm:p-6">
-              <div className="h-16 bg-slate-200 dark:bg-slate-800 rounded" />
+          <Card key={i} className="animate-pulse border-slate-200 dark:border-slate-800">
+            <CardContent className="p-4 sm:p-5">
+              <div className="h-20 bg-slate-200 dark:bg-slate-800 rounded-lg" />
             </CardContent>
           </Card>
         ))}
@@ -94,28 +105,38 @@ export default function DashboardOverview(): React.JSX.Element {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {statsCards.map((stat, index) => (
-        <Card
+        <Link
           key={index}
-          className="hover:shadow-lg transition-all duration-300 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800"
+          href={stat.href}
+          className="group block focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 rounded-2xl"
         >
-          <CardContent className="p-4 sm:p-6">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <div className={`p-2 sm:p-3 rounded-lg ${stat.bgColor} ${stat.color}`}>
-                  {stat.icon}
+          <Card className="h-full border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-700 hover:-translate-y-0.5 transition-all duration-300 rounded-2xl overflow-hidden">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex flex-col gap-3">
+                {/* Icon row */}
+                <div className="flex items-center justify-between">
+                  <div className={`p-2.5 rounded-xl ${stat.bgColor} ${stat.color} transition-transform duration-300 group-hover:scale-110`}>
+                    {stat.icon}
+                  </div>
+                  <FiArrowRight className={`w-4 h-4 opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-x-1 group-hover:translate-x-0 ${stat.color}`} />
+                </div>
+
+                {/* Value + title */}
+                <div>
+                  <p className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white leading-none mb-1">
+                    {stat.value}
+                  </p>
+                  <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {stat.title}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">
+                    {stat.description}
+                  </p>
                 </div>
               </div>
-              <div>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mb-1">
-                  {stat.title}
-                </p>
-                <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                  {stat.value}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </Link>
       ))}
     </div>
   );

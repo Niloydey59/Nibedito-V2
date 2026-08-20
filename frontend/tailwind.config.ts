@@ -116,6 +116,25 @@ const config: Config = {
         'whatsapp-bot': '1050',
         'whatsapp-overlay': '1051',
       },
+      keyframes: {
+        'fade-in': {
+          from: { opacity: '0', transform: 'translateY(-4px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-down': {
+          from: { opacity: '0', transform: 'translateY(-8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
+        'slide-in-left': {
+          from: { opacity: '0', transform: 'translateX(-100%)' },
+          to: { opacity: '1', transform: 'translateX(0)' },
+        },
+      },
+      animation: {
+        'fade-in': 'fade-in 0.15s ease-out',
+        'slide-down': 'slide-down 0.2s ease-out',
+        'slide-in-left': 'slide-in-left 0.25s ease-out',
+      },
     },
   },
   plugins: [
